@@ -47,6 +47,7 @@ const wishesRoutes        = require('./routes/wishesRoutes');
 const postsRoutes         = require('./routes/postsRoutes');
 const emailRoutes         = require('./routes/emailRoutes');
 const housekeeperNetworkRoutes = require('./routes/housekeeperNetworkRoutes');
+const breakNotificationRoutes  = require('./routes/breakNotificationRoutes');
 
 const attendanceController = require('./controllers/attendanceController');
 const cronRoutes           = require('./routes/cronRoutes');
@@ -208,6 +209,8 @@ app.use('/api/cron',        cronRoutes);
 // Onboarding — mixed auth (public token routes + protected admin routes both in same file)
 app.use('/api/onboarding',  onboardingRoutes);
 app.use('/api/offer-letters', offerLetterRoutes);
+// Self-contained auth (verifyToken + strict admin-only check) — see breakNotificationRoutes.js
+app.use('/api/break-notifications', breakNotificationRoutes);
 
 // ─── Protected routes ─────────────────────────────────────────────────────────
 app.use('/api/employees',        authenticateToken, employeeRoutes);
@@ -314,6 +317,18 @@ if (require.main === module) {
             markMissingClockOuts().then(r => {
                 if (r.markedCount > 0) console.log(`✅ Startup missing-clockout fix: ${r.markedCount} record(s) marked`);
             }).catch(e => console.error('❌ Startup missing-clockout error:', e.message));
+        }
+
+        // ── Break overtime notification cron (every 1 min) ─────────────────
+        // Only meaningful on a long-running Node process — node-cron can't stay
+        // resident on Vercel's serverless functions, so this doesn't run there.
+        // See routes/cronRoutes.js's /break-monitor for the serverless equivalent,
+        // though Vercel Hobby's daily-only cron granularity (see vercel.json) can't
+        // give it the same near-real-time behavior; a minute-level external
+        // scheduler hitting that endpoint is the production-on-Vercel option.
+        if (!process.env.VERCEL) {
+            const { scheduleBreakOvertimeCheck } = require('./cron/breakOvertimeCheck');
+            scheduleBreakOvertimeCheck();
         }
 
         // Orphaned-record repair only runs locally — avoid on every Vercel cold start

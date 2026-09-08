@@ -1,7 +1,11 @@
 // backend/utils/onboardingTickets.js
-// Auto-raises IT + Marketing tickets whenever a new employee account is created
-// (via onboarding-link approval or manual Add Employee). Never throws — a
-// failure here must not block or roll back employee creation.
+// Auto-raises IT + Marketing tickets whenever a candidate's onboarding form is
+// submitted — normally once the employee account has actually been created (via
+// onboarding-link approval or manual Add Employee), but also when account creation
+// itself failed for some reason: `accountCreationError` flags that case so the
+// ticket still goes out (clearly marked as pending) instead of being skipped
+// entirely just because the account isn't there yet. Never throws — a failure
+// here must not block or roll back employee creation.
 
 const generateTicketNumber = async (supabase) => {
     const today = new Date();
@@ -30,7 +34,7 @@ const fmtDate = (d) => {
 // Full onboarding detail block the Marketing team needs to prepare the ID card.
 const employeeDetailsBlock = (employee, name) => [
     `Employee Name: ${name}`,
-    `Employee Number: ${employee.employee_id}`,
+    `Employee Number: ${employee.employee_id || 'Pending — account not created yet, see note above'}`,
     `Date of Joining: ${fmtDate(employee.joining_date)}`,
     `Date of Birth: ${fmtDate(employee.dob)}`,
     `Designation: ${employee.designation || 'N/A'}`,
@@ -41,24 +45,32 @@ const employeeDetailsBlock = (employee, name) => [
     `Employee Address: ${employee.address || 'N/A'}`,
 ].join('\n');
 
+// When accountCreationError is set, no `employees` row exists yet — the subject/
+// description say so up front so IT/Marketing don't chase a login that isn't there,
+// and HR knows from the ticket alone that this one needs manual follow-up.
+const pendingPrefix = (accountCreationError) => accountCreationError ? '[ACCOUNT PENDING] ' : '';
+const pendingNote = (accountCreationError) => accountCreationError
+    ? `\n\n⚠ Employee account could not be created automatically (${accountCreationError}). HR needs to resolve this and create the account manually from Admin > Employees > Offer Links before system access / ID card can be finalized.`
+    : '';
+
 const TICKET_SPECS = [
     {
         department: 'IT',
         issue_type: 'New Employee – Assign System Access',
-        subject: (name) => `New Employee Onboarded – Please Assign System for ${name}`,
-        description: (name, designation, employeeId) =>
-            `${name} (${employeeId})${designation ? `, ${designation},` : ''} has been onboarded. Please assign a system/laptop and set up login access.`,
+        subject: (name, accountCreationError) => `${pendingPrefix(accountCreationError)}New Employee Onboarded – Please Assign System for ${name}`,
+        description: (name, designation, employeeId, employee, accountCreationError) =>
+            `${name} (${employeeId || 'employee ID pending'})${designation ? `, ${designation},` : ''} has been onboarded. Please assign a system/laptop and set up login access.${pendingNote(accountCreationError)}`,
     },
     {
         department: 'Marketing',
         issue_type: 'New Employee – Issue ID Card',
-        subject: (name) => `New Employee Onboarded – Please Issue ID Card for ${name}`,
-        description: (name, designation, employeeId, employee) =>
-            `Please prepare and issue a new employee ID card. Employee details:\n\n${employeeDetailsBlock(employee, name)}`,
+        subject: (name, accountCreationError) => `${pendingPrefix(accountCreationError)}New Employee Onboarded – Please Issue ID Card for ${name}`,
+        description: (name, designation, employeeId, employee, accountCreationError) =>
+            `Please prepare and issue a new employee ID card. Employee details:\n\n${employeeDetailsBlock(employee, name)}${pendingNote(accountCreationError)}`,
     },
 ];
 
-async function createOnboardingTickets(supabase, { employee, actor }) {
+async function createOnboardingTickets(supabase, { employee, actor, accountCreationError = null }) {
     try {
         if (!employee || !actor) return;
 
@@ -77,11 +89,11 @@ async function createOnboardingTickets(supabase, { employee, actor }) {
 
             const { data: ticket, error } = await supabase.from('support_tickets').insert({
                 ticket_number:    ticketNumber,
-                subject:          spec.subject(empName),
-                description:      spec.description(empName, employee.designation, employee.employee_id, employee),
+                subject:          spec.subject(empName, accountCreationError),
+                description:      spec.description(empName, employee.designation, employee.employee_id, employee, accountCreationError),
                 department:       spec.department,
                 issue_type:       spec.issue_type,
-                priority:         'high',
+                priority:         accountCreationError ? 'urgent' : 'high',
                 status:           'open',
                 raised_by:        actor.employeeId,
                 raised_by_email:  actorEmail,

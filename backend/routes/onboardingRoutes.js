@@ -33,7 +33,7 @@ const createEmployeeAccountFromSubmission = async (offer, sub) => {
     const tempPassword = `HRMS@${Math.random().toString(36).slice(-6).toUpperCase()}`;
     const hashed = await bcrypt.hash(tempPassword, 10);
 
-    const { data: emp, error: empErr } = await supabase.from('employees').insert([{
+    const employeeInsertPayload = {
         employee_id:    newEmployeeId,
         first_name:     sub.first_name,
         middle_name:    sub.middle_name || null,
@@ -77,8 +77,21 @@ const createEmployeeAccountFromSubmission = async (offer, sub) => {
         can_apply_leave: true,
         profile_completed: true,
         shift_timing:   '9:00 AM - 6:00 PM',
-    }]).select().single();
+    };
 
+    let { data: emp, error: empErr } = await supabase.from('employees').insert([employeeInsertPayload]).select().single();
+
+    // A malformed PAN (or another DB-side validation on this column) must never block
+    // account creation, the onboarding tickets, or the offer letter — HR just needs to
+    // know about it so they can fix it later via the Edit option on the submission.
+    // Retry once with pan_number dropped so everything else still goes through.
+    let panWarning = null;
+    if (empErr && /pan/i.test(empErr.message || '') && employeeInsertPayload.pan_number) {
+        console.warn('[onboarding] employee insert rejected for PAN, retrying without it:', empErr.message);
+        panWarning = empErr.message;
+        ({ data: emp, error: empErr } = await supabase.from('employees')
+            .insert([{ ...employeeInsertPayload, pan_number: null }]).select().single());
+    }
     if (empErr) throw empErr;
 
     // Best-effort offer-letter generation — the onboarding form + offer link already collect
@@ -110,8 +123,34 @@ const createEmployeeAccountFromSubmission = async (offer, sub) => {
         console.warn('[onboarding] offer letter not attached to credentials email (will need to be sent separately from Admin > Employees):', offerErr.message);
     }
 
-    return { employee: emp, employeeId: newEmployeeId, tempPassword, offerLetterAttachment };
+    return { employee: emp, employeeId: newEmployeeId, tempPassword, offerLetterAttachment, panWarning };
 };
+
+// A submitted offer must raise its IT/Marketing onboarding tickets no matter what —
+// even if createEmployeeAccountFromSubmission above threw for some reason we haven't
+// special-cased (bad PAN already self-heals there; this is the catch-all for anything
+// else: a duplicate email, an unexpected DB error, etc). Builds a ticket off the
+// submission data alone (no `employees` row exists yet) and records the failure on
+// the offer's Notes so it's visible next time HR opens it in Offer Links.
+async function raiseTicketDespiteAccountFailure(supabase, { offer, sub, actor, error }) {
+    try {
+        const fallbackEmployee = {
+            employee_id: null,
+            first_name: sub.first_name, last_name: sub.last_name,
+            designation: offer.designation, department: offer.department,
+            joining_date: sub.joining_date, dob: sub.dob, blood_group: sub.blood_group,
+            reporting_manager: offer.reporting_manager, phone: sub.phone,
+            emergency_contact: sub.emergency_contact, address: sub.address,
+        };
+        await createOnboardingTickets(supabase, { employee: fallbackEmployee, actor, accountCreationError: error.message });
+
+        const noteAddition = `⚠ Employee account creation failed — ${error.message}. IT/Marketing tickets were still raised (marked pending); please resolve and approve manually.`;
+        const newNotes = offer.notes ? `${offer.notes}\n${noteAddition}` : noteAddition;
+        await supabase.from('employee_offer_links').update({ notes: newNotes }).eq('id', offer.id);
+    } catch (fallbackErr) {
+        console.error('[onboarding] raiseTicketDespiteAccountFailure itself failed:', fallbackErr);
+    }
+}
 
 // 4 MB per file — keeps each multipart request well under Vercel's 4.5 MB payload cap.
 const uploadSingle = multer({
@@ -295,6 +334,58 @@ router.get('/links/:id/submission', verifyToken, isAdminOrDesktopSupport, async 
     }
 });
 
+// ── PATCH /api/onboarding/links/:id/submission — Protected: edit submitted info ──
+// Lets HR/Admin correct candidate-submitted data (e.g. a mistyped PAN) before or
+// after approval. Field names are identical between employee_onboarding_submissions
+// and employees (see createEmployeeAccountFromSubmission above), so when the account
+// already exists the same edit is pushed into `employees` too, keeping both records
+// in sync instead of silently drifting apart.
+const EDITABLE_SUBMISSION_FIELDS = [
+    'first_name', 'middle_name', 'last_name', 'email', 'phone', 'dob', 'gender', 'blood_group',
+    'linkedin_url', 'address', 'city', 'state', 'pincode', 'joining_date',
+    'bank_account_name', 'account_number', 'ifsc_code', 'branch_name',
+    'pan_number', 'aadhar_number', 'uan',
+    'emergency_contact', 'emergency_contact_name', 'emergency_contact_relation',
+];
+
+router.patch('/links/:id/submission', verifyToken, isAdmin, async (req, res) => {
+    try {
+        const { data: offer } = await supabase
+            .from('employee_offer_links').select('id, created_employee_id').eq('id', req.params.id).maybeSingle();
+        if (!offer) return res.status(404).json({ success: false, message: 'Offer not found' });
+
+        const updates = {};
+        EDITABLE_SUBMISSION_FIELDS.forEach(f => {
+            if (Object.prototype.hasOwnProperty.call(req.body, f)) {
+                const v = req.body[f];
+                updates[f] = (typeof v === 'string' && v.trim() === '') ? null : v;
+            }
+        });
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({ success: false, message: 'No editable fields provided' });
+        }
+
+        const { data: updatedSub, error } = await supabase.from('employee_onboarding_submissions')
+            .update(updates).eq('offer_id', req.params.id).select().maybeSingle();
+        if (error) throw error;
+        if (!updatedSub) return res.status(404).json({ success: false, message: 'No submission found for this offer' });
+
+        let employeeSyncWarning = null;
+        if (offer.created_employee_id) {
+            const { error: empErr } = await supabase.from('employees')
+                .update(updates).eq('employee_id', offer.created_employee_id);
+            if (empErr) {
+                console.error('[onboarding] submission edit: failed to sync employees row:', empErr.message);
+                employeeSyncWarning = `Saved to the submission, but could not update the live employee record: ${empErr.message}`;
+            }
+        }
+
+        res.json({ success: true, submission: updatedSub, warning: employeeSyncWarning });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 // ── PATCH /api/onboarding/links/:id/expire — Protected: expire a link ─────────
 router.patch('/links/:id/expire', verifyToken, isAdminOrDesktopSupport, async (req, res) => {
     try {
@@ -351,7 +442,21 @@ router.patch('/links/:id/approve', verifyToken, isAdmin, async (req, res) => {
             .from('employee_onboarding_submissions').select('*').eq('offer_id', req.params.id).maybeSingle();
         if (!sub) return res.status(404).json({ success: false, message: 'No submission found for this offer' });
 
-        const { employee: emp, employeeId: newEmployeeId, tempPassword, offerLetterAttachment } = await createEmployeeAccountFromSubmission(offer, sub);
+        let accountResult;
+        try {
+            accountResult = await createEmployeeAccountFromSubmission(offer, sub);
+        } catch (accountErr) {
+            // The offer was submitted — a ticket goes out regardless of whether the account
+            // itself could be created, so IT/Marketing/HR aren't left unaware of the new hire.
+            console.error('[onboarding] approve: account creation failed, raising ticket anyway:', accountErr.message);
+            await raiseTicketDespiteAccountFailure(supabase, { offer, sub, actor: req.user, error: accountErr });
+            return res.status(500).json({
+                success: false,
+                message: `Employee account could not be created: ${accountErr.message}. A support ticket has still been raised for this candidate — see Notes on this offer.`,
+                ticket_raised: true,
+            });
+        }
+        const { employee: emp, employeeId: newEmployeeId, tempPassword, offerLetterAttachment, panWarning } = accountResult;
 
         emailService.sendEmployeeCredentialsEmail(emp, { employeeId: newEmployeeId, tempPassword }, offerLetterAttachment)
             .catch(e => console.error('❌ Failed to send employee-credentials email:', e.message));
@@ -368,12 +473,23 @@ router.patch('/links/:id/approve', verifyToken, isAdmin, async (req, res) => {
             updated_at:           now.toISOString(),
         }).eq('id', req.params.id);
 
+        // Persist the warning to Notes too — the modal only shows it once, but HR should
+        // still be able to see why the PAN is missing when they come back to this offer later.
+        if (panWarning) {
+            const noteAddition = `⚠ PAN not saved — ${panWarning}. Correct it via Edit; it will sync to the employee record.`;
+            const newNotes = offer.notes ? `${offer.notes}\n${noteAddition}` : noteAddition;
+            await supabase.from('employee_offer_links').update({ notes: newNotes }).eq('id', req.params.id);
+        }
+
         res.json({
             success: true,
-            message: 'Employee account created successfully',
+            message: panWarning
+                ? `Employee account created successfully. Note: ${panWarning} — PAN was not saved and can be corrected via Edit.`
+                : 'Employee account created successfully',
             employee_id:   newEmployeeId,
             temp_password: tempPassword,
             employee:      emp,
+            warning:       panWarning || null,
         });
     } catch (err) {
         console.error('[onboarding] approve:', err);
@@ -655,9 +771,17 @@ router.post('/:token/submit', async (req, res) => {
             // Step 1 — create the employee account. This is the part that actually matters
             // for "auto-approve" — everything after this is bookkeeping, so a failure here
             // (and only here) should fall back to the old manual-review state.
-            const { employee: emp, employeeId: newEmployeeId, tempPassword, offerLetterAttachment } =
+            const { employee: emp, employeeId: newEmployeeId, tempPassword, offerLetterAttachment, panWarning } =
                 await createEmployeeAccountFromSubmission(offer, submissionRow);
             credentials = { employee_id: newEmployeeId, temp_password: tempPassword, email: emp.email };
+
+            // The candidate-facing response below never mentions this — persist it to Notes
+            // so HR/Admin sees it the next time they open this offer in Offer Links.
+            if (panWarning) {
+                const noteAddition = `⚠ PAN not saved — ${panWarning}. Correct it via Edit; it will sync to the employee record.`;
+                const newNotes = offer.notes ? `${offer.notes}\n${noteAddition}` : noteAddition;
+                await supabase.from('employee_offer_links').update({ notes: newNotes }).eq('token', req.params.token);
+            }
 
             // Fire-and-forget: email the new employee their own credentials (+ their offer
             // letter, when generation succeeded above) — never blocks the response, and a
@@ -702,7 +826,8 @@ router.post('/:token/submit', async (req, res) => {
         } catch (autoApproveErr) {
             // Account creation itself failed (e.g. duplicate email already in `employees`)
             // — fall back to the old manual-review state rather than losing the
-            // candidate's submitted data.
+            // candidate's submitted data. The form was still submitted, though, so the
+            // IT/Marketing tickets go out regardless — see raiseTicketDespiteAccountFailure.
             console.error('[onboarding] auto-approve on submit failed:', {
                 message: autoApproveErr?.message, details: autoApproveErr?.details,
                 hint: autoApproveErr?.hint, code: autoApproveErr?.code,
@@ -713,6 +838,9 @@ router.post('/:token/submit', async (req, res) => {
                 submitted_at: now.toISOString(),
                 updated_at: now.toISOString(),
             }).eq('token', req.params.token);
+            await raiseTicketDespiteAccountFailure(supabase, {
+                offer, sub: submissionRow, actor: { employeeId: offer.generated_by }, error: autoApproveErr,
+            });
         }
 
         return res.status(201).json({

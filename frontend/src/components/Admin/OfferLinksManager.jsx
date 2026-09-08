@@ -4,6 +4,7 @@ import {
     Copy, RefreshCw, CheckCircle, XCircle, FileText, Trash2, UserPlus,
     Search, Download, ExternalLink, ChevronRight, Clock, User, CreditCard,
     ShieldCheck, Phone, ImageIcon, AlertTriangle, KeyRound, Zap, EyeOff,
+    Pencil, Save, X,
 } from 'lucide-react';
 import API_ENDPOINTS from '../../config/api';
 
@@ -93,6 +94,27 @@ const InfoRow = ({ label, value }) => (
     </div>
 );
 
+// ── Editable field row — InfoRow in view mode, a plain input in edit mode ──────
+// `raw` is the unformatted value (bound to the input + saved to the backend);
+// `display` is only used to render the view-mode text (e.g. a formatted date).
+const FieldRow = ({ label, field, type = 'text', raw, display, editMode, onChange }) => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <span style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: 600 }}>{label}</span>
+        {editMode ? (
+            <input
+                type={type}
+                value={raw ?? ''}
+                onChange={e => onChange(field, e.target.value)}
+                style={{ fontSize: 13, padding: '6px 8px', border: '1px solid #a5b4fc', borderRadius: 6, background: '#fff', color: '#111827' }}
+            />
+        ) : (
+            <span style={{ fontSize: 13, color: '#111827', fontWeight: 500 }}>{(display ?? raw) || '—'}</span>
+        )}
+    </div>
+);
+
+const isoDate = (v) => (v ? String(v).split('T')[0] : '');
+
 // ── Section header ────────────────────────────────────────────────────────────
 const Section = ({ icon: Icon, title, children }) => (
     <div style={{ marginBottom: 20 }}>
@@ -124,6 +146,12 @@ export default function OfferLinksManager() {
     const [subData, setSubData]         = useState(null);
     const [subLoading, setSubLoading]   = useState(false);
 
+    // Edit submission (Personal/Bank/ID/Emergency fields)
+    const [editMode, setEditMode]       = useState(false);
+    const [editForm, setEditForm]       = useState(null);
+    const [savingEdit, setSavingEdit]   = useState(false);
+    const [editError, setEditError]     = useState('');
+
     // Approve modal
     const [approveModal, setApproveModal]   = useState(null);
     const [approveResult, setApproveResult] = useState(null);
@@ -150,6 +178,7 @@ export default function OfferLinksManager() {
         if (selected?.id === link.id) { setSelected(null); setSubData(null); return; }
         setSelected(link);
         setSubData(null);
+        setEditMode(false); setEditForm(null); setEditError('');
         const st = link.effective_status || link.status;
         if (['submitted', 'approved'].includes(st)) {
             setSubLoading(true);
@@ -242,7 +271,36 @@ export default function OfferLinksManager() {
             await load();
         } catch (err) {
             setApproveResult({ success: false, message: err.message });
+            // Even on failure a ticket may have been raised and a note added to this
+            // offer (see raiseTicketDespiteAccountFailure on the backend) — refresh so
+            // that's reflected next time this offer is reopened.
+            await load();
         } finally { setApproving(false); }
+    };
+
+    const startEdit = () => { setEditForm({ ...subData }); setEditMode(true); setEditError(''); };
+    const cancelEdit = () => { setEditMode(false); setEditForm(null); setEditError(''); };
+    const handleFieldChange = (field, value) => setEditForm(prev => ({ ...prev, [field]: value }));
+
+    const saveEdit = async () => {
+        setSavingEdit(true); setEditError('');
+        try {
+            const res = await authFetch(API_ENDPOINTS.ONBOARDING_LINK_SUBMISSION(selected.id), {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(editForm),
+            });
+            const d = await res.json();
+            if (!d.success) throw new Error(d.message);
+            setSubData(d.submission);
+            setEditMode(false);
+            setEditForm(null);
+            if (d.warning) setEditError(d.warning);
+        } catch (err) {
+            setEditError(err.message);
+        } finally {
+            setSavingEdit(false);
+        }
     };
 
     // Filter logic
@@ -548,52 +606,109 @@ export default function OfferLinksManager() {
                                 <Alert variant="danger" style={{ fontSize: 13 }}>{subData._error}</Alert>
                             ) : subData ? (
                                 <>
+                                    {/* Edit toolbar */}
+                                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 12 }}>
+                                        {editMode ? (
+                                            <>
+                                                <button onClick={cancelEdit} disabled={savingEdit}
+                                                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#f9fafb', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#374151' }}>
+                                                    <X size={14} /> Cancel
+                                                </button>
+                                                <button onClick={saveEdit} disabled={savingEdit}
+                                                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: 'none', borderRadius: 8, background: '#10b981', cursor: 'pointer', fontSize: 13, fontWeight: 700, color: '#fff' }}>
+                                                    {savingEdit ? <Spinner size="sm" animation="border" style={{ width: 13, height: 13 }} /> : <Save size={14} />}
+                                                    Save
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <button onClick={startEdit}
+                                                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid #c7d2fe', borderRadius: 8, background: '#eef2ff', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#4338ca' }}>
+                                                <Pencil size={13} /> Edit
+                                            </button>
+                                        )}
+                                    </div>
+                                    {editError && <Alert variant="danger" style={{ fontSize: 13 }} dismissible onClose={() => setEditError('')}>{editError}</Alert>}
+                                    {selSt === 'approved' && selected.created_employee_id && editMode && (
+                                        <div style={{ fontSize: 12, color: '#92400e', background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 8, padding: '6px 10px', marginBottom: 12 }}>
+                                            This employee's account already exists — saving will also update their live employee record.
+                                        </div>
+                                    )}
+
                                     {/* Personal */}
                                     <Section icon={User} title="Personal Information">
-                                        <InfoRow label="First Name"   value={subData.first_name} />
-                                        <InfoRow label="Middle Name"  value={subData.middle_name} />
-                                        <InfoRow label="Last Name"    value={subData.last_name} />
-                                        <InfoRow label="Email"        value={subData.email} />
-                                        <InfoRow label="Phone"        value={subData.phone} />
-                                        <InfoRow label="Date of Birth" value={fmtDate(subData.dob)} />
-                                        <InfoRow label="Gender"       value={subData.gender} />
-                                        <InfoRow label="Blood Group"  value={subData.blood_group} />
-                                        <InfoRow label="Joining Date" value={fmtDate(subData.joining_date)} />
-                                        <div>
-                                            <span style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: 600, display: 'block' }}>LinkedIn Profile</span>
-                                            {subData.linkedin_url ? (
-                                                <a href={subData.linkedin_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: '#2563eb', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                                                    <ExternalLink size={13} /> View Profile
-                                                </a>
-                                            ) : (
-                                                <span style={{ fontSize: 13, color: '#111827', fontWeight: 500 }}>—</span>
-                                            )}
-                                        </div>
-                                        <div style={{ gridColumn: '1 / -1' }}>
-                                            <InfoRow label="Address" value={[subData.address, subData.city, subData.state, subData.pincode].filter(Boolean).join(', ')} />
-                                        </div>
+                                        <FieldRow label="First Name" field="first_name" editMode={editMode} onChange={handleFieldChange}
+                                            raw={editMode ? editForm?.first_name : subData.first_name} />
+                                        <FieldRow label="Middle Name" field="middle_name" editMode={editMode} onChange={handleFieldChange}
+                                            raw={editMode ? editForm?.middle_name : subData.middle_name} />
+                                        <FieldRow label="Last Name" field="last_name" editMode={editMode} onChange={handleFieldChange}
+                                            raw={editMode ? editForm?.last_name : subData.last_name} />
+                                        <FieldRow label="Email" field="email" type="email" editMode={editMode} onChange={handleFieldChange}
+                                            raw={editMode ? editForm?.email : subData.email} />
+                                        <FieldRow label="Phone" field="phone" editMode={editMode} onChange={handleFieldChange}
+                                            raw={editMode ? editForm?.phone : subData.phone} />
+                                        <FieldRow label="Date of Birth" field="dob" type="date" editMode={editMode} onChange={handleFieldChange}
+                                            raw={editMode ? isoDate(editForm?.dob) : isoDate(subData.dob)} display={fmtDate(subData.dob)} />
+                                        <FieldRow label="Gender" field="gender" editMode={editMode} onChange={handleFieldChange}
+                                            raw={editMode ? editForm?.gender : subData.gender} />
+                                        <FieldRow label="Blood Group" field="blood_group" editMode={editMode} onChange={handleFieldChange}
+                                            raw={editMode ? editForm?.blood_group : subData.blood_group} />
+                                        <FieldRow label="Joining Date" field="joining_date" type="date" editMode={editMode} onChange={handleFieldChange}
+                                            raw={editMode ? isoDate(editForm?.joining_date) : isoDate(subData.joining_date)} display={fmtDate(subData.joining_date)} />
+                                        {editMode ? (
+                                            <FieldRow label="LinkedIn Profile" field="linkedin_url" editMode={editMode} onChange={handleFieldChange}
+                                                raw={editForm?.linkedin_url} />
+                                        ) : (
+                                            <div>
+                                                <span style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: 600, display: 'block' }}>LinkedIn Profile</span>
+                                                {subData.linkedin_url ? (
+                                                    <a href={subData.linkedin_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: '#2563eb', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                                        <ExternalLink size={13} /> View Profile
+                                                    </a>
+                                                ) : (
+                                                    <span style={{ fontSize: 13, color: '#111827', fontWeight: 500 }}>—</span>
+                                                )}
+                                            </div>
+                                        )}
+                                        <FieldRow label="Address" field="address" editMode={editMode} onChange={handleFieldChange}
+                                            raw={editMode ? editForm?.address : subData.address} />
+                                        <FieldRow label="City" field="city" editMode={editMode} onChange={handleFieldChange}
+                                            raw={editMode ? editForm?.city : subData.city} />
+                                        <FieldRow label="State" field="state" editMode={editMode} onChange={handleFieldChange}
+                                            raw={editMode ? editForm?.state : subData.state} />
+                                        <FieldRow label="Pincode" field="pincode" editMode={editMode} onChange={handleFieldChange}
+                                            raw={editMode ? editForm?.pincode : subData.pincode} />
                                     </Section>
 
                                     {/* Bank */}
                                     <Section icon={CreditCard} title="Bank Details">
-                                        <InfoRow label="Account Holder" value={subData.bank_account_name} />
-                                        <InfoRow label="Account Number"  value={subData.account_number} />
-                                        <InfoRow label="IFSC Code"       value={subData.ifsc_code} />
-                                        <InfoRow label="Branch Name"     value={subData.branch_name} />
+                                        <FieldRow label="Account Holder" field="bank_account_name" editMode={editMode} onChange={handleFieldChange}
+                                            raw={editMode ? editForm?.bank_account_name : subData.bank_account_name} />
+                                        <FieldRow label="Account Number" field="account_number" editMode={editMode} onChange={handleFieldChange}
+                                            raw={editMode ? editForm?.account_number : subData.account_number} />
+                                        <FieldRow label="IFSC Code" field="ifsc_code" editMode={editMode} onChange={handleFieldChange}
+                                            raw={editMode ? editForm?.ifsc_code : subData.ifsc_code} />
+                                        <FieldRow label="Branch Name" field="branch_name" editMode={editMode} onChange={handleFieldChange}
+                                            raw={editMode ? editForm?.branch_name : subData.branch_name} />
                                     </Section>
 
                                     {/* IDs */}
                                     <Section icon={ShieldCheck} title="ID Numbers">
-                                        <InfoRow label="PAN Number"    value={subData.pan_number} />
-                                        <InfoRow label="Aadhar Number" value={subData.aadhar_number} />
-                                        <InfoRow label="UAN (PF)"      value={subData.uan} />
+                                        <FieldRow label="PAN Number" field="pan_number" editMode={editMode} onChange={handleFieldChange}
+                                            raw={editMode ? editForm?.pan_number : subData.pan_number} />
+                                        <FieldRow label="Aadhar Number" field="aadhar_number" editMode={editMode} onChange={handleFieldChange}
+                                            raw={editMode ? editForm?.aadhar_number : subData.aadhar_number} />
+                                        <FieldRow label="UAN (PF)" field="uan" editMode={editMode} onChange={handleFieldChange}
+                                            raw={editMode ? editForm?.uan : subData.uan} />
                                     </Section>
 
                                     {/* Emergency */}
                                     <Section icon={Phone} title="Emergency Contact">
-                                        <InfoRow label="Contact Name"   value={subData.emergency_contact_name} />
-                                        <InfoRow label="Phone Number"   value={subData.emergency_contact} />
-                                        <InfoRow label="Relationship"   value={subData.emergency_contact_relation} />
+                                        <FieldRow label="Contact Name" field="emergency_contact_name" editMode={editMode} onChange={handleFieldChange}
+                                            raw={editMode ? editForm?.emergency_contact_name : subData.emergency_contact_name} />
+                                        <FieldRow label="Phone Number" field="emergency_contact" editMode={editMode} onChange={handleFieldChange}
+                                            raw={editMode ? editForm?.emergency_contact : subData.emergency_contact} />
+                                        <FieldRow label="Relationship" field="emergency_contact_relation" editMode={editMode} onChange={handleFieldChange}
+                                            raw={editMode ? editForm?.emergency_contact_relation : subData.emergency_contact_relation} />
                                     </Section>
 
                                     {/* Documents */}
@@ -666,6 +781,11 @@ export default function OfferLinksManager() {
                                     <div style={{ fontFamily: 'monospace', fontSize: 15, marginTop: 4, color: '#92400e' }}>{approveResult.temp_password}</div>
                                     <div style={{ fontSize: 11, color: '#92400e', marginTop: 6 }}>Share this securely. The employee can change it after first login.</div>
                                 </div>
+                                {approveResult.warning && (
+                                    <div style={{ marginTop: 12, background: '#fff7ed', border: '1px solid #fdba74', borderRadius: 8, padding: 12, fontSize: 12, textAlign: 'left', color: '#9a3412' }}>
+                                        <strong>Note:</strong> {approveResult.warning} — the account, offer letter, and onboarding tickets were still created. Fix it via the Edit option on this offer.
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <Alert variant="danger">{approveResult.message}</Alert>

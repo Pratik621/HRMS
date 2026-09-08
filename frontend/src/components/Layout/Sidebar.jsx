@@ -6,11 +6,12 @@ import {
   FaUserCircle, FaSignOutAlt, FaFingerprint, FaClock,
   FaBell, FaPaperPlane, FaEdit, FaUserTie,
   FaBullhorn, FaStar, FaChevronRight, FaLayerGroup, FaDesktop, FaChartLine, FaMinusCircle, FaFileExcel,
-  FaTicketAlt, FaReceipt, FaFileInvoiceDollar, FaCoins, FaEnvelope, FaShieldAlt
+  FaTicketAlt, FaReceipt, FaFileInvoiceDollar, FaCoins, FaEnvelope, FaShieldAlt, FaBellSlash
 } from 'react-icons/fa';
 import axios from '../../config/axios';
 import API_ENDPOINTS from '../../config/api';
 import { Badge } from 'react-bootstrap';
+import NotifyEmailsModal from '../Admin/NotifyEmailsModal';
 
 const SIDEBAR_OPEN   = '260px';
 const SIDEBAR_CLOSED = '72px';
@@ -25,6 +26,7 @@ const Sidebar = () => {
   const [isOpen, setIsOpen]     = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
+  const [showNotifyEmails, setShowNotifyEmails] = useState(false);
 
   /* ── data fetching ── */
   useEffect(() => {
@@ -250,6 +252,17 @@ const Sidebar = () => {
               <NavItem to="/admin/broadcast" icon={<FaBullhorn />} label="Broadcast" />
               <NavItem to="/admin/email" icon={<FaEnvelope />} label="Email" />
               <NavItem to="/admin/network-security" icon={<FaShieldAlt />} label="IP Access Control" />
+              {user?.role === 'admin' && (
+                <button
+                  onClick={() => { setShowNotifyEmails(true); closeSidebar(); }}
+                  className="hrms-nav-item"
+                  style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}
+                  title={!isOpen ? 'Notify Emails' : ''}
+                >
+                  <span className="hrms-nav-item__icon"><FaBellSlash /></span>
+                  {isOpen && <span className="hrms-nav-item__label">Notify Emails</span>}
+                </button>
+              )}
             </>
           ) : user?.role === 'sub_admin' ? (
             <>
@@ -376,6 +389,10 @@ const Sidebar = () => {
         </div>
 
       </aside>
+
+      {user?.role === 'admin' && (
+        <NotifyEmailsModal show={showNotifyEmails} onClose={() => setShowNotifyEmails(false)} />
+      )}
     </>
   );
 };

@@ -15,6 +15,7 @@ const attendanceController = require('../controllers/attendanceController');
 const { markAbsentEmployeesAsLeave } = require('../cron/absentEmployeeCheck');
 const { runMonthlyAccrual } = require('../cron/leaveAccrualJob');
 const { markMissingClockOuts } = require('../cron/missingClockOutCheck');
+const { checkBreakOvertimeAndNotify } = require('../cron/breakOvertimeCheck');
 
 const cronAuth = (req, res, next) => {
     const secret = process.env.CRON_SECRET;
@@ -44,6 +45,23 @@ router.get('/missing-clockout', cronAuth, async (req, res) => {
         res.json({ success: true, markedCount: result.markedCount ?? 0, ms: Date.now() - t });
     } catch (err) {
         console.error('❌ [CRON missing-clockout]', err.message);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// GET /api/cron/break-monitor — every minute, ideally (external trigger).
+// Vercel Hobby's cron config only supports daily schedules (see vercel.json), so this
+// isn't wired into the `crons` array there — on Vercel, near-real-time break-overtime
+// alerts need an external scheduler (cron-job.org, GitHub Actions, etc.) hitting this
+// endpoint every minute with the CRON_SECRET bearer token. Off Vercel, the local
+// node-cron in cron/breakOvertimeCheck.js already does this every minute on its own.
+router.get('/break-monitor', cronAuth, async (req, res) => {
+    const t = Date.now();
+    try {
+        const result = await checkBreakOvertimeAndNotify();
+        res.json({ success: true, ...result, ms: Date.now() - t });
+    } catch (err) {
+        console.error('❌ [CRON break-monitor]', err.message);
         res.status(500).json({ success: false, error: err.message });
     }
 });

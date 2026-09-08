@@ -711,6 +711,65 @@ const resolveRecipient = (employee) => {
     return { to: employee.email || null, name };
 };
 
+const fmtIstTime = (d) => d
+    ? new Date(d).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true })
+    : '—';
+
+// ─── BREAK OVERTIME NOTIFICATION ─────────────────────────────────────────────
+// One email to every admin-configured recipient (not per-employee) — `notifyEmails`
+// is passed straight through as the `to` array, same as any other multi-recipient
+// send in this file.
+const sendBreakOvertimeEmail = async (notifyEmails, details) => {
+    const { employeeName, breakTypeLabel, allowedMinutes, breakStart } = details;
+    if (!notifyEmails?.length) return { success: false, reason: 'no_recipients' };
+
+    const html = shell('Employee Break Time Exceeded', `
+        ${h2('⏰ Break Time Exceeded')}
+        ${para(`${employeeName} has exceeded their allowed ${breakTypeLabel.toLowerCase()} duration and has not yet ended it.`)}
+        ${tbl(
+            row('Employee', employeeName, true) +
+            row('Break Type', breakTypeLabel) +
+            row('Allowed Duration', `${allowedMinutes} minutes`) +
+            row('Break Started', fmtIstTime(breakStart)) +
+            row('Current Status', 'Break time exceeded', true)
+        )}
+    `);
+
+    return sendEmail({
+        to: notifyEmails,
+        subject: 'Employee Break Time Exceeded',
+        html,
+        text: `Employee: ${employeeName}\nBreak Type: ${breakTypeLabel}\nAllowed Duration: ${allowedMinutes} minutes\nBreak Started: ${fmtIstTime(breakStart)}\nCurrent Status: Break time exceeded`,
+    });
+};
+
+// ─── BREAK ENDED NOTIFICATION ─────────────────────────────────────────────────
+const sendBreakEndedEmail = async (notifyEmails, details) => {
+    const { employeeName, breakTypeLabel, allowedMinutes, breakStart, breakEnd, actualMinutes, overtimeMinutes } = details;
+    if (!notifyEmails?.length) return { success: false, reason: 'no_recipients' };
+
+    const html = shell('Employee Break Ended', `
+        ${h2('✅ Break Ended')}
+        ${para(`${employeeName} has ended their ${breakTypeLabel.toLowerCase()}.`)}
+        ${tbl(
+            row('Employee', employeeName, true) +
+            row('Break Type', breakTypeLabel) +
+            row('Break Started', fmtIstTime(breakStart)) +
+            row('Break Ended', fmtIstTime(breakEnd)) +
+            row('Allowed Duration', `${allowedMinutes} minutes`) +
+            row('Actual Duration', `${actualMinutes} minutes`) +
+            (overtimeMinutes > 0 ? row('Overtime', `${overtimeMinutes} minutes`, true) : '')
+        )}
+    `);
+
+    return sendEmail({
+        to: notifyEmails,
+        subject: 'Employee Break Ended',
+        html,
+        text: `Employee: ${employeeName}\nBreak Type: ${breakTypeLabel}\nBreak Started: ${fmtIstTime(breakStart)}\nBreak Ended: ${fmtIstTime(breakEnd)}\nAllowed Duration: ${allowedMinutes} minutes\nActual Duration: ${actualMinutes} minutes${overtimeMinutes > 0 ? `\nOvertime: ${overtimeMinutes} minutes` : ''}`,
+    });
+};
+
 module.exports = {
     sendEmail,
     sendShiftChangeEmail,
@@ -728,4 +787,6 @@ module.exports = {
     sendManualEmail,
     sendOfferLinkEmail,
     sendOfferLetterEmail,
+    sendBreakOvertimeEmail,
+    sendBreakEndedEmail,
 };
