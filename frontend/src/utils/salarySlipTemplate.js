@@ -13,11 +13,13 @@ export const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
-export const fmtNum = (v) => new Intl.NumberFormat('en-IN').format(Number(v) || 0);
+// Salary slips must show whole rupees only, on screen and in the downloaded PDF alike —
+// round here (not just cap display digits) so both paths always agree on the same number.
+export const fmtNum = (v) => new Intl.NumberFormat('en-IN').format(Math.round(Number(v) || 0));
 
 export const fmtCurrency = (v) =>
   v != null
-    ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(Number(v) || 0)
+    ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.round(Number(v) || 0))
     : '₹0';
 
 export const numberToWords = (num) => {

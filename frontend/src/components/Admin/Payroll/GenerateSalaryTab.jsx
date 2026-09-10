@@ -11,7 +11,7 @@ import axios from '../../../config/axios';
 import API_ENDPOINTS from '../../../config/api';
 import { useNotification } from '../../../context/NotificationContext';
 
-const fmt = (v) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(Number(v) || 0);
+const fmt = (v) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.round(Number(v) || 0));
 
 const GenerateSalaryTab = ({ month, year, cycleLabel, records, refetch }) => {
   const { showNotification } = useNotification();

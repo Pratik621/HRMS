@@ -20,7 +20,7 @@ import SalarySlipView from '../Common/SalarySlipView';
 // The on-screen slip layout itself lives in ../Common/SalarySlipView.jsx.
 const fmt = (v) =>
   v != null
-    ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(Number(v) || 0)
+    ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.round(Number(v) || 0))
     : '₹0';
 
 const fmtDate = (d) =>
