@@ -52,6 +52,7 @@ export default function AttendanceCard({
   shiftTiming,
   footerExtra,
   unlimitedBreaks = false,
+  hideClockToggle = false,
 }) {
   // Anchored to the trusted server clock (utils/serverTime.js), not this device's own clock —
   // the employee/admin's laptop time must never be able to move this display, since it's the
@@ -114,6 +115,12 @@ export default function AttendanceCard({
       ) : hasOpen && !canClockOut ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap' }}>
           <span style={{ fontSize: 12, fontWeight: 600, background: 'rgba(255,255,255,0.18)', padding: '8px 16px', borderRadius: 10, whiteSpace: 'nowrap' }}>Clocked in ✓</span>
+          <BreakWidget mode="inline-button" isClockedIn={!!(attendance?.clock_in || activeSession)} isClockedOut={isClockedOutToday} unlimitedBreaks={unlimitedBreaks} />
+        </div>
+      ) : hideClockToggle ? (
+        // Clock In/Clock Out now live as separate buttons elsewhere (e.g. the dashboard's
+        // welcome banner) — this card just keeps the Break button here on its own.
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap' }}>
           <BreakWidget mode="inline-button" isClockedIn={!!(attendance?.clock_in || activeSession)} isClockedOut={isClockedOutToday} unlimitedBreaks={unlimitedBreaks} />
         </div>
       ) : (

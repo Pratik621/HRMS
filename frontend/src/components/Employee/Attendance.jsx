@@ -30,7 +30,6 @@ import { useMobileDevice } from '../../hooks/useMobileDevice';
 import {
   DA, STATUS_PILL, DA_TH_STYLE, DA_CARD_STYLE, DA_GRADIENT_BAR, ATTENDANCE_TABLE_CSS,
 } from '../Common/attendanceTheme';
-import BreakWidget from '../Common/BreakWidget';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -99,7 +98,6 @@ const Attendance = () => {
   const [showExitWarning, setShowExitWarning] = useState(false);
   const [hasClockedOutToday, setHasClockedOutToday] = useState(false);
   const [employeeDob, setEmployeeDob] = useState(null);
-  const [employeeDepartment, setEmployeeDepartment] = useState('');
   const [attendanceHistory, setAttendanceHistory] = useState([]);
   const [isSessionValid, setIsSessionValid] = useState(false);
   const [hasIncompleteRecord, setHasIncompleteRecord] = useState(false);
@@ -160,7 +158,6 @@ const Attendance = () => {
   const [myRegularizations, setMyRegularizations] = useState([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  const [canClockOut, setCanClockOut] = useState(false);
 
   const STORAGE_KEY = `attendance_session_${user?.employeeId}`;
 
@@ -1735,14 +1732,6 @@ const Attendance = () => {
     return () => clearInterval(interval);
   }, [attendance?.clock_in, attendance?.clock_out]);
 
-  useEffect(() => {
-    setCanClockOut(false);
-    const isClockedIn = (!!attendance?.clock_in || !!activeSession) && !attendance?.clock_out;
-    if (!isClockedIn) return;
-    const timer = setTimeout(() => setCanClockOut(true), 3000);
-    return () => clearTimeout(timer);
-  }, [attendance?.clock_in, attendance?.clock_out, !!activeSession]);
-
   // Housekeeper-only: same network gate as the main dashboard — hide the clock in/out
   // button (instead of letting them click it and hit a 403) when off an allowlisted
   // network. See Employee/Dashboard.jsx for the twin implementation and
@@ -1896,95 +1885,13 @@ const Attendance = () => {
     );
   };
 
+  // Clock In/Clock Out (and the paired Break button) now live on the Dashboard page's
+  // welcome banner instead of here — this page keeps only past-date missed-punch
+  // regularization requests, which are a distinct action from today's live clock action.
   const renderClockButton = () => {
-    if (networkBlocked) {
-      return (
-        <div className="text-center">
-          <Button variant="secondary" size="lg" className="w-100 py-3" disabled style={{ cursor: 'not-allowed', opacity: 0.65 }}>
-            <FaSignOutAlt className="me-2" /> Clock In / Clock Out
-          </Button>
-          <small className="d-block mt-2" style={{ color: '#ef4444', fontWeight: 500 }}>
-            Please connect to company Wi-Fi for clock in.
-          </small>
-        </div>
-      );
-    }
-
-    // Housekeepers are allowed to clock in/out from mobile (that's the point of the
-    // role — see Employee/Dashboard.jsx) as long as they're on an allowlisted network,
-    // checked above. Every other role stays desktop-only here.
-    if (isMobileDevice && user?.role !== 'housekeeper') {
-      return (
-        <div className="text-center">
-          <Button variant="secondary" size="lg" className="w-100 py-3" disabled style={{ cursor: 'not-allowed', opacity: 0.65 }}>
-            <FaSignOutAlt className="me-2" /> Clock In / Clock Out
-          </Button>
-          <small className="d-block mt-2" style={{ color: '#ef4444', fontWeight: 500 }}>
-            Clock In / Clock Out is not available on mobile or tablet.
-            Please use a desktop or laptop to mark attendance.
-          </small>
-        </div>
-      );
-    }
-
-    const hasActiveSession = !!activeSession;
-    const hasOpenAttendance = !!attendance?.clock_in && !attendance?.clock_out;
-
     const nowISTDateStr = nowIST().split(' ')[0];
-    const attendanceIsToday = attendance?.attendance_date === nowISTDateStr;
-    const isClockedOut = attendanceIsToday && !!attendance?.clock_in && !!attendance?.clock_out;
 
-    if (hasActiveSession || hasOpenAttendance) {
-      if (!canClockOut) return null;
-
-      return (
-        <div className="text-center">
-          <div className="d-inline-flex align-items-center gap-2 flex-wrap justify-content-center">
-            <Button
-              onClick={handleClockOut}
-              disabled={loading}
-              style={{ background: DA.warning, borderColor: DA.warning, borderRadius: 12, padding: '10px 22px', fontWeight: 700, color: '#fff' }}
-            >
-              {loading ? (
-                <><Spinner size="sm" animation="border" className="me-2" />Processing...</>
-              ) : (
-                <><FaSignOutAlt className="me-2" />Clock Out</>
-              )}
-            </Button>
-            <BreakWidget mode="inline-button" isClockedIn={true} isClockedOut={false} unlimitedBreaks={unlimitedBreaks} />
-          </div>
-        </div>
-      );
-    }
-
-    // ✅ If clocked out today (attendance today with clock_out) → Show Clock In
-    if (isClockedOut || hasClockedOutToday) {
-      return (
-        <div className="text-center">
-          <div className="d-inline-flex align-items-center gap-2 flex-wrap justify-content-center">
-            <Button
-              onClick={handleClockIn}
-              disabled={loading}
-              style={{ background: DA.primaryGreen, borderColor: DA.primaryGreen, borderRadius: 12, padding: '10px 22px', fontWeight: 700, color: '#fff' }}
-            >
-              {loading ? (
-                <><Spinner size="sm" animation="border" className="me-2" />Processing...</>
-              ) : (
-                <><FaMapMarkerAlt className="me-2" />Clock In</>
-              )}
-            </Button>
-            <BreakWidget mode="inline-button" isClockedIn={false} isClockedOut={true} unlimitedBreaks={unlimitedBreaks} />
-          </div>
-          {isClockedOut && (
-            <small className="text-success d-block mt-2">
-              You have already clocked out today. You can clock in again for next shift.
-            </small>
-          )}
-        </div>
-      );
-    }
-
-    // ✅ Check for past date pending regularization (not today, no active session)
+    // Past-date pending regularization (not today, no active session) still belongs here.
     const eligibleRegularization = missedClockOuts.some(r =>
       r.can_regularize === true &&
       !r.is_regularized &&
@@ -2019,35 +1926,27 @@ const Attendance = () => {
       );
     }
 
-    // ✅ DEFAULT: Clock In button
     return (
-      <div className="d-inline-flex align-items-center gap-2 flex-wrap justify-content-center">
-        <Button
-          onClick={handleClockIn}
-          disabled={loading}
-          style={{ background: DA.primaryGreen, borderColor: DA.primaryGreen, borderRadius: 12, padding: '10px 22px', fontWeight: 700, color: '#fff' }}
-        >
-          {loading ? (
-            <><Spinner size="sm" animation="border" className="me-2" />Processing...</>
-          ) : (
-            <><FaMapMarkerAlt className="me-2" />Clock In</>
-          )}
-        </Button>
-        <BreakWidget mode="inline-button" isClockedIn={false} isClockedOut={false} unlimitedBreaks={unlimitedBreaks} />
+      <div className="text-center">
+        <div className="d-inline-flex align-items-center gap-2 justify-content-center" style={{ color: DA.secondary, fontWeight: 600, fontSize: 14 }}>
+          <FaInfoCircle />
+          Clock In / Clock Out has moved to the Dashboard
+        </div>
+        <small className="d-block mt-2 text-muted">
+          Please use the Clock In / Clock Out buttons on your Dashboard page to mark attendance.
+        </small>
       </div>
     );
   };
   // In Attendance.jsx - Update the initialization useEffect
 
-  // Fetch date of birth (birthday highlight in the table below) and department (drives the
-  // Sales unlimited-breaks rule the same way Dashboard.jsx's AttendanceCard does) once.
+  // Fetch date of birth (birthday highlight in the table below) once.
   useEffect(() => {
     if (!user?.employeeId) return;
     axios.get(API_ENDPOINTS.EMPLOYEE_PROFILE(user.employeeId))
-      .then(res => { setEmployeeDob(res.data?.dob || null); setEmployeeDepartment(res.data?.department || ''); })
-      .catch(() => { setEmployeeDob(null); setEmployeeDepartment(''); });
+      .then(res => { setEmployeeDob(res.data?.dob || null); })
+      .catch(() => { setEmployeeDob(null); });
   }, [user?.employeeId]);
-  const unlimitedBreaks = employeeDepartment.trim().toLowerCase() === 'sales';
 
   const isBirthdayDate = (dateStr) => {
     if (!employeeDob || !dateStr) return false;

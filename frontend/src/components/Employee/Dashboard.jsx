@@ -83,7 +83,6 @@ const EmployeeDashboard = () => {
   const [activeSession, setActiveSession] = useState(null);
   const [clockLoading, setClockLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
-  const [canClockOut, setCanClockOut] = useState(false);
   const [showClockOutConfirm, setShowClockOutConfirm] = useState(false);
   const [networkBlocked, setNetworkBlocked] = useState(false);
 
@@ -108,14 +107,6 @@ const EmployeeDashboard = () => {
     const p = (n) => String(n).padStart(2, '0');
     return `${ist.getUTCFullYear()}-${p(ist.getUTCMonth()+1)}-${p(ist.getUTCDate())} ${p(ist.getUTCHours())}:${p(ist.getUTCMinutes())}:${p(ist.getUTCSeconds())}`;
   };
-
-  useEffect(() => {
-    setCanClockOut(false);
-    const isClockedIn = (!!attendance?.clock_in || !!activeSession) && !attendance?.clock_out;
-    if (!isClockedIn) return;
-    const timer = setTimeout(() => setCanClockOut(true), 3000);
-    return () => clearTimeout(timer);
-  }, [attendance?.clock_in, attendance?.clock_out, !!activeSession]);
 
   // Housekeeper-only: proactively hide the clock in/out button (instead of letting them
   // click it and hit a 403) when the device isn't on an allowlisted network. Polled so a
@@ -977,10 +968,55 @@ const EmployeeDashboard = () => {
     }
   }
 
+  // Same "currently clocked in" rule AttendanceCard.jsx uses (hasOpen) — kept in sync so the
+  // banner's separate Clock In/Clock Out buttons never disagree with the Time Today card below.
+  const isClockedInToday = !!activeSession || (!!attendance?.clock_in && !attendance?.clock_out);
+
   return (
     <div className="p-2 p-md-3 p-lg-4" style={{ backgroundColor: '#f0f2f5', minHeight: '100vh' }}>
 
-      <WelcomeBanner name={employee?.first_name} roleLabel={user?.role === 'housekeeper' ? 'Housekeeper Dashboard' : 'Employee Dashboard'} onRefresh={refreshData} refreshing={refreshing} />
+      <WelcomeBanner
+        name={employee?.first_name}
+        roleLabel={user?.role === 'housekeeper' ? 'Housekeeper Dashboard' : 'Employee Dashboard'}
+        onRefresh={refreshData}
+        refreshing={refreshing}
+        belowActions={
+          !networkBlocked && !(user?.role === 'housekeeper' ? false : isMobileDevice) && (
+            <>
+              <button
+                onClick={handleClockIn}
+                disabled={clockLoading || isClockedInToday}
+                title="Clock In"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 7, border: 'none', borderRadius: 22,
+                  padding: '10px 18px', fontSize: 13.5, fontWeight: 700,
+                  background: isClockedInToday ? 'rgba(255,255,255,0.15)' : '#fff',
+                  color: isClockedInToday ? 'rgba(255,255,255,0.6)' : '#065f46',
+                  cursor: (clockLoading || isClockedInToday) ? 'not-allowed' : 'pointer',
+                  opacity: clockLoading ? 0.7 : 1,
+                }}
+              >
+                <FaSignInAlt size={14} /> Clock In
+              </button>
+              <button
+                onClick={() => setShowClockOutConfirm(true)}
+                disabled={clockLoading || !isClockedInToday}
+                title="Clock Out"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 7, border: 'none', borderRadius: 22,
+                  padding: '10px 18px', fontSize: 13.5, fontWeight: 700,
+                  background: !isClockedInToday ? 'rgba(255,255,255,0.15)' : '#fff',
+                  color: !isClockedInToday ? 'rgba(255,255,255,0.6)' : '#b45309',
+                  cursor: (clockLoading || !isClockedInToday) ? 'not-allowed' : 'pointer',
+                  opacity: clockLoading ? 0.7 : 1,
+                }}
+              >
+                <FaSignOutAlt size={14} /> Clock Out
+              </button>
+            </>
+          )
+        }
+      />
 
       <div className="d-flex flex-wrap gap-2 align-items-center mb-3">
         <span className="text-muted small">{employee?.designation || 'Employee'} • {employee?.department || 'Department'}</span>
@@ -1012,9 +1048,9 @@ const EmployeeDashboard = () => {
         readOnly={networkBlocked}
         readOnlyMessage="Please connect to company Wi-Fi for clock in."
         disabledMobile={user?.role === 'housekeeper' ? false : isMobileDevice}
-        canClockOut={canClockOut}
         shiftTiming={employee?.shift_timing}
         unlimitedBreaks={(employee?.department || '').trim().toLowerCase() === 'sales'}
+        hideClockToggle
         footerExtra={
           <div style={{ display: 'flex', gap: 2 }}>
             {renderStars(allRatings.length > 0 ? allRatings.reduce((s, r) => s + r.rating, 0) / allRatings.length : 0)}
@@ -1656,8 +1692,8 @@ const EmployeeDashboard = () => {
 
       {/* Clock-out confirmation overlay */}
       {showClockOutConfirm && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: '#fff', borderRadius: 18, padding: '32px 28px', boxShadow: '0 24px 64px rgba(0,0,0,0.22)', textAlign: 'center', maxWidth: 320, width: '90%' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff0ec', border: '1px solid #fdb8a0', borderRadius: 18, padding: '32px 28px', boxShadow: '0 24px 64px rgba(0,0,0,0.22)', textAlign: 'center', maxWidth: 320, width: '90%' }}>
             <div style={{ fontSize: 44, marginBottom: 10 }}>🕐</div>
             <div style={{ fontWeight: 700, fontSize: 18, color: '#111827', marginBottom: 8 }}>Clock Out?</div>
             <div style={{ color: '#6b7280', fontSize: 14, marginBottom: 24 }}>Are you sure you want to clock out?</div>

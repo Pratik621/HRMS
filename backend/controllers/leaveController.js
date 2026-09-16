@@ -803,6 +803,21 @@ exports.updateLeaveStatus = async (req, res) => {
             // A previously-approved leave is being reversed — undo the Present
             // placeholder so the day gets recalculated instead of staying stuck as leave.
             await revertAttendanceForLeave(leave);
+
+            // Give back whatever balance the original approval deducted. Paid Leave itself
+            // needs no manual patch here — getLeaveBalance recomputes `used`/`current_balance`
+            // from scratch every time it's fetched, filtered to status='approved', so this
+            // leave already drops out of that count on its own. Comp-Off is different:
+            // employees.comp_off_balance is a flat running counter with no such recompute, so
+            // without this it stays permanently short by the days this leave had deducted.
+            if (leave.leave_type === 'Comp-Off') {
+                const { data: emp } = await supabase
+                    .from('employees').select('comp_off_balance').eq('employee_id', leave.employee_id).single();
+                const restoredBalance = (emp?.comp_off_balance || 0) + (leave.days_count || 1);
+                await supabase.from('employees')
+                    .update({ comp_off_balance: restoredBalance })
+                    .eq('employee_id', leave.employee_id);
+            }
         }
 
         res.json({ success: true, message: `Leave ${status} successfully`, leave: updatedLeave[0] });

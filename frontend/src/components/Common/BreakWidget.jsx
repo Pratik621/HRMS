@@ -51,36 +51,42 @@ const fmtHMS = (totalSeconds) => {
     return [h, m, sec].map(v => String(v).padStart(2, '0')).join(':');
 };
 
+// ── Shared centered confirmation popup — same visual pattern as the Clock
+// Out confirmation (blurred backdrop, centered card, icon/title/message,
+// two buttons) so every break start/end action confirms the same way.
+function BreakConfirmModal({ icon = '☕', title, message, confirmLabel = 'Yes', confirmColor = '#f97316', busy = false, onConfirm, onCancel }) {
+    return (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 18, padding: '32px 28px', boxShadow: '0 24px 64px rgba(0,0,0,0.22)', textAlign: 'center', maxWidth: 320, width: '90%' }}>
+                <div style={{ fontSize: 44, marginBottom: 10 }}>{icon}</div>
+                <div style={{ fontWeight: 700, fontSize: 18, color: '#111827', marginBottom: 8 }}>{title}</div>
+                <div style={{ color: '#6b7280', fontSize: 14, marginBottom: 24 }}>{message}</div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                    <button onClick={onConfirm} disabled={busy} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', background: confirmColor, color: '#fff', fontWeight: 700, fontSize: 14, cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.7 : 1 }}>
+                        {busy ? <Spinner size="sm" animation="border" /> : confirmLabel}
+                    </button>
+                    <button onClick={onCancel} disabled={busy} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontWeight: 600, fontSize: 14, cursor: busy ? 'not-allowed' : 'pointer' }}>
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 // ── Break dropdown (fixed-position, escapes overflow:hidden parents) ──────────
 function BreakDropdown({ activeBreak, usedTypes, canInteract, acting, error, onStart, onEnd }) {
     const [open, setOpen]           = useState(false);
     const [pendingType, setPending] = useState(null);
-    const [dropPos, setDropPos]     = useState({ top: 0, left: 0 });
-    const triggerRef = useRef(null);
-    const dropRef    = useRef(null);
+    const [confirmEnd, setConfirmEnd] = useState(false);
     const allUsed    = BREAK_TYPES.every(t => usedTypes.includes(t.key));
     const pendingDef = BREAK_TYPES.find(t => t.key === pendingType);
 
     const openDropdown = () => {
         if (!canInteract || allUsed) return;
-        if (triggerRef.current) {
-            const rect = triggerRef.current.getBoundingClientRect();
-            setDropPos({ top: rect.bottom + 6, left: Math.max(8, rect.right - 190) });
-        }
         setOpen(o => !o);
         setPending(null);
     };
-
-    useEffect(() => {
-        const close = (e) => {
-            if (
-                dropRef.current    && !dropRef.current.contains(e.target) &&
-                triggerRef.current && !triggerRef.current.contains(e.target)
-            ) { setOpen(false); setPending(null); }
-        };
-        document.addEventListener('mousedown', close);
-        return () => document.removeEventListener('mousedown', close);
-    }, []);
 
     const btnBase = {
         display: 'flex', alignItems: 'center', gap: 6,
@@ -91,7 +97,7 @@ function BreakDropdown({ activeBreak, usedTypes, canInteract, acting, error, onS
 
     if (activeBreak) return (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <button onClick={onEnd} disabled={acting} style={{
+            <button onClick={() => setConfirmEnd(true)} disabled={acting} style={{
                 ...btnBase, background: '#f97316', color: '#fff', gap: 8,
                 cursor: acting ? 'not-allowed' : 'pointer', opacity: acting ? 0.7 : 1,
             }}>
@@ -104,12 +110,23 @@ function BreakDropdown({ activeBreak, usedTypes, canInteract, acting, error, onS
                 <span style={{ fontWeight: 700 }}>End</span>
             </button>
             {error && <div style={{ fontSize: 10, color: '#ef4444' }}>{error}</div>}
+            {confirmEnd && (
+                <BreakConfirmModal
+                    icon="🕐"
+                    title={`End ${breakLabel(activeBreak.break_type)}?`}
+                    message={`You've been on break for ${fmtDuration(activeBreak.break_start)}. End it now?`}
+                    confirmLabel="Yes, End"
+                    busy={acting}
+                    onConfirm={() => { setConfirmEnd(false); onEnd(); }}
+                    onCancel={() => setConfirmEnd(false)}
+                />
+            )}
         </div>
     );
 
     return (
         <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <button ref={triggerRef} onClick={openDropdown}
+            <button onClick={openDropdown}
                 disabled={acting || !canInteract || allUsed}
                 style={{
                     ...btnBase,
@@ -125,69 +142,65 @@ function BreakDropdown({ activeBreak, usedTypes, canInteract, acting, error, onS
             </button>
 
             {open && (
-                <div ref={dropRef} style={{
-                    position: 'fixed', top: dropPos.top, left: dropPos.left,
-                    zIndex: 99999, background: '#fff', borderRadius: 12, minWidth: 190,
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.18)', border: '1px solid #e5e7eb', overflow: 'hidden',
-                }}>
-                    {pendingType ? (
-                        <div style={{ padding: '12px 14px' }}>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginBottom: 4 }}>
-                                {pendingDef?.emoji} Start {pendingDef?.label}?
-                            </div>
-                            <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 12 }}>
-                                Are you sure you want to go for a {pendingDef?.minutes}-minute break?
-                            </div>
-                            <div style={{ display: 'flex', gap: 8 }}>
-                                <button onClick={() => { setOpen(false); setPending(null); onStart(pendingType); }}
-                                    style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: 'none', background: '#6366f1', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-                                    Yes, Start
-                                </button>
-                                <button onClick={() => setPending(null)}
-                                    style={{ flex: 1, padding: '5px 0', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                                    Cancel
-                                </button>
-                            </div>
+                <div
+                    onClick={() => setOpen(false)}
+                    style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                    <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 18, minWidth: 260, maxWidth: 320, width: '90%', boxShadow: '0 24px 64px rgba(0,0,0,0.22)', overflow: 'hidden' }}>
+                        <div style={{ padding: '16px 18px 10px', fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.6, textAlign: 'center' }}>
+                            Select Break Type
                         </div>
-                    ) : (
-                        <>
-                            <div style={{ padding: '6px 12px', fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.6, borderBottom: '1px solid #f3f4f6' }}>
-                                Select Break Type
-                            </div>
-                            {BREAK_TYPES.map((t, i) => {
-                                const used = usedTypes.includes(t.key);
-                                return (
-                                    <button key={t.key}
-                                        onClick={() => { if (!used) setPending(t.key); }}
-                                        disabled={used}
-                                        style={{
-                                            display: 'flex', alignItems: 'center', gap: 8,
-                                            width: '100%', padding: '6px 12px',
-                                            border: 'none', textAlign: 'left',
-                                            background: used ? '#fafafa' : 'transparent',
-                                            cursor: used ? 'not-allowed' : 'pointer',
-                                            borderBottom: i < BREAK_TYPES.length - 1 ? '1px solid #f3f4f6' : 'none',
-                                            transition: 'background 0.15s',
-                                        }}
-                                        onMouseEnter={e => { if (!used) e.currentTarget.style.background = '#f5f3ff'; }}
-                                        onMouseLeave={e => { e.currentTarget.style.background = used ? '#fafafa' : 'transparent'; }}
-                                    >
-                                        <span style={{ fontSize: 14 }}>{t.emoji}</span>
-                                        <div style={{ flex: 1 }}>
-                                            <div style={{ fontSize: 12, fontWeight: 600, color: used ? '#9ca3af' : '#111827' }}>{t.label}</div>
-                                            <div style={{ fontSize: 10, color: '#9ca3af' }}>{t.minutes} mins</div>
-                                        </div>
-                                        {used
-                                            ? <CheckCircle size={13} color="#10b981" />
-                                            : <span style={{ fontSize: 9, color: '#6366f1', fontWeight: 700 }}>USE</span>}
-                                    </button>
-                                );
-                            })}
-                        </>
-                    )}
+                        {BREAK_TYPES.map((t) => {
+                            const used = usedTypes.includes(t.key);
+                            return (
+                                <button key={t.key}
+                                    onClick={() => { if (!used) { setPending(t.key); setOpen(false); } }}
+                                    disabled={used}
+                                    style={{
+                                        display: 'flex', alignItems: 'center', gap: 10,
+                                        width: '100%', padding: '12px 18px',
+                                        border: 'none', textAlign: 'left',
+                                        background: used ? '#fafafa' : 'transparent',
+                                        cursor: used ? 'not-allowed' : 'pointer',
+                                        borderTop: '1px solid #f3f4f6',
+                                        transition: 'background 0.15s',
+                                    }}
+                                    onMouseEnter={e => { if (!used) e.currentTarget.style.background = '#f5f3ff'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.background = used ? '#fafafa' : 'transparent'; }}
+                                >
+                                    <span style={{ fontSize: 20 }}>{t.emoji}</span>
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ fontSize: 14, fontWeight: 600, color: used ? '#9ca3af' : '#111827' }}>{t.label}</div>
+                                        <div style={{ fontSize: 11, color: '#9ca3af' }}>{t.minutes} mins</div>
+                                    </div>
+                                    {used
+                                        ? <CheckCircle size={15} color="#10b981" />
+                                        : <span style={{ fontSize: 10, color: '#6366f1', fontWeight: 700 }}>USE</span>}
+                                </button>
+                            );
+                        })}
+                        <button onClick={() => setOpen(false)} style={{
+                            width: '100%', padding: '12px 0', border: 'none', borderTop: '1px solid #f3f4f6',
+                            background: '#fafafa', color: '#374151', fontWeight: 600, fontSize: 13, cursor: 'pointer',
+                        }}>
+                            Cancel
+                        </button>
+                    </div>
                 </div>
             )}
             {error && <div style={{ fontSize: 10, color: '#ef4444', textAlign: 'center', maxWidth: 160 }}>{error}</div>}
+            {pendingType && (
+                <BreakConfirmModal
+                    icon={pendingDef?.emoji}
+                    title={`Start ${pendingDef?.label}?`}
+                    message={`Are you sure you want to go for a ${pendingDef?.minutes}-minute break?`}
+                    confirmLabel="Yes, Start"
+                    confirmColor="#6366f1"
+                    busy={acting}
+                    onConfirm={() => { setPending(null); onStart(pendingType); }}
+                    onCancel={() => setPending(null)}
+                />
+            )}
         </div>
     );
 }
@@ -199,6 +212,7 @@ function SimpleBreakControl({ activeBreak, canInteract, acting, error, totalSeco
     const [open, setOpen] = useState(false);
     const [note, setNote] = useState('');
     const [showHistory, setShowHistory] = useState(false);
+    const [confirmEnd, setConfirmEnd] = useState(false);
     const completedCount = (breaks || []).filter(b => b.break_end).length;
 
     const btnBase = {
@@ -223,7 +237,7 @@ function SimpleBreakControl({ activeBreak, canInteract, acting, error, totalSeco
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
             {activeBreak ? (
                 <>
-                    <button onClick={onEnd} disabled={acting} style={{
+                    <button onClick={() => setConfirmEnd(true)} disabled={acting} style={{
                         ...btnBase, background: '#f97316', color: '#fff', gap: 8,
                         cursor: acting ? 'not-allowed' : 'pointer', opacity: acting ? 0.7 : 1,
                     }}>
@@ -257,7 +271,7 @@ function SimpleBreakControl({ activeBreak, canInteract, acting, error, totalSeco
             )}
 
             {open && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <div style={{ background: '#fff', borderRadius: 18, padding: '32px 28px', boxShadow: '0 24px 64px rgba(0,0,0,0.22)', textAlign: 'center', maxWidth: 340, width: '90%' }}>
                         <div style={{ fontSize: 44, marginBottom: 10 }}>☕</div>
                         <div style={{ fontWeight: 700, fontSize: 18, color: '#111827', marginBottom: 8 }}>Add a note for this break</div>
@@ -293,6 +307,18 @@ function SimpleBreakControl({ activeBreak, canInteract, acting, error, totalSeco
                 </div>
             )}
 
+            {confirmEnd && (
+                <BreakConfirmModal
+                    icon="🕐"
+                    title="End Break?"
+                    message={activeBreak ? `You've been on break for ${fmtDuration(activeBreak.break_start)}. End it now?` : 'End your current break now?'}
+                    confirmLabel="Yes, End"
+                    busy={acting}
+                    onConfirm={() => { setConfirmEnd(false); onEnd(); }}
+                    onCancel={() => setConfirmEnd(false)}
+                />
+            )}
+
             <div style={{
                 marginTop: 4, background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.25)',
                 borderRadius: 10, padding: '2px 4px 4px', textAlign: 'center', minWidth: 180,
@@ -326,7 +352,7 @@ function SimpleBreakControl({ activeBreak, canInteract, acting, error, totalSeco
 function BreakHistoryModal({ breaks, onClose }) {
     const done = (breaks || []).filter(b => b.break_end).sort((a, b) => new Date(a.break_start) - new Date(b.break_start));
     return (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ background: '#fff', borderRadius: 18, padding: '28px 24px', boxShadow: '0 24px 64px rgba(0,0,0,0.22)', maxWidth: 380, width: '90%', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ textAlign: 'center', marginBottom: 16 }}>
                     <div style={{ fontSize: 40, marginBottom: 8 }}>📋</div>

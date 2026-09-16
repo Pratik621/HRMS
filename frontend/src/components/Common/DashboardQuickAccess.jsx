@@ -50,6 +50,7 @@ export default function DashboardQuickAccess({
   footerExtra,
   unlimitedBreaks = false,
   managerId,
+  hideClockToggle = false,
 }) {
   return (
     <div className="dash-quick-access">
@@ -68,6 +69,7 @@ export default function DashboardQuickAccess({
           shiftTiming={shiftTiming}
           footerExtra={footerExtra}
           unlimitedBreaks={unlimitedBreaks}
+          hideClockToggle={hideClockToggle}
         />
         <RegularizationStatsWidget managerId={managerId} />
         <HolidayCountdownCard />

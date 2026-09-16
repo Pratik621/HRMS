@@ -17,7 +17,7 @@ const dayOfYear = (d) => Math.floor((d - new Date(d.getFullYear(), 0, 0)) / (100
 
 const greeting = (hour) => (hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening');
 
-export default function WelcomeBanner({ name, roleLabel, onRefresh, onExport, refreshing = false, headerExtra = null }) {
+export default function WelcomeBanner({ name, roleLabel, onRefresh, onExport, refreshing = false, headerExtra = null, belowActions = null }) {
   // Anchored to the trusted server clock, not this device's own clock/timezone — otherwise the
   // greeting and date shown here can drift from the actual India time the rest of the app uses.
   const now = getTrustedNow();
@@ -37,7 +37,7 @@ export default function WelcomeBanner({ name, roleLabel, onRefresh, onExport, re
       <div style={{ position: 'absolute', top: 20, right: 220, width: 50, height: 50, borderRadius: '50%', background: 'rgba(255,255,255,0.10)', pointerEvents: 'none' }} />
 
       {(onRefresh || onExport || headerExtra) && (
-        <div style={{ position: 'absolute', top: 18, right: 20, display: 'flex', alignItems: 'center', gap: 8, zIndex: 1 }}>
+        <div style={{ position: 'absolute', top: 18, right: 20, display: 'flex', alignItems: 'center', gap: 8, zIndex: 2 }}>
           {headerExtra}
           {onRefresh && (
             <button onClick={onRefresh} disabled={refreshing} title="Refresh" style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.15)', color: '#fff', cursor: refreshing ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -49,6 +49,12 @@ export default function WelcomeBanner({ name, roleLabel, onRefresh, onExport, re
               <FaDownload size={12} />
             </button>
           )}
+        </div>
+      )}
+
+      {belowActions && (
+        <div style={{ position: 'absolute', top: 58, right: 20, display: 'flex', alignItems: 'center', gap: 14, zIndex: 2 }}>
+          {belowActions}
         </div>
       )}
 
