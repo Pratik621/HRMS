@@ -1,5 +1,5 @@
 // src/components/Admin/AdminDashboard.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Row, Col, Card, Table, Badge, Spinner, Alert, Form, Button,
   Modal, ButtonGroup, InputGroup
@@ -67,6 +67,7 @@ import axios from '../../config/axios';
 import API_ENDPOINTS from '../../config/api';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { loadDashboardCache, saveDashboardCache } from '../../utils/dashboardCache';
 import AdminRatings from './AdminRatings';
 import BreakWidget from '../Common/BreakWidget';
 import TicketBadge from '../Common/TicketBadge';
@@ -218,12 +219,38 @@ const AdminDashboard = () => {
   // Re-fetches everything whenever the "View Team" selection changes (including the
   // initial mount, where selectedManagerId is still 'ALL' — same as the old mount-only
   // effect this replaces).
+  // Only hydrate from cache on the very first mount (default company-wide 'ALL' view) —
+  // never on a later "View Team" filter change, which must always fetch fresh for that team.
+  const hasHydratedRef = useRef(false);
+
   useEffect(() => {
     // AbortController so React 18 StrictMode's dev-only double-invoke of this effect
     // cancels the first (throwaway) round of requests instead of letting both complete —
     // fetchDashboardData/PERFORMANCE_ANALYTICS would otherwise fire twice on every mount.
     const controller = new AbortController();
-    fetchDashboardData(controller.signal);
+
+    let cameFromCache = false;
+    if (!hasHydratedRef.current && selectedManagerId === 'ALL' && user?.employeeId) {
+      hasHydratedRef.current = true;
+      const cached = loadDashboardCache(user.employeeId, 'admin');
+      if (cached) {
+        cameFromCache = true;
+        if (cached.totalEmployees !== undefined) setTotalEmployees(cached.totalEmployees);
+        if (cached.stats !== undefined) setStats(cached.stats);
+        if (cached.recentEmployees !== undefined) setRecentEmployees(cached.recentEmployees);
+        if (cached.allActiveEmployees !== undefined) setAllActiveEmployees(cached.allActiveEmployees);
+        if (cached.departmentChartData !== undefined) setDepartmentChartData(cached.departmentChartData);
+        if (cached.todayAttendance !== undefined) setTodayAttendance(cached.todayAttendance);
+        if (cached.filteredAttendance !== undefined) setFilteredAttendance(cached.filteredAttendance);
+        if (cached.leaveRequests !== undefined) setLeaveRequests(cached.leaveRequests);
+        if (cached.filteredLeaveRequests !== undefined) setFilteredLeaveRequests(cached.filteredLeaveRequests);
+        if (cached.allBirthdays !== undefined) setAllBirthdays(cached.allBirthdays);
+        if (cached.allAnniversaries !== undefined) setAllAnniversaries(cached.allAnniversaries);
+        setLoading(false);
+      }
+    }
+
+    fetchDashboardData(controller.signal, cameFromCache);
     axios.get(`${API_ENDPOINTS.PERFORMANCE_ANALYTICS}${selectedManagerId !== 'ALL' ? `?manager_id=${selectedManagerId}` : ''}`, { signal: controller.signal })
       .then(r => { if (r.data.success) setPerfAnalytics(r.data.analytics); })
       .catch(() => {});
@@ -235,6 +262,18 @@ const AdminDashboard = () => {
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedManagerId]);
+
+  // Snapshot the default company-wide view for instant paint on the next login — only
+  // while 'ALL' is selected, so a filtered team's data never gets cached as if it were
+  // the default view.
+  useEffect(() => {
+    if (!user?.employeeId || selectedManagerId !== 'ALL' || allActiveEmployees.length === 0) return;
+    saveDashboardCache(user.employeeId, 'admin', {
+      totalEmployees, stats, recentEmployees, allActiveEmployees, departmentChartData,
+      todayAttendance, filteredAttendance, leaveRequests, filteredLeaveRequests,
+      allBirthdays, allAnniversaries,
+    });
+  }, [user?.employeeId, selectedManagerId, totalEmployees, stats, recentEmployees, allActiveEmployees, departmentChartData, todayAttendance, filteredAttendance, leaveRequests, filteredLeaveRequests, allBirthdays, allAnniversaries]);
 
   // Manager list for the dropdown — Team Leaders (role 'manager') + Managers (role
   // 'sub_admin'), same endpoints/employee_id convention as Add/Edit Employee's
@@ -387,9 +426,9 @@ const AdminDashboard = () => {
     }
   }, [leaveSearchTerm, leaveRequests]);
 
-  const fetchDashboardData = async (signal) => {
+  const fetchDashboardData = async (signal, silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const today = new Date().toISOString().split('T')[0];
 
       const [employeesRes, attendanceRes, leavesRes] = await Promise.all([

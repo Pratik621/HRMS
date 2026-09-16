@@ -2,6 +2,7 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import axiosInstance from '../config/axios';
 import API_ENDPOINTS from '../config/api';
+import { clearAllDashboardCaches } from '../utils/dashboardCache';
 
 const AuthContext = createContext();
 
@@ -53,6 +54,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setToken(null);
     clearStorage();
+    clearAllDashboardCaches();
   }, []);
 
   // On mount: validate / silently refresh the stored access token

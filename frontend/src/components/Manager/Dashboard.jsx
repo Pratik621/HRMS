@@ -19,6 +19,7 @@ import TeamBreakDashboard from '../Common/TeamBreakDashboard';
 import DashboardQuickAccess from '../Common/DashboardQuickAccess';
 import WelcomeBanner from '../Common/WelcomeBanner';
 import TicketSummaryWidget from '../Common/TicketSummaryWidget';
+import { loadDashboardCache, saveDashboardCache } from '../../utils/dashboardCache';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
@@ -267,8 +268,8 @@ const ManagerDashboard = () => {
     } finally { setClockLoading(false); }
   };
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const [teamRes, leavesRes] = await Promise.allSettled([
         axios.get(API_ENDPOINTS.MANAGER_TEAM),
@@ -281,26 +282,43 @@ const ManagerDashboard = () => {
   };
 
   useEffect(() => {
-    fetchData();
+    if (!user?.employeeId) { fetchData(); fetchTodayAttendance(); return; }
+
+    // Instant paint from the last-known snapshot — fetchData below still runs regardless,
+    // just without blocking the stat cards/charts on the network round-trip first.
+    const cached = loadDashboardCache(user.employeeId, 'manager');
+    if (cached) {
+      if (cached.team !== undefined) setTeam(cached.team);
+      if (cached.leaveRequests !== undefined) setLeaveRequests(cached.leaveRequests);
+      if (cached.perfStats !== undefined) setPerfStats(cached.perfStats);
+      if (cached.myRatingAvg !== undefined) setMyRatingAvg(cached.myRatingAvg);
+      setLoading(false);
+    }
+
+    fetchData({ silent: !!cached });
     fetchTodayAttendance();
     axios.get(API_ENDPOINTS.PERFORMANCE_TEAM_STATS)
       .then(r => { if (r.data.success) setPerfStats(r.data.stats); })
       .catch(() => {});
-    if (user?.employeeId) {
-      axios.get(`${API_ENDPOINTS.RATINGS}/employee/${user.employeeId}/history`)
-        .then(r => {
-          if (!r.data.success) return;
-          const aC = r.data.total_admin_ratings   || 0;
-          const mC = r.data.total_manager_ratings || 0;
-          const aA = parseFloat(r.data.admin_average   || 0);
-          const mA = parseFloat(r.data.manager_average || 0);
-          if (aC + mC === 0) return;
-          const overall = ((aA * aC) + (mA * mC)) / (aC + mC);
-          setMyRatingAvg(overall.toFixed(1));
-        })
-        .catch(() => {});
-    }
+    axios.get(`${API_ENDPOINTS.RATINGS}/employee/${user.employeeId}/history`)
+      .then(r => {
+        if (!r.data.success) return;
+        const aC = r.data.total_admin_ratings   || 0;
+        const mC = r.data.total_manager_ratings || 0;
+        const aA = parseFloat(r.data.admin_average   || 0);
+        const mA = parseFloat(r.data.manager_average || 0);
+        if (aC + mC === 0) return;
+        const overall = ((aA * aC) + (mA * mC)) / (aC + mC);
+        setMyRatingAvg(overall.toFixed(1));
+      })
+      .catch(() => {});
   }, []);
+
+  // Snapshot on every change so the next mount/login paints instantly from it.
+  useEffect(() => {
+    if (!user?.employeeId || team.length === 0) return;
+    saveDashboardCache(user.employeeId, 'manager', { team, leaveRequests, perfStats, myRatingAvg });
+  }, [user?.employeeId, team, leaveRequests, perfStats, myRatingAvg]);
 
   const pendingLeaves  = leaveRequests.filter(l => l.status === 'pending');
   const approvedLeaves = leaveRequests.filter(l => l.status === 'approved');

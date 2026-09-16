@@ -48,6 +48,7 @@ import ProfileCompletion from './ProfileCompletion';
 import BreakWidget from '../Common/BreakWidget';
 import DashboardQuickAccess from '../Common/DashboardQuickAccess';
 import WelcomeBanner from '../Common/WelcomeBanner';
+import { loadDashboardCache, saveDashboardCache } from '../../utils/dashboardCache';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -372,11 +373,31 @@ const EmployeeDashboard = () => {
   };
 
   useEffect(() => {
-    if (user?.employeeId) {
-      loadDashboardData();
-      fetchAllRatings();
-      checkPendingTicketConfirmations();
+    if (!user?.employeeId) return;
+
+    // Instant paint from the last-known snapshot (if any) — the network fetch below still
+    // runs regardless, but the dashboard shows something immediately instead of a spinner
+    // while it does. Stale data is fine here; it gets silently replaced within a second or
+    // two as each real fetch resolves.
+    const cached = loadDashboardCache(user.employeeId, 'employee');
+    if (cached) {
+      if (cached.employee !== undefined) setEmployee(cached.employee);
+      if (cached.leaveBalance !== undefined) setLeaveBalance(cached.leaveBalance);
+      if (cached.compOffHistory !== undefined) setCompOffHistory(cached.compOffHistory);
+      if (cached.leaveRequests !== undefined) setLeaveRequests(cached.leaveRequests);
+      if (cached.todayAttendance !== undefined) setTodayAttendance(cached.todayAttendance);
+      if (cached.attendance !== undefined) setAttendance(cached.attendance);
+      if (cached.attendanceHistory !== undefined) setAttendanceHistory(cached.attendanceHistory);
+      if (cached.upcomingHolidays !== undefined) setUpcomingHolidays(cached.upcomingHolidays);
+      if (cached.stats !== undefined) setStats(cached.stats);
+      if (cached.allRatings !== undefined) setAllRatings(cached.allRatings);
+      if (cached.myDeductions !== undefined) setMyDeductions(cached.myDeductions);
+      setLoading(false);
     }
+
+    loadDashboardData({ silent: !!cached });
+    fetchAllRatings();
+    checkPendingTicketConfirmations();
   }, [user]);
 
   // Fetch once on login/dashboard load — no polling, same convention as the other
@@ -584,8 +605,10 @@ const EmployeeDashboard = () => {
     }
   };
 
-  const loadDashboardData = async () => {
-    setLoading(true);
+  const loadDashboardData = async ({ silent = false } = {}) => {
+    // silent=true means a cached snapshot is already on screen — skip the blocking
+    // spinner so the refresh happens invisibly behind the data the user already sees.
+    if (!silent) setLoading(true);
     setError('');
 
     try {
@@ -615,6 +638,19 @@ const EmployeeDashboard = () => {
     setRefreshing(false);
     showNotification('Dashboard refreshed!', 'success');
   };
+
+  // Snapshot the dashboard-defining state on every change so the next mount/login can
+  // paint from it instantly instead of waiting on the network (see the mount effect above).
+  useEffect(() => {
+    // Guard against the very first render (before either cache-hydration or the real fetch
+    // has landed): employee is still its null default then, and saving at that instant
+    // would clobber a perfectly good cache with nothing, right after we just read it.
+    if (!user?.employeeId || !employee) return;
+    saveDashboardCache(user.employeeId, 'employee', {
+      employee, leaveBalance, compOffHistory, leaveRequests, todayAttendance,
+      attendance, attendanceHistory, upcomingHolidays, stats, allRatings, myDeductions,
+    });
+  }, [user?.employeeId, employee, leaveBalance, compOffHistory, leaveRequests, todayAttendance, attendance, attendanceHistory, upcomingHolidays, stats, allRatings, myDeductions]);
 
   const fetchEmployeeData = async () => {
     try {
