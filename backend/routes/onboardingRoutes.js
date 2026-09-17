@@ -11,6 +11,7 @@ const { uploadFile } = require('../lib/supabaseStorage');
 const { createOnboardingTickets } = require('../utils/onboardingTickets');
 const emailService = require('../services/emailService');
 const { generateAndStoreOfferLetter } = require('../services/offerLetterService');
+const { DEFAULT_CONTRACT_POLICY } = require('../utils/contractPolicy');
 
 const BUCKET = 'hrms-documents';
 
@@ -117,6 +118,10 @@ const createEmployeeAccountFromSubmission = async (offer, sub) => {
         can_apply_leave: true,
         profile_completed: true,
         shift_timing:   '9:00 AM - 6:00 PM',
+        // Previously left unset here — an offer-link-onboarded employee's Profile > Contract
+        // tab would show "No contract policy found" forever, unlike someone added manually
+        // via Admin > Add Employee (which always stamps this same default).
+        contract_policy: DEFAULT_CONTRACT_POLICY,
     };
 
     let { data: emp, error: empErr } = await supabase.from('employees').insert([employeeInsertPayload]).select().single();

@@ -319,7 +319,7 @@ const Sidebar = () => {
               <NavItem to="/salary-slip" icon={<FaMoneyBill />}   label="Salary Slip" />
               <NavItem to="/employee/deductions" icon={<FaReceipt />} label="My Deductions" />
               <Section label="Team" />
-              <NavItem to="/manager/panel"       icon={<FaUserTie />}    label="Team Panel" />
+              <NavItem to="/manager/panel"       icon={<FaUserTie />}    label="Team Shifts" />
               <NavItem to="/performance/reviews" icon={<FaChartLine />}  label="Performance Reviews" />
               <NavItem to="/performance/history" icon={<FaStar />}       label="My Performance" />
               <NavItem to="/tickets"             icon={<FaTicketAlt />}  label="Support Tickets" />
