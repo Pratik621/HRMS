@@ -4,6 +4,7 @@ const { holidays } = require('../data/holidays');
 const { normalizeName, getEmployeeById, getTeamEmployeeIdsByManagerName, getTeamEmployeeIdsByEmployeeId, employeeHasDirectReports } = require('../utils/employeeLookup');
 const { isFlexibleShiftEnabled, getFlexibleShiftStatus } = require('../utils/flexibleShift');
 const CompanyHolidayService = require('../services/companyHolidayService');
+const { sendEarlyLogoutAppliedEmail } = require('../services/emailService');
 
 // Generate unique session ID
 const generateSessionId = () => {
@@ -3796,6 +3797,114 @@ exports.listCompanyHolidays = async (req, res) => {
     } catch (error) {
         console.error('❌ listCompanyHolidays error:', error);
         res.status(500).json({ success: false, message: 'Failed to fetch holidays', error: error.message });
+    }
+};
+
+// POST /api/attendance/apply-early-logout
+// body: { employee_ids: [...], date: 'YYYY-MM-DD' }
+// Lets a TL/Manager mark employees who left early Present instead of Half Day for one date
+// (scoped to their own team), or an Admin/HR do the same for any employee company-wide.
+// Only employees who actually clocked in that day are eligible — someone who never clocked
+// in is genuinely absent and this action does not touch them. HR + all Managers (sub_admin)
+// get a notification email afterward regardless of who performed the action, since this
+// overrides attendance in a way that affects payroll and deserves a paper trail.
+exports.applyEarlyLogout = async (req, res) => {
+    try {
+        const { employee_ids, date } = req.body;
+        const { role, employeeId: actingEmployeeId } = req.user || {};
+
+        if (!Array.isArray(employee_ids) || employee_ids.length === 0) {
+            return res.status(400).json({ success: false, message: 'employee_ids is required' });
+        }
+        if (!date) {
+            return res.status(400).json({ success: false, message: 'date is required' });
+        }
+
+        const COMPANY_WIDE_ROLES = ['admin', 'hr'];
+        const TEAM_SCOPED_ROLES = ['manager', 'sub_admin'];
+        if (!COMPANY_WIDE_ROLES.includes(role) && !TEAM_SCOPED_ROLES.includes(role)) {
+            return res.status(403).json({ success: false, message: 'Access denied' });
+        }
+
+        let allowedIds = null; // null = no restriction (admin/hr, company-wide)
+        if (TEAM_SCOPED_ROLES.includes(role)) {
+            const acting = await getEmployeeById(actingEmployeeId);
+            if (!acting) return res.status(404).json({ success: false, message: 'Acting user not found' });
+            const actingName = `${acting.first_name || ''} ${acting.last_name || ''}`.trim();
+            allowedIds = new Set(await getTeamEmployeeIdsByManagerName(actingName));
+        }
+
+        const results = [];
+        const appliedIds = [];
+
+        for (const empId of employee_ids) {
+            if (allowedIds && !allowedIds.has(empId)) {
+                results.push({ employee_id: empId, success: false, message: 'Not in your team' });
+                continue;
+            }
+
+            const { data: att, error: attErr } = await supabase
+                .from('attendance')
+                .select('id, clock_in, status')
+                .eq('employee_id', empId)
+                .eq('attendance_date', date)
+                .maybeSingle();
+
+            if (attErr || !att) {
+                results.push({ employee_id: empId, success: false, message: 'No attendance record for this date' });
+                continue;
+            }
+            if (!att.clock_in) {
+                results.push({ employee_id: empId, success: false, message: 'Employee did not clock in this day' });
+                continue;
+            }
+            if (att.status === 'present') {
+                results.push({ employee_id: empId, success: true, message: 'Already Present' });
+                continue;
+            }
+
+            const { error: updateErr } = await supabase
+                .from('attendance')
+                .update({ status: 'present', updated_at: new Date().toISOString() })
+                .eq('id', att.id);
+
+            if (updateErr) {
+                results.push({ employee_id: empId, success: false, message: updateErr.message });
+                continue;
+            }
+
+            results.push({ employee_id: empId, success: true, message: 'Marked Present (Early Logout)' });
+            appliedIds.push(empId);
+        }
+
+        // Fire-and-forget — never block the response on the notification email.
+        if (appliedIds.length > 0) {
+            (async () => {
+                try {
+                    const [{ data: recipients }, { data: namedEmployees }, acting] = await Promise.all([
+                        supabase.from('employees').select('email').in('role', ['hr', 'sub_admin']).eq('is_active', true),
+                        supabase.from('employees').select('employee_id, first_name, last_name').in('employee_id', appliedIds),
+                        getEmployeeById(actingEmployeeId),
+                    ]);
+                    const notifyEmails = (recipients || []).map(r => r.email).filter(Boolean);
+                    if (notifyEmails.length === 0) return;
+                    const actingName = acting ? `${acting.first_name || ''} ${acting.last_name || ''}`.trim() : actingEmployeeId;
+                    await sendEarlyLogoutAppliedEmail(notifyEmails, {
+                        actingName,
+                        actingRole: role,
+                        date,
+                        employees: (namedEmployees || []).map(e => `${e.first_name || ''} ${e.last_name || ''}`.trim()),
+                    });
+                } catch (emailErr) {
+                    console.error('⚠️ Failed to send early-logout notification email:', emailErr.message);
+                }
+            })();
+        }
+
+        res.json({ success: true, results });
+    } catch (error) {
+        console.error('❌ applyEarlyLogout error:', error);
+        res.status(500).json({ success: false, message: 'Failed to apply early logout', error: error.message });
     }
 };
 

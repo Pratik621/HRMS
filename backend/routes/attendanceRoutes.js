@@ -52,6 +52,11 @@ module.exports = (supabase, authenticateToken, requireAdmin) => {
     // ✅ NEW: Team attendance report for managers
     router.get('/team-report', authenticateToken, attendanceController.getTeamAttendanceReport);
 
+    // Apply Early Logout — role/team-scoping is enforced inside the controller itself
+    // (admin/hr: company-wide; manager/sub_admin: own team only), same pattern as
+    // /team-report above, since a single blanket role-gate here can't express that split.
+    router.post('/apply-early-logout', authenticateToken, attendanceController.applyEarlyLogout);
+
     // Regularization endpoints
     // Managers, HR, and admins can view and act on regularization requests according to
     // role-scoped visibility rules (see regularizationService.buildScopedEmployeeIds).

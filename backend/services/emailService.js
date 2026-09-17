@@ -770,6 +770,37 @@ const sendBreakEndedEmail = async (notifyEmails, details) => {
     });
 };
 
+// ─── EARLY LOGOUT APPLIED (oversight notification) ───────────────────────────
+// Sent to HR + all Managers (sub_admin) whenever a TL/Manager/Admin/HR marks one or more
+// employees Present for an early-logout override — the whole point is oversight over
+// attendance being overridden away from Half Day, so it always goes out regardless of who
+// performed the action.
+const sendEarlyLogoutAppliedEmail = async (notifyEmails, details) => {
+    const { actingName, actingRole, date, employees } = details;
+    if (!notifyEmails?.length || !employees?.length) return { success: false, reason: 'no_recipients_or_employees' };
+
+    const dateDisplay = new Date(date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    const roleLabel = actingRole === 'manager' ? 'TL' : actingRole === 'sub_admin' ? 'Manager' : actingRole === 'admin' ? 'Admin' : actingRole === 'hr' ? 'HR' : actingRole;
+
+    const html = shell('Early Logout Applied', `
+        ${h2('🕐 Early Logout Marked Present')}
+        ${para(`${escapeHtml(actingName)} (${roleLabel}) has applied an early-logout override for ${dateDisplay} — the employees below are now marked Present instead of Half Day for that date.`)}
+        ${tbl(
+            row('Applied By', `${escapeHtml(actingName)} (${roleLabel})`, true) +
+            row('Date', dateDisplay) +
+            row('Employees', escapeHtml(employees.join(', '))) +
+            row('Applied On', new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) + ' IST')
+        )}
+    `);
+
+    return sendEmail({
+        to: notifyEmails,
+        subject: `Early Logout Applied — ${dateDisplay} (${employees.length} employee${employees.length > 1 ? 's' : ''})`,
+        html,
+        text: `${actingName} (${roleLabel}) marked the following employees Present (early logout) for ${dateDisplay}: ${employees.join(', ')}`,
+    });
+};
+
 module.exports = {
     sendEmail,
     sendShiftChangeEmail,
@@ -789,4 +820,5 @@ module.exports = {
     sendOfferLetterEmail,
     sendBreakOvertimeEmail,
     sendBreakEndedEmail,
+    sendEarlyLogoutAppliedEmail,
 };

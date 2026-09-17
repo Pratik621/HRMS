@@ -25,7 +25,8 @@ import {
   FaCheckCircle,
   FaInfoCircle,
   FaSearch,
-  FaEllipsisV
+  FaEllipsisV,
+  FaSignOutAlt
 } from 'react-icons/fa';
 import axios from '../../config/axios';
 import API_ENDPOINTS from '../../config/api';
@@ -38,6 +39,8 @@ import {
   DA_CARD_STYLE, DA_GRADIENT_BAR, ATTENDANCE_TABLE_CSS,
 } from '../Common/attendanceTheme';
 import Avatar from '../Common/Avatar';
+import ApplyEarlyLogoutModal from '../Common/ApplyEarlyLogoutModal';
+import { useAuth } from '../../context/AuthContext';
 
 const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
 const getISTNow = () => new Date(Date.now() + IST_OFFSET_MS);
@@ -64,7 +67,9 @@ const GLASS_BADGE = {
 
 const AttendanceReports = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeView, setActiveView] = useState('daily');
+  const [showEarlyLogout, setShowEarlyLogout] = useState(false);
   const [dailyAttendance, setDailyAttendance] = useState([]);
   const [selectedDate, setSelectedDate] = useState(getISTDateString());
   const [monthlyAttendance, setMonthlyAttendance] = useState([]);
@@ -1046,6 +1051,20 @@ const AttendanceReports = () => {
     }
   };
 
+  // Eligible for "Apply Early Logout": clocked in that day (a true absentee never shows up
+  // here) and not already Present (nothing to override). Company-wide since this page
+  // already lists every employee, not just "my team".
+  const earlyLogoutCandidates = activeView === 'daily'
+    ? dailyAttendance
+        .filter(record => record.clock_in && record.status !== 'present')
+        .map(record => ({
+          employee_id: record.employee_id,
+          name: `${record.first_name || ''} ${record.last_name || ''}`.trim(),
+          status: record.status,
+          clock_in: formatShortTime(record.clock_in),
+        }))
+    : [];
+
   const handleExportExcel = async () => {
     try {
       if (activeView === 'daily') {
@@ -1684,6 +1703,16 @@ const AttendanceReports = () => {
             >
               <FaFileExcel className="me-2" size={12} /> Export
             </Button>
+            {(user?.role === 'admin' || user?.role === 'hr') && (
+              <Button
+                size="sm"
+                variant="outline-dark"
+                onClick={() => setShowEarlyLogout(true)}
+                className="text-nowrap rounded-3"
+              >
+                <FaSignOutAlt className="me-2" size={12} /> Apply Early Logout
+              </Button>
+            )}
           </div>
         </div>
       ) : (
@@ -2070,6 +2099,14 @@ const AttendanceReports = () => {
           )}
         </Modal.Footer>
       </Modal>
+
+      <ApplyEarlyLogoutModal
+        show={showEarlyLogout}
+        onClose={() => setShowEarlyLogout(false)}
+        date={selectedDate}
+        candidates={earlyLogoutCandidates}
+        onSuccess={() => { setMessage('Early logout applied successfully!'); setMessageType('success'); fetchDailyAttendance(); }}
+      />
     </div>
   );
 };
