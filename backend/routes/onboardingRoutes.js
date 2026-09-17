@@ -14,6 +14,36 @@ const { generateAndStoreOfferLetter } = require('../services/offerLetterService'
 
 const BUCKET = 'hrms-documents';
 
+// PAN and Aadhar are permanent government IDs — one real person can never legitimately
+// hold two accounts under the same one. Bank account number is included too (per explicit
+// request) even though it's a weaker signal — a joint/family account could rarely collide
+// for two real different people — so of the three, treat it as still worth blocking on.
+// Checked against every employee (active or not), since a past employee re-applying under
+// a new offer link should be flagged, not silently given a second account. This also closes
+// the door on account creation ever running twice for the same person (e.g. auto-approve-
+// on-submit succeeding, then an admin's later manual "Approve & Create Account" click on the
+// same stale-looking offer creating a duplicate) — a matching identity field stops it
+// regardless of which path fires. Returns { field, label, employee } for the first match
+// found, or null.
+const IDENTITY_FIELDS = [
+    { field: 'pan_number', label: 'PAN number' },
+    { field: 'aadhar_number', label: 'Aadhar number' },
+    { field: 'account_number', label: 'bank account number' },
+];
+
+const findExistingEmployeeByIdentity = async (sub) => {
+    for (const { field, label } of IDENTITY_FIELDS) {
+        const value = (sub[field] || '').trim();
+        if (!value) continue;
+        const { data: existing } = await supabase.from('employees')
+            .select('employee_id, first_name, last_name, email')
+            .ilike(field, value)
+            .maybeSingle();
+        if (existing) return { field, label, employee: existing };
+    }
+    return null;
+};
+
 // ── Shared account-creation logic ─────────────────────────────────────────────
 // Used by both the auto-approval path (POST /:token/submit) and the legacy manual
 // /links/:id/approve endpoint, so the two can never calculate/insert an employee
@@ -21,6 +51,16 @@ const BUCKET = 'hrms-documents';
 // employee_onboarding_submissions row (first_name, middle_name, ... joining_date).
 const createEmployeeAccountFromSubmission = async (offer, sub) => {
     const now = new Date();
+
+    const identityMatch = await findExistingEmployeeByIdentity(sub);
+    if (identityMatch) {
+        const { label, employee: existing } = identityMatch;
+        throw new Error(
+            `An employee account already exists with this ${label}: ${existing.employee_id} ` +
+            `(${existing.first_name} ${existing.last_name}, ${existing.email}). ` +
+            `No new account was created — please verify before proceeding.`
+        );
+    }
 
     // Generate employee_id (B2BYYMMNN)
     const { data: existing } = await supabase.from('employees').select('employee_id');
@@ -720,6 +760,19 @@ router.post('/:token/submit', async (req, res) => {
             return res.status(409).json({
                 success: false,
                 message: 'An employee account with this email already exists. Please use a different email address, or contact HR if you believe this is a mistake.',
+            });
+        }
+
+        // Same idea for PAN/Aadhar/bank account number — rejected right here at submit time
+        // instead of silently accepting the form and only surfacing the problem to HR later.
+        // Message is deliberately generic (no employee name/ID) since this is a public,
+        // unauthenticated endpoint — reachable by anyone holding the link — so it shouldn't
+        // leak whose account it collided with.
+        const identityMatch = await findExistingEmployeeByIdentity({ pan_number, aadhar_number, account_number });
+        if (identityMatch) {
+            return res.status(409).json({
+                success: false,
+                message: `An employee account already exists with this ${identityMatch.label}. Please contact HR if you believe this is a mistake.`,
             });
         }
 

@@ -125,6 +125,11 @@ router.post('/login', loginLimiter, async (req, res) => {
         const payload = { id: user.id, email: user.email, role: user.role || 'employee', employeeId: user.employee_id };
         const { accessToken, refreshToken } = generateTokens(payload);
 
+        // Best-effort — powers the Admin "Inactive Logins" report (employees.last_login_at).
+        // Never block/fail the login itself over this (e.g. column not migrated yet).
+        supabase.from('employees').update({ last_login_at: new Date().toISOString() }).eq('id', user.id)
+            .then(({ error }) => { if (error) console.error('⚠️ [LOGIN] failed to record last_login_at:', error.message); });
+
         console.log(`✅ [LOGIN] success — employeeId=${user.employee_id} role=${user.role} ${Date.now() - startTime}ms`);
 
         return res.json({
@@ -187,6 +192,13 @@ router.post('/refresh', async (req, res) => {
         user = data;
         const payload = { id: user.id, email: user.email, role: user.role || 'employee', employeeId: user.employee_id };
         const { accessToken, refreshToken: newRefreshToken } = generateTokens(payload);
+
+        // A silent token refresh means the employee still has the app open and active —
+        // same activity signal as a fresh /login, so it should count the same way for the
+        // Admin "Inactive Logins" report. Without this, anyone whose access token just keeps
+        // renewing in the background would look stale forever after their one real login.
+        supabase.from('employees').update({ last_login_at: new Date().toISOString() }).eq('id', user.id)
+            .then(({ error }) => { if (error) console.error('⚠️ [REFRESH] failed to record last_login_at:', error.message); });
 
         return res.json({
             success: true,

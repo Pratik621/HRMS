@@ -25,6 +25,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from '../../config/axios';
 import API_ENDPOINTS from '../../config/api';
 import { getTrustedNow, getTrustedNowIST } from '../../utils/serverTime';
+import { loadDashboardCache, saveDashboardCache } from '../../utils/dashboardCache';
 import { useAuth } from '../../context/AuthContext';
 import { useMobileDevice } from '../../hooks/useMobileDevice';
 import {
@@ -1955,6 +1956,22 @@ const Attendance = () => {
     return dob.getMonth() === d.getMonth() && dob.getDate() === d.getDate();
   };
 
+  // Instant paint from the last-known snapshot (if any) — every fetch below still runs
+  // regardless and silently replaces this with fresh data as it resolves; this page has no
+  // full-page loading gate, so without this the stat cards/table/chart would otherwise sit
+  // on blank/zero placeholders for a beat on every visit instead of showing something real.
+  useEffect(() => {
+    if (!user?.employeeId) return;
+    const cached = loadDashboardCache(user.employeeId, 'attendance');
+    if (!cached) return;
+    if (cached.attendance !== undefined) setAttendance(cached.attendance);
+    if (cached.attendanceHistory !== undefined) setAttendanceHistory(cached.attendanceHistory);
+    if (cached.monthlyStats !== undefined) setMonthlyStats(cached.monthlyStats);
+    if (cached.chartData !== undefined) setChartData(cached.chartData);
+    if (cached.missedClockOuts !== undefined) setMissedClockOuts(cached.missedClockOuts);
+    if (cached.myRegularizations !== undefined) setMyRegularizations(cached.myRegularizations);
+  }, [user?.employeeId]);
+
   useEffect(() => {
     if (!user?.employeeId) return;
 
@@ -2043,6 +2060,17 @@ const Attendance = () => {
   useEffect(() => {
     if (user?.employeeId) fetchMyRegularizations();
   }, [user?.employeeId]);
+
+  // Snapshot on every change so the next visit to this page paints instantly from it.
+  // Guarded on attendanceHistory having actually loaded — otherwise the very first render
+  // (still at its empty-array default) would fire before hydration's setState above lands,
+  // clobbering a perfectly good cache with nothing.
+  useEffect(() => {
+    if (!user?.employeeId || attendanceHistory.length === 0) return;
+    saveDashboardCache(user.employeeId, 'attendance', {
+      attendance, attendanceHistory, monthlyStats, chartData, missedClockOuts, myRegularizations,
+    });
+  }, [user?.employeeId, attendance, attendanceHistory, monthlyStats, chartData, missedClockOuts, myRegularizations]);
 
   // Removed: auto-polling for attendance history (was causing excessive DB requests)
 

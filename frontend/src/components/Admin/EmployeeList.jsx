@@ -5,7 +5,7 @@ import {
   FaEdit, FaEye, FaPlus, FaDownload, FaFilePdf, FaFileImage, FaFileAlt,
   FaSearch, FaTimes, FaSyncAlt, FaArrowLeft, FaCheckCircle, FaUserSlash,
   FaUser, FaEnvelope, FaPhone, FaBuilding, FaBriefcase, FaCalendarAlt, FaUserTie,
-  FaClock, FaCreditCard, FaUsers, FaLink, FaKey,
+  FaClock, FaCreditCard, FaUsers, FaLink, FaKey, FaIdCard, FaUserClock,
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import axios from '../../config/axios';
@@ -15,6 +15,8 @@ import { useNotification } from '../../context/NotificationContext';
 import GenerateLinkModal from './GenerateLinkModal';
 import OfferLinksManager from './OfferLinksManager';
 import SendOfferLetterModal from './SendOfferLetterModal';
+import ChangeEmployeeIdModal from './ChangeEmployeeIdModal';
+import InactiveLoginsModal from './InactiveLoginsModal';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 const getInitials = (emp) =>
@@ -676,6 +678,8 @@ const EmployeeList = () => {
 
   // onboarding
   const [showGenLink, setShowGenLink] = useState(false);
+  const [showChangeId, setShowChangeId] = useState(false);
+  const [showInactiveLogins, setShowInactiveLogins] = useState(false);
   const [view, setView] = useState('employees'); // 'employees' | 'offerLinks'
 
   // docs modal
@@ -956,6 +960,24 @@ const EmployeeList = () => {
               </button>
             </>
           )}
+          {user?.role === 'admin' && (
+            <button onClick={() => setShowChangeId(true)} style={{
+              background: '#7c3aed', color: '#fff', border: 'none', borderRadius: 20,
+              padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 6,
+            }}>
+              <FaIdCard size={11} /> Employee ID
+            </button>
+          )}
+          {(user?.role === 'admin' || user?.role === 'sub_admin' || user?.role === 'desktop_support' || user?.role === 'hr') && (
+            <button onClick={() => setShowInactiveLogins(true)} style={{
+              background: '#d97706', color: '#fff', border: 'none', borderRadius: 20,
+              padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 6,
+            }}>
+              <FaUserClock size={11} /> Inactive Logins
+            </button>
+          )}
           <button onClick={fetchEmployees} title="Refresh" style={{ border: '1px solid #e5e7eb', background: '#fff', borderRadius: '50%', width: 34, height: 34, cursor: 'pointer', color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <FaSyncAlt size={13} />
           </button>
@@ -1117,6 +1139,20 @@ const EmployeeList = () => {
         show={showGenLink}
         onHide={() => setShowGenLink(false)}
         onGenerated={() => {}}
+      />
+
+      <ChangeEmployeeIdModal
+        show={showChangeId}
+        onClose={() => setShowChangeId(false)}
+        employees={employees}
+        onSuccess={fetchEmployees}
+      />
+
+      <InactiveLoginsModal
+        show={showInactiveLogins}
+        onClose={() => setShowInactiveLogins(false)}
+        employees={employees}
+        onSuccess={fetchEmployees}
       />
 
       {/* ── Bulk Profile Form Modal ── */}

@@ -739,6 +739,54 @@ router.patch('/:id/role', verifyToken, isAdmin, async (req, res) => {
     }
 });
 
+// employee_id is the join key across ~25 tables (attendance, leaves, breaks, ratings,
+// deductions, tickets, etc.) instead of a database foreign key — renaming it is
+// deliberately restricted to the strict Admin role only (not the app's usual isAdmin,
+// which also allows sub_admin/hr), since a bad rename here is hard to notice and touches
+// every table that employee has ever appeared in. See change_employee_id() in
+// backend/scripts/create-change-employee-id-function.sql for the actual atomic rename —
+// this route is just validation + one RPC call per requested change.
+//
+// POST /api/employees/change-ids
+// body: { changes: [{ old_employee_id, new_employee_id }, ...] }
+router.post('/change-ids', verifyToken, async (req, res) => {
+    if (req.user?.role !== 'admin') {
+        return res.status(403).json({ success: false, message: 'Admin access required' });
+    }
+    try {
+        const changes = Array.isArray(req.body.changes) ? req.body.changes : [];
+        if (changes.length === 0) {
+            return res.status(400).json({ success: false, message: 'No changes provided' });
+        }
+
+        const results = [];
+        // Sequential, not Promise.all — if the same new ID is (mistakenly) reused across
+        // two rows in one submission, the first must actually land before the second's
+        // "is this ID already taken?" check runs, so the duplicate gets caught correctly
+        // instead of both racing through.
+        for (const change of changes) {
+            const oldId = (change.old_employee_id || '').trim();
+            const newId = (change.new_employee_id || '').trim();
+            if (!oldId || !newId) {
+                results.push({ old_employee_id: oldId, new_employee_id: newId, success: false, message: 'Both IDs are required' });
+                continue;
+            }
+            const { error } = await supabase.rpc('change_employee_id', { old_id: oldId, new_id: newId });
+            if (error) {
+                results.push({ old_employee_id: oldId, new_employee_id: newId, success: false, message: error.message });
+            } else {
+                results.push({ old_employee_id: oldId, new_employee_id: newId, success: true });
+            }
+        }
+
+        const allSucceeded = results.every(r => r.success);
+        res.json({ success: allSucceeded, results });
+    } catch (error) {
+        console.error('Error changing employee ID(s):', error);
+        res.status(500).json({ success: false, message: 'Failed to change employee ID(s)', error: error.message });
+    }
+});
+
 // Employee completes their own onboarding profile
 router.post('/complete-profile', verifyToken, async (req, res) => {
     try {

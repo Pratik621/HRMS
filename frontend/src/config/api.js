@@ -46,6 +46,7 @@ export const API_ENDPOINTS = {
   // Employees
   EMPLOYEES:         ep('/api/employees'),
   EMPLOYEE_BY_ID:    (id) => ep(`/api/employees/${id}`),
+  EMPLOYEE_CHANGE_IDS: ep('/api/employees/change-ids'),
   EMPLOYEE_PROFILE:  (employeeId) => ep(`/api/employees/profile/${employeeId}`),
   EMPLOYEE_DOCUMENTS: (employeeId) => ep(`/api/employees/${employeeId}/documents`),
   EMPLOYEE_DOCUMENT_BY_TYPE: (employeeId, documentType) =>

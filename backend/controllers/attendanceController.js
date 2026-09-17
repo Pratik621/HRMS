@@ -789,6 +789,13 @@ exports.clockIn = async (req, res) => {
             location_accuracy: accuracy || null
         }]);
 
+        // Clocking in is unambiguous proof the employee is actively using the app today —
+        // count it the same as a fresh login for the Admin "Inactive Logins" report, so
+        // someone who clocked in this morning never shows up as stale just because their
+        // browser silently refreshed an old access token instead of hitting /login again.
+        supabase.from('employees').update({ last_login_at: now.toISOString() }).eq('employee_id', employee_id)
+            .then(({ error }) => { if (error) console.error('⚠️ [ClockIn] failed to record last_login_at:', error.message); });
+
         let message = '✅ Clocked in on time';
         if (isFlexibleShift) message = '✅ Clocked in with flexible-shift rules';
         else if (isLate) message = `⚠️ Clocked in (${lateDisplay} late)`;
