@@ -60,6 +60,8 @@ export const API_ENDPOINTS = {
   EMPLOYEE_UPDATE_ROLE: (id) => ep(`/api/employees/${id}/role`),
   EMPLOYEE_RESET_PASSWORD:   (id) => ep(`/api/employees/${id}/reset-password`),
   EMPLOYEE_TOGGLE_STATUS:    (id) => ep(`/api/employees/${id}/toggle-status`),
+  EMPLOYEE_MARK_LEFT:   ep('/api/employees/mark-left'),
+  EMPLOYEE_UNMARK_LEFT: ep('/api/employees/unmark-left'),
   TODAY_EVENTS:    ep('/api/employees/today-events'),
   TODAY_EVENTS_UPCOMING: ep('/api/employees/today-events/upcoming'),
   EMPLOYEE_STATS:  ep('/api/employees/stats/summary'),

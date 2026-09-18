@@ -16,6 +16,7 @@ const { markAbsentEmployeesAsLeave } = require('../cron/absentEmployeeCheck');
 const { runMonthlyAccrual } = require('../cron/leaveAccrualJob');
 const { markMissingClockOuts } = require('../cron/missingClockOutCheck');
 const { checkBreakOvertimeAndNotify } = require('../cron/breakOvertimeCheck');
+const { processLeftEmployees } = require('../cron/processLeftEmployees');
 
 const cronAuth = (req, res, next) => {
     const secret = process.env.CRON_SECRET;
@@ -110,6 +111,19 @@ router.get('/monthly-accrual', cronAuth, async (req, res) => {
         res.json({ success: true, ms: Date.now() - t });
     } catch (err) {
         console.error('❌ [CRON monthly-accrual]', err.message);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// GET /api/cron/process-left-employees — daily, deactivates anyone whose
+// scheduled_deactivation_date (set by "Mark as Left") has arrived.
+router.get('/process-left-employees', cronAuth, async (req, res) => {
+    const t = Date.now();
+    try {
+        const result = await processLeftEmployees();
+        res.json({ success: true, ...result, ms: Date.now() - t });
+    } catch (err) {
+        console.error('❌ [CRON process-left-employees]', err.message);
         res.status(500).json({ success: false, error: err.message });
     }
 });

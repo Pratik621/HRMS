@@ -322,6 +322,28 @@ const TeamAttendanceReport = () => {
         }
     };
 
+    const [markingLeftId, setMarkingLeftId] = useState(null);
+    const [markLeftConfirm, setMarkLeftConfirm] = useState(null); // the record pending confirmation
+
+    // Marks an employee as having left the team — does NOT deactivate them immediately.
+    // Their account stays fully active (can log in, gets paid) until the next 25th, when a
+    // daily cron auto-deactivates them. See backend/routes/employeeRoutes.js mark-left.
+    const handleMarkLeft = async (record) => {
+        setMarkLeftConfirm(null);
+        setMarkingLeftId(record.id);
+        try {
+            const res = await axios.post(API_ENDPOINTS.EMPLOYEE_MARK_LEFT, { employee_id: record.employee_id });
+            if (res.data.success) {
+                setMessage(res.data.message);
+                setTimeout(() => setMessage(''), 5000);
+            }
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to mark employee as left');
+        } finally {
+            setMarkingLeftId(null);
+        }
+    };
+
     const handleDailyTableScroll = (e) => {
         const el = e.target;
         const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 48;
@@ -718,12 +740,25 @@ const TeamAttendanceReport = () => {
                                                             >
                                                                 <FaEllipsisV size={11} /> Actions
                                                             </Dropdown.Toggle>
-                                                            <Dropdown.Menu>
+                                                            <Dropdown.Menu className="shadow-sm border-0" style={{ minWidth: 240, borderRadius: 10, padding: 6, fontSize: 13 }}>
                                                                 <Dropdown.Item
+                                                                    className="d-flex align-items-center gap-2 rounded"
+                                                                    style={{ padding: '8px 10px' }}
                                                                     disabled={!(record.clock_in && record.clock_out) || regularizingId === record.id}
                                                                     onClick={() => setRegularizeConfirm(record)}
                                                                 >
+                                                                    <FaClock size={12} style={{ color: DA.primaryGreen }} />
                                                                     {regularizingId === record.id ? 'Regularizing…' : 'Quick Regularize (undo clock-out)'}
+                                                                </Dropdown.Item>
+                                                                <Dropdown.Divider />
+                                                                <Dropdown.Item
+                                                                    className="d-flex align-items-center gap-2 rounded text-danger"
+                                                                    style={{ padding: '8px 10px' }}
+                                                                    disabled={markingLeftId === record.id}
+                                                                    onClick={() => setMarkLeftConfirm(record)}
+                                                                >
+                                                                    <FaSignOutAlt size={12} />
+                                                                    {markingLeftId === record.id ? 'Marking…' : 'Left from the Team'}
                                                                 </Dropdown.Item>
                                                             </Dropdown.Menu>
                                                         </Dropdown>
@@ -893,6 +928,19 @@ const TeamAttendanceReport = () => {
                     busy={regularizingId === regularizeConfirm.id}
                     onConfirm={() => handleQuickRegularize(regularizeConfirm)}
                     onCancel={() => setRegularizeConfirm(null)}
+                />
+            )}
+
+            {markLeftConfirm && (
+                <ConfirmModal
+                    icon="🚪"
+                    title="Mark as Left the Team?"
+                    message={`Mark ${markLeftConfirm.employee_name} as having left? Their account stays active and continues as normal until the end of the current salary cycle (the 25th), then automatically deactivates.`}
+                    confirmLabel="Yes, Mark as Left"
+                    confirmColor="#dc2626"
+                    busy={markingLeftId === markLeftConfirm.id}
+                    onConfirm={() => handleMarkLeft(markLeftConfirm)}
+                    onCancel={() => setMarkLeftConfirm(null)}
                 />
             )}
         </div>

@@ -869,6 +869,133 @@ router.patch('/:id/toggle-status', verifyToken, async (req, res) => {
     }
 });
 
+// The next 25th from today (IST) — matches the 26th-25th salary cycle used across payroll.
+// An employee marked "left" any time during a cycle keeps their account (and gets paid)
+// through the end of that cycle, then is auto-deactivated the day after processing.
+const computeNextSalaryCycleEnd = () => {
+    const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+    const istNow = new Date(Date.now() + IST_OFFSET_MS);
+    const day = istNow.getUTCDate();
+    let targetYear = istNow.getUTCFullYear();
+    let targetMonth = istNow.getUTCMonth(); // 0-based
+    if (day > 25) {
+        targetMonth += 1;
+        if (targetMonth > 11) { targetMonth = 0; targetYear += 1; }
+    }
+    const mm = String(targetMonth + 1).padStart(2, '0');
+    return `${targetYear}-${mm}-25`;
+};
+
+// POST /api/employees/mark-left
+// body: { employee_id }
+// Marks an employee as having left the team/company. Does NOT deactivate them immediately —
+// their account stays fully active (can log in, gets paid for the current cycle) until
+// scheduled_deactivation_date, when the daily cron in backend/cron/processLeftEmployees.js
+// deactivates them automatically. Same permission model as toggle-status above.
+router.post('/mark-left', verifyToken, async (req, res) => {
+    try {
+        const { role, employeeId: callerEmpId } = req.user;
+        const allowed = ['admin', 'sub_admin', 'manager', 'hr'];
+        if (!allowed.includes(role)) {
+            return res.status(403).json({ success: false, message: 'Access denied' });
+        }
+
+        const { employee_id } = req.body;
+        if (!employee_id) return res.status(400).json({ success: false, message: 'employee_id is required' });
+
+        const { data: target, error: fetchErr } = await supabase
+            .from('employees')
+            .select('id, employee_id, first_name, last_name, reporting_manager, marked_left_at')
+            .eq('employee_id', employee_id)
+            .single();
+        if (fetchErr || !target) return res.status(404).json({ success: false, message: 'Employee not found' });
+
+        if (role === 'manager') {
+            const { data: caller } = await supabase
+                .from('employees')
+                .select('first_name, last_name')
+                .eq('employee_id', callerEmpId)
+                .single();
+            if (caller) {
+                const callerName = `${caller.first_name} ${caller.last_name}`.trim().toLowerCase();
+                if (!target.reporting_manager || target.reporting_manager.trim().toLowerCase() !== callerName) {
+                    return res.status(403).json({ success: false, message: 'You can only mark your own team members as left' });
+                }
+            }
+        }
+
+        if (target.marked_left_at) {
+            return res.status(400).json({ success: false, message: `${target.first_name} ${target.last_name} is already marked as left.` });
+        }
+
+        const scheduledDate = computeNextSalaryCycleEnd();
+        const { error: updErr } = await supabase
+            .from('employees')
+            .update({
+                marked_left_at: new Date().toISOString(),
+                marked_left_by: callerEmpId,
+                scheduled_deactivation_date: scheduledDate,
+            })
+            .eq('id', target.id);
+        if (updErr) throw updErr;
+
+        res.json({
+            success: true,
+            message: `${target.first_name} ${target.last_name} marked as left. Account stays active and will automatically deactivate on ${scheduledDate}.`,
+            scheduled_deactivation_date: scheduledDate,
+        });
+    } catch (err) {
+        console.error('Error marking employee as left:', err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// POST /api/employees/unmark-left — undo an accidental "mark as left" before the scheduled date.
+router.post('/unmark-left', verifyToken, async (req, res) => {
+    try {
+        const { role, employeeId: callerEmpId } = req.user;
+        const allowed = ['admin', 'sub_admin', 'manager', 'hr'];
+        if (!allowed.includes(role)) {
+            return res.status(403).json({ success: false, message: 'Access denied' });
+        }
+
+        const { employee_id } = req.body;
+        if (!employee_id) return res.status(400).json({ success: false, message: 'employee_id is required' });
+
+        const { data: target, error: fetchErr } = await supabase
+            .from('employees')
+            .select('id, first_name, last_name, reporting_manager')
+            .eq('employee_id', employee_id)
+            .single();
+        if (fetchErr || !target) return res.status(404).json({ success: false, message: 'Employee not found' });
+
+        if (role === 'manager') {
+            const { data: caller } = await supabase
+                .from('employees')
+                .select('first_name, last_name')
+                .eq('employee_id', callerEmpId)
+                .single();
+            if (caller) {
+                const callerName = `${caller.first_name} ${caller.last_name}`.trim().toLowerCase();
+                if (!target.reporting_manager || target.reporting_manager.trim().toLowerCase() !== callerName) {
+                    return res.status(403).json({ success: false, message: 'You can only undo this for your own team members' });
+                }
+            }
+        }
+
+        const { error: updErr } = await supabase
+            .from('employees')
+            .update({ marked_left_at: null, marked_left_by: null, scheduled_deactivation_date: null })
+            .eq('id', target.id);
+        if (updErr) throw updErr;
+
+        res.json({ success: true, message: `${target.first_name} ${target.last_name}'s "left" mark was removed.` });
+    } catch (err) {
+        console.error('Error unmarking employee as left:', err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 // Update employee — EditEmployee.jsx's "Edit Details" action is shown to desktop_support
 // (IT) too, so this must accept that role. Role-change itself stays admin/sub_admin/hr
 // only via the inline check just below (`if ('role' in updates && !isAdmin...) delete
