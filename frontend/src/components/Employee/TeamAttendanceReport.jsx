@@ -624,6 +624,9 @@ const TeamAttendanceReport = () => {
                                             : statusKey === 'half_day' ? 'Half Day'
                                             : statusKey === 'on_leave' ? 'On Leave'
                                             : statusKey === 'weekend' ? 'Week Off'
+                                            // Auto-closed by the 15-hour missing-clockout rule — only ever written at
+                                            // exactly clock_in+15h, never less.
+                                            : statusKey === 'missing' ? 'Missed CO'
                                             : 'Absent';
                                         return (
                                         <React.Fragment key={record.id || index}>

@@ -427,6 +427,11 @@ const Attendance = () => {
     // employee's normal day) could show the wrong status. Only fall back to the local
     // hours-based guess for older rows that never got a status written.
     if (record.clock_in && record.clock_out) {
+      // Auto-closed by the 15-hour missing-clockout rule (closeStaleOpenAttendance) — this
+      // status is ONLY ever written by that exact rule, at exactly clock_in+15h, never less.
+      // Must be checked before the hours-based fallback below, which would otherwise see
+      // total_hours=15 and misreport this as "Present".
+      if (record.status === 'missing') return statusPill('absent', 'Missed CO', <FaExclamationTriangle size={10} />);
       if (record.status === 'present') return statusPill('present', 'Present', <FaCheckCircle size={10} />);
       if (record.status === 'half_day') return statusPill('half_day', 'Half Day');
       if (record.status === 'absent') return statusPill('absent', 'Absent');
