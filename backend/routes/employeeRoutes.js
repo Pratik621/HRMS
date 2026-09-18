@@ -9,6 +9,7 @@ const { sendShiftChangeEmail } = require('../services/emailService');
 const { createOnboardingTickets } = require('../utils/onboardingTickets');
 const { createProfilePhotoPost } = require('../utils/profilePhotoPost');
 const { getTeamEmployeeIdsByEmployeeId } = require('../utils/employeeLookup');
+const { generateNextEmployeeId } = require('../utils/employeeId');
 
 // Memory storage — files are uploaded to Supabase Storage (no local disk in serverless)
 const upload = multer({
@@ -21,76 +22,18 @@ const upload = multer({
     },
 });
 
-// Generate Employee ID with 2-digit sequence based on joining date
+// Generate Employee ID with 2-digit sequence based on joining date — delegates to the shared
+// MAX-based generator in utils/employeeId.js (also used by the offer-link onboarding flow,
+// after a count-based duplicate there caused a real "duplicate key value violates unique
+// constraint employees_employee_id_key" production error). Kept as a thin wrapper here (same
+// name/signature) so the two existing call sites below don't need to change, and so this
+// route keeps its own timestamp-based fallback if generation ever throws.
 const generateEmployeeIdBasedOnJoiningDate = async (joiningDate) => {
     const date = new Date(joiningDate);
     const year = date.getFullYear().toString().slice(-2);
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
-
     try {
-        console.log('Generating employee ID for joining date:', joiningDate);
-        console.log('Year:', year, 'Month:', month);
-
-        // Get all employees with same year/month prefix
-        const { data: employees, error } = await supabase
-            .from('employees')
-            .select('employee_id')
-            .like('employee_id', `B2B${year}${month}%`)
-            .order('employee_id', { ascending: false });
-
-        if (error) throw error;
-
-        let nextSequence = 1;
-
-        if (employees && employees.length > 0) {
-            // Extract the last 2 digits from the existing IDs
-            const sequences = employees.map(emp => {
-                const id = emp.employee_id;
-                const seqStr = id.slice(-2);
-                const seq = parseInt(seqStr, 10);
-                return isNaN(seq) ? 0 : seq;
-            });
-            
-            const maxSequence = Math.max(...sequences);
-            nextSequence = maxSequence + 1;
-            console.log('Last sequence found:', maxSequence, 'Next sequence:', nextSequence);
-        } else {
-            console.log('No existing employees for this month, starting with sequence 01');
-        }
-
-        // Ensure sequence doesn't exceed 99
-        if (nextSequence > 99) {
-            throw new Error('Maximum employees for this month reached (99)');
-        }
-
-        // Format sequence as 2 digits with leading zero
-        const sequence = nextSequence.toString().padStart(2, '0');
-        const employeeId = `B2B${year}${month}${sequence}`;
-
-        // Double-check if this ID already exists
-        const { data: existing, error: checkError } = await supabase
-            .from('employees')
-            .select('employee_id')
-            .eq('employee_id', employeeId);
-
-        if (checkError) throw checkError;
-
-        if (existing && existing.length > 0) {
-            console.log('Generated ID already exists, trying next sequence');
-            // If it exists, try the next number recursively
-            return await generateEmployeeIdBasedOnJoiningDate(joiningDate);
-        }
-
-        console.log('Generated Employee ID:', {
-            joiningDate,
-            year,
-            month,
-            nextSequence,
-            sequence,
-            employeeId
-        });
-
-        return employeeId;
+        return await generateNextEmployeeId(joiningDate);
     } catch (error) {
         console.error('Error generating employee ID:', error);
         // Fallback with timestamp to ensure uniqueness

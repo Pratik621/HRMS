@@ -12,6 +12,7 @@ const { createOnboardingTickets } = require('../utils/onboardingTickets');
 const emailService = require('../services/emailService');
 const { generateAndStoreOfferLetter } = require('../services/offerLetterService');
 const { DEFAULT_CONTRACT_POLICY } = require('../utils/contractPolicy');
+const { generateNextEmployeeId } = require('../utils/employeeId');
 
 const BUCKET = 'hrms-documents';
 
@@ -63,13 +64,10 @@ const createEmployeeAccountFromSubmission = async (offer, sub) => {
         );
     }
 
-    // Generate employee_id (B2BYYMMNN)
-    const { data: existing } = await supabase.from('employees').select('employee_id');
-    const yy  = String(now.getFullYear()).slice(-2);
-    const mm  = String(now.getMonth() + 1).padStart(2, '0');
-    const prefix = `B2B${yy}${mm}`;
-    const count = (existing || []).filter(e => e.employee_id?.startsWith(prefix)).length;
-    const newEmployeeId = `${prefix}${String(count + 1).padStart(2, '0')}`;
+    // Generate employee_id (B2BYYMMNN) — MAX-based (see utils/employeeId.js for why: a naive
+    // COUNT-based generator breaks the moment the month's sequence has any gap, which is
+    // guaranteed after any employee_id rename/reassignment work.
+    const newEmployeeId = await generateNextEmployeeId(now);
 
     const tempPassword = `HRMS@${Math.random().toString(36).slice(-6).toUpperCase()}`;
     const hashed = await bcrypt.hash(tempPassword, 10);
