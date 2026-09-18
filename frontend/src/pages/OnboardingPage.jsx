@@ -142,8 +142,9 @@ export default function OnboardingPage() {
     };
 
     if (loading) return (
-        <div style={pageStyle}>
-            <div style={cardStyle}>
+        <div className="ob-page" style={pageStyle}>
+            <style>{RESPONSIVE_CSS}</style>
+            <div className="ob-card" style={cardStyle}>
                 <Spinner animation="border" variant="primary" />
                 <p style={{ marginTop: 16, color: '#6b7280' }}>Loading your offer…</p>
             </div>
@@ -151,8 +152,9 @@ export default function OnboardingPage() {
     );
 
     if (error) return (
-        <div style={pageStyle}>
-            <div style={{ ...cardStyle, textAlign: 'center' }}>
+        <div className="ob-page" style={pageStyle}>
+            <style>{RESPONSIVE_CSS}</style>
+            <div className="ob-card" style={{ ...cardStyle, textAlign: 'center' }}>
                 <AlertTriangle size={56} color="#f97316" style={{ marginBottom: 12 }} />
                 <h4 style={{ fontWeight: 700, color: '#111827' }}>Offer Not Found</h4>
                 <p style={{ color: '#6b7280', fontSize: 14, marginTop: 8 }}>{error}</p>
@@ -163,8 +165,9 @@ export default function OnboardingPage() {
     const terminalView = STATUS_VIEWS[offer?.status];
     if (terminalView && offer.status !== 'accepted' && offer.status !== 'pending') {
         return (
-            <div style={pageStyle}>
-                <div style={{ ...cardStyle, textAlign: 'center' }}>
+            <div className="ob-page" style={pageStyle}>
+                <style>{RESPONSIVE_CSS}</style>
+                <div className="ob-card" style={{ ...cardStyle, textAlign: 'center' }}>
                     {terminalView.icon}
                     <h4 style={{ fontWeight: 700, color: '#111827', marginTop: 16 }}>{terminalView.title}</h4>
                     <p style={{ color: '#6b7280', fontSize: 14, marginTop: 8, maxWidth: 360, margin: '8px auto 0' }}>{terminalView.desc}</p>
@@ -176,8 +179,9 @@ export default function OnboardingPage() {
     // accepted state — can still fill the form
     if (offer.status === 'accepted') {
         return (
-            <div style={pageStyle}>
-                <div style={cardStyle}>
+            <div className="ob-page" style={pageStyle}>
+                <style>{RESPONSIVE_CSS}</style>
+                <div className="ob-card" style={cardStyle}>
                     <div style={{ textAlign: 'center', marginBottom: 24 }}>
                         <CheckCircle size={48} color="#10b981" style={{ marginBottom: 10 }} />
                         <h4 style={{ fontWeight: 700, color: '#111827' }}>Great! You accepted the offer</h4>
@@ -203,8 +207,9 @@ export default function OnboardingPage() {
 
     // Default: pending state
     return (
-        <div style={pageStyle}>
-            <div style={{ ...cardStyle, maxWidth: showAck ? 600 : 520 }}>
+        <div className="ob-page" style={pageStyle}>
+            <style>{RESPONSIVE_CSS}</style>
+            <div className="ob-card" style={{ ...cardStyle, maxWidth: showAck ? 600 : 520 }}>
                 {/* Header */}
                 <div style={{ textAlign: 'center', marginBottom: 28 }}>
                     <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
@@ -412,6 +417,17 @@ const cardStyle = {
     maxWidth: 520,
     boxShadow: '0 10px 40px rgba(99,102,241,0.12)',
 };
+
+// On phones, the page's own gradient background was showing as wasted space around the
+// card. Below 480px the card just goes edge-to-edge (no page padding, no rounded corners,
+// no shadow) instead of floating in the middle of visible background — same colors, just no
+// gutter. Desktop/tablet layout is untouched.
+const RESPONSIVE_CSS = `
+  @media (max-width: 480px) {
+    .ob-page { padding: 0; align-items: stretch; }
+    .ob-card { border-radius: 0 !important; box-shadow: none !important; max-width: 100% !important; min-height: 100vh; }
+  }
+`;
 
 const acceptBtnStyle = {
     display: 'flex', alignItems: 'center', justifyContent: 'center',

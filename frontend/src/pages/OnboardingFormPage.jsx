@@ -494,14 +494,16 @@ export default function OnboardingFormPage() {
 
     // ── States ────────────────────────────────────────────────────────────────
     if (loading) return (
-        <div style={pageStyle}>
+        <div className="ob-page" style={pageStyle}>
+            <style>{RESPONSIVE_CSS}</style>
             <Spinner animation="border" variant="primary" />
         </div>
     );
 
     if (offerErr) return (
-        <div style={pageStyle}>
-            <div style={cardStyle}>
+        <div className="ob-page" style={pageStyle}>
+            <style>{RESPONSIVE_CSS}</style>
+            <div className="ob-card" style={cardStyle}>
                 <div style={{ textAlign: 'center' }}>
                     <AlertTriangle size={48} color="#f97316" style={{ marginBottom: 12 }} />
                     <h5 style={{ fontWeight: 700 }}>Cannot Load Form</h5>
@@ -527,8 +529,9 @@ export default function OnboardingFormPage() {
         };
 
         return (
-            <div style={pageStyle}>
-                <div style={{ ...cardStyle, textAlign: 'center', maxWidth: credentials ? 460 : 420 }}>
+            <div className="ob-page" style={pageStyle}>
+                <style>{RESPONSIVE_CSS}</style>
+                <div className="ob-card" style={{ ...cardStyle, textAlign: 'center', maxWidth: credentials ? 460 : 420 }}>
                     <CheckCircle size={60} color="#10b981" style={{ marginBottom: 16 }} />
                     <h4 style={{ fontWeight: 800, color: '#111827' }}>Onboarding Form Submitted!</h4>
 
@@ -585,8 +588,9 @@ export default function OnboardingFormPage() {
         && policyChecks.privacy;
 
     return (
-        <div style={pageStyle}>
-            <div style={{ ...cardStyle, maxWidth: 660 }}>
+        <div className="ob-page" style={pageStyle}>
+            <style>{RESPONSIVE_CSS}</style>
+            <div className="ob-card" style={{ ...cardStyle, maxWidth: 660 }}>
 
                 {/* Header */}
                 <div style={{ marginBottom: 20, borderBottom: '1px solid #f3f4f6', paddingBottom: 14 }}>
@@ -807,6 +811,17 @@ const pageStyle = {
     justifyContent: 'center',
     padding: '32px 16px',
 };
+
+// On phones, the page's own gradient background was showing as wasted space around the
+// card. Below 480px the card just goes edge-to-edge (no page padding, no rounded corners,
+// no shadow) instead of floating in the middle of visible background — same colors, just no
+// gutter. Desktop/tablet layout is untouched.
+const RESPONSIVE_CSS = `
+  @media (max-width: 480px) {
+    .ob-page { padding: 0; align-items: stretch; }
+    .ob-card { border-radius: 0 !important; box-shadow: none !important; max-width: 100% !important; min-height: 100vh; }
+  }
+`;
 
 const cardStyle = {
     background: '#fff',
