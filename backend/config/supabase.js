@@ -16,9 +16,38 @@ if (!supabaseUrl || !supabaseKey) {
 // createClient() unconditionally builds a RealtimeClient. Passing the `ws` package as the
 // transport avoids that crash entirely and works the same on every Node version, so behavior
 // doesn't depend on which Node version happens to be installed/provisioned.
+//
+// Resilient fetch: retries a request only when the underlying connection failed before any
+// HTTP response came back (e.g. Postgres/PostgREST killing a connection mid-request — seen in
+// Supabase logs as "57P01 terminating connection due to administrator command" during a brief
+// project health event). This never retries a request that DID get a response, even an error
+// one — at that point the server has already processed it, and retrying could duplicate a
+// side effect (e.g. re-running an insert/RPC). A dropped connection before any response means
+// the server may or may not have processed it, but every write path this app has (employee_id
+// rename, attendance writes, etc.) already guards its own idempotency with existence/uniqueness
+// checks, so a safe retry here can only ever land on "already done" or succeed cleanly — never
+// silently duplicate data.
+const MAX_FETCH_RETRIES = 2;
+const RETRY_BASE_DELAY_MS = 300;
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const resilientFetch = async (url, options) => {
+    for (let attempt = 0; ; attempt++) {
+        try {
+            return await fetch(url, options);
+        } catch (err) {
+            if (attempt >= MAX_FETCH_RETRIES) throw err;
+            const delay = RETRY_BASE_DELAY_MS * 2 ** attempt;
+            console.warn(`⚠️  [SUPABASE] fetch failed (attempt ${attempt + 1}/${MAX_FETCH_RETRIES + 1}), retrying in ${delay}ms:`, err.message);
+            await sleep(delay);
+        }
+    }
+};
+
 const supabase = createClient(supabaseUrl, supabaseKey, {
     auth: { autoRefreshToken: false, persistSession: false },
-    realtime: { transport: WebSocket }
+    realtime: { transport: WebSocket },
+    global: { fetch: resilientFetch }
 });
 
 console.log('✅ Supabase client initialized');
