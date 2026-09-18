@@ -57,6 +57,9 @@ module.exports = (supabase, authenticateToken, requireAdmin) => {
     // /team-report above, since a single blanket role-gate here can't express that split.
     router.post('/apply-early-logout', authenticateToken, attendanceController.applyEarlyLogout);
 
+    // Quick Regularize — undo an accidental Clock Out (same role/team-scoping as above).
+    router.post('/quick-regularize', authenticateToken, attendanceController.quickRegularizeClockOut);
+
     // Regularization endpoints
     // Managers, HR, and admins can view and act on regularization requests according to
     // role-scoped visibility rules (see regularizationService.buildScopedEmployeeIds).

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Card, Table, Badge, Form, Row, Col,
-  Button, Spinner, Alert, Modal
+  Button, Spinner, Alert, Modal, Dropdown
 } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -1065,6 +1065,34 @@ const AttendanceReports = () => {
         }))
     : [];
 
+  const [regularizingId, setRegularizingId] = useState(null);
+
+  // Undo an accidental Clock Out — clears clock_out, reopens the session so the employee
+  // sees "Working" + the Clock Out button again, clock_in untouched. Only makes sense for a
+  // row that actually has both a clock_in and a clock_out (an already-open session has
+  // nothing to undo).
+  const handleQuickRegularize = async (record) => {
+    const name = `${record.first_name || ''} ${record.last_name || ''}`.trim() || record.employee_id;
+    if (!window.confirm(`Undo ${name}'s clock-out for ${formatDate(record.attendance_date || selectedDate)}? They will show as still working, with the same clock-in time.`)) return;
+    setRegularizingId(record.id);
+    try {
+      const res = await axios.post(API_ENDPOINTS.ATTENDANCE_QUICK_REGULARIZE, {
+        employee_id: record.employee_id,
+        date: record.attendance_date || selectedDate,
+      });
+      if (res.data.success) {
+        setMessage(`${name}'s clock-out was undone — marked as working again.`);
+        setMessageType('success');
+        fetchDailyAttendance();
+      }
+    } catch (err) {
+      setMessage(err.response?.data?.message || 'Failed to quick-regularize');
+      setMessageType('danger');
+    } finally {
+      setRegularizingId(null);
+    }
+  };
+
   const handleExportExcel = async () => {
     try {
       if (activeView === 'daily') {
@@ -1939,12 +1967,33 @@ const AttendanceReports = () => {
                           </span>
                         </td>
                         <td className="text-center">
-                          <button
-                            className="btn btn-sm da-action-btn d-inline-flex align-items-center gap-1"
-                            style={{ borderRadius: 999, border: `1px solid ${DA.border}`, background: '#fff', color: DA.secondary, fontSize: 12 }}
-                          >
-                            <FaEllipsisV size={11} /> Action
-                          </button>
+                          {(user?.role === 'admin' || user?.role === 'hr') ? (
+                            <Dropdown align="end">
+                              <Dropdown.Toggle
+                                as="button"
+                                className="btn btn-sm da-action-btn d-inline-flex align-items-center gap-1"
+                                style={{ borderRadius: 999, border: `1px solid ${DA.border}`, background: '#fff', color: DA.secondary, fontSize: 12 }}
+                              >
+                                <FaEllipsisV size={11} /> Action
+                              </Dropdown.Toggle>
+                              <Dropdown.Menu>
+                                <Dropdown.Item
+                                  disabled={!(record.clock_in && record.clock_out) || regularizingId === record.id}
+                                  onClick={() => handleQuickRegularize(record)}
+                                >
+                                  {regularizingId === record.id ? 'Regularizing…' : 'Quick Regularize (undo clock-out)'}
+                                </Dropdown.Item>
+                              </Dropdown.Menu>
+                            </Dropdown>
+                          ) : (
+                            <button
+                              className="btn btn-sm da-action-btn d-inline-flex align-items-center gap-1"
+                              style={{ borderRadius: 999, border: `1px solid ${DA.border}`, background: '#fff', color: DA.secondary, fontSize: 12 }}
+                              disabled
+                            >
+                              <FaEllipsisV size={11} /> Action
+                            </button>
+                          )}
                         </td>
                       </tr>
                     );

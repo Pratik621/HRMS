@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
     Card, Table, Badge, Form, Row, Col,
-    Button, Spinner, Alert, ButtonGroup, InputGroup
+    Button, Spinner, Alert, ButtonGroup, InputGroup, Dropdown
 } from 'react-bootstrap';
 import {
     FaCalendarAlt,
@@ -296,6 +296,31 @@ const TeamAttendanceReport = () => {
                 clock_in: formatTime(record.clock_in),
             }))
         : [];
+
+    const [regularizingId, setRegularizingId] = useState(null);
+
+    // Undo an accidental Clock Out — clears clock_out, reopens the session so the employee
+    // sees "Working" + the Clock Out button again, clock_in untouched. Backend re-validates
+    // this employee is actually this TL/Manager's own report, regardless of what's shown here.
+    const handleQuickRegularize = async (record) => {
+        if (!window.confirm(`Undo ${record.employee_name}'s clock-out for ${formatDate(record.attendance_date)}? They will show as still working, with the same clock-in time.`)) return;
+        setRegularizingId(record.id);
+        try {
+            const res = await axios.post(API_ENDPOINTS.ATTENDANCE_QUICK_REGULARIZE, {
+                employee_id: record.employee_id,
+                date: record.attendance_date,
+            });
+            if (res.data.success) {
+                setMessage(`${record.employee_name}'s clock-out was undone — marked as working again.`);
+                setTimeout(() => setMessage(''), 3000);
+                refreshData();
+            }
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to quick-regularize');
+        } finally {
+            setRegularizingId(null);
+        }
+    };
 
     const handleDailyTableScroll = (e) => {
         const el = e.target;
@@ -685,13 +710,32 @@ const TeamAttendanceReport = () => {
                                                         </span>
                                                     </td>
                                                     <td className="text-center">
-                                                        <button
-                                                            className="btn btn-sm da-action-btn d-inline-flex align-items-center gap-1"
-                                                            style={{ borderRadius: 999, border: `1px solid ${DA.border}`, background: '#fff', color: DA.secondary, fontSize: 12 }}
-                                                            onClick={() => setShowDetails(prev => ({ ...prev, [index]: !prev[index] }))}
-                                                        >
-                                                            {showDetails[index] ? <FaEyeSlash size={11} /> : <FaEllipsisV size={11} />} Details
-                                                        </button>
+                                                        <div className="d-inline-flex align-items-center gap-1">
+                                                            <button
+                                                                className="btn btn-sm da-action-btn d-inline-flex align-items-center gap-1"
+                                                                style={{ borderRadius: 999, border: `1px solid ${DA.border}`, background: '#fff', color: DA.secondary, fontSize: 12 }}
+                                                                onClick={() => setShowDetails(prev => ({ ...prev, [index]: !prev[index] }))}
+                                                            >
+                                                                {showDetails[index] ? <FaEyeSlash size={11} /> : <FaEllipsisV size={11} />} Details
+                                                            </button>
+                                                            <Dropdown align="end">
+                                                                <Dropdown.Toggle
+                                                                    as="button"
+                                                                    className="btn btn-sm da-action-btn"
+                                                                    style={{ borderRadius: 999, border: `1px solid ${DA.border}`, background: '#fff', color: DA.secondary, fontSize: 12, padding: '4px 8px' }}
+                                                                >
+                                                                    ⋯
+                                                                </Dropdown.Toggle>
+                                                                <Dropdown.Menu>
+                                                                    <Dropdown.Item
+                                                                        disabled={!(record.clock_in && record.clock_out) || regularizingId === record.id}
+                                                                        onClick={() => handleQuickRegularize(record)}
+                                                                    >
+                                                                        {regularizingId === record.id ? 'Regularizing…' : 'Quick Regularize (undo clock-out)'}
+                                                                    </Dropdown.Item>
+                                                                </Dropdown.Menu>
+                                                            </Dropdown>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                                 {showDetails[index] && (

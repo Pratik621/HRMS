@@ -3908,6 +3908,87 @@ exports.applyEarlyLogout = async (req, res) => {
     }
 };
 
+// POST /api/attendance/quick-regularize
+// body: { employee_id, date: 'YYYY-MM-DD' }
+// Undoes an accidental Clock Out: clears clock_out (and clock_out_ist), resets the row back
+// to the exact shape a still-open session has (confirmed live: status stays 'present' — the
+// "Working" label is a frontend-only computed state from clock_in && !clock_out, never a
+// literal stored status — plus total_hours/total_minutes/total_hours_display and overtime
+// fields reset to their fresh-clock-in defaults, since all of those were computed from the
+// clock_out being undone). clock_in is left untouched. Re-opens the attendance_sessions row
+// so the employee's dashboard shows a live "Working since <clock_in>" banner and the Clock
+// Out button again, exactly as if they'd never clocked out. Same admin/hr company-wide vs
+// manager/sub_admin own-team-only scoping as applyEarlyLogout above.
+exports.quickRegularizeClockOut = async (req, res) => {
+    try {
+        const { employee_id, date } = req.body;
+        const { role, employeeId: actingEmployeeId } = req.user || {};
+
+        if (!employee_id) return res.status(400).json({ success: false, message: 'employee_id is required' });
+        if (!date) return res.status(400).json({ success: false, message: 'date is required' });
+
+        const COMPANY_WIDE_ROLES = ['admin', 'hr'];
+        const TEAM_SCOPED_ROLES = ['manager', 'sub_admin'];
+        if (!COMPANY_WIDE_ROLES.includes(role) && !TEAM_SCOPED_ROLES.includes(role)) {
+            return res.status(403).json({ success: false, message: 'Access denied' });
+        }
+
+        if (TEAM_SCOPED_ROLES.includes(role)) {
+            const acting = await getEmployeeById(actingEmployeeId);
+            if (!acting) return res.status(404).json({ success: false, message: 'Acting user not found' });
+            const actingName = `${acting.first_name || ''} ${acting.last_name || ''}`.trim();
+            const teamIds = await getTeamEmployeeIdsByManagerName(actingName);
+            if (!teamIds.includes(employee_id)) {
+                return res.status(403).json({ success: false, message: 'You can only regularize your own team members' });
+            }
+        }
+
+        const { data: att, error: fetchErr } = await supabase
+            .from('attendance')
+            .select('id, clock_in, clock_out, session_id')
+            .eq('employee_id', employee_id)
+            .eq('attendance_date', date)
+            .maybeSingle();
+
+        if (fetchErr || !att) return res.status(404).json({ success: false, message: 'No attendance record for this date' });
+        if (!att.clock_in) return res.status(400).json({ success: false, message: 'Employee never clocked in this day — nothing to regularize' });
+        if (!att.clock_out) return res.status(400).json({ success: false, message: 'Employee is already clocked in — nothing to regularize' });
+
+        const { error: updErr } = await supabase
+            .from('attendance')
+            .update({
+                clock_out: null,
+                clock_out_ist: null,
+                status: 'present',
+                total_hours: 0,
+                total_minutes: 0,
+                total_hours_display: null,
+                overtime_hours: null,
+                overtime_minutes: null,
+                overtime_amount: 0,
+                has_overtime: false,
+                updated_at: new Date().toISOString(),
+            })
+            .eq('id', att.id);
+
+        if (updErr) return res.status(500).json({ success: false, message: updErr.message });
+
+        if (att.session_id) {
+            await supabase
+                .from('attendance_sessions')
+                .update({ is_active: true, clock_out_time: null })
+                .eq('session_id', att.session_id)
+                .eq('employee_id', employee_id);
+        }
+
+        console.log(`⚠️  [quickRegularizeClockOut] ${employee_id} clock-out reversed for ${date} by ${actingEmployeeId} (${role})`);
+        res.json({ success: true, message: 'Clock-out reversed — employee is marked as working again for this date.' });
+    } catch (error) {
+        console.error('❌ quickRegularizeClockOut error:', error);
+        res.status(500).json({ success: false, message: 'Failed to quick-regularize', error: error.message });
+    }
+};
+
 // Shared low-level helpers exposed for reuse by regularizationService.js — do not
 // duplicate this logic elsewhere; import it from here instead.
 exports._shared = {
