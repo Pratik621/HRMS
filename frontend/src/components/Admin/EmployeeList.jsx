@@ -5,7 +5,7 @@ import {
   FaEdit, FaEye, FaPlus, FaDownload, FaFilePdf, FaFileImage, FaFileAlt,
   FaSearch, FaTimes, FaSyncAlt, FaArrowLeft, FaCheckCircle, FaUserSlash,
   FaUser, FaEnvelope, FaPhone, FaBuilding, FaBriefcase, FaCalendarAlt, FaUserTie,
-  FaClock, FaCreditCard, FaUsers, FaLink, FaKey, FaIdCard, FaUserClock,
+  FaClock, FaCreditCard, FaUsers, FaLink, FaKey, FaIdCard, FaUserClock, FaDoorOpen,
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import axios from '../../config/axios';
@@ -17,6 +17,7 @@ import OfferLinksManager from './OfferLinksManager';
 import SendOfferLetterModal from './SendOfferLetterModal';
 import ChangeEmployeeIdModal from './ChangeEmployeeIdModal';
 import InactiveLoginsModal from './InactiveLoginsModal';
+import LeftEmployeesModal from './LeftEmployeesModal';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 const getInitials = (emp) =>
@@ -680,6 +681,7 @@ const EmployeeList = () => {
   const [showGenLink, setShowGenLink] = useState(false);
   const [showChangeId, setShowChangeId] = useState(false);
   const [showInactiveLogins, setShowInactiveLogins] = useState(false);
+  const [showLeftEmployees, setShowLeftEmployees] = useState(false);
   const [view, setView] = useState('employees'); // 'employees' | 'offerLinks'
 
   // docs modal
@@ -978,6 +980,15 @@ const EmployeeList = () => {
               <FaUserClock size={11} /> Inactive Logins
             </button>
           )}
+          {(user?.role === 'admin' || user?.role === 'hr') && (
+            <button onClick={() => setShowLeftEmployees(true)} style={{
+              background: '#dc2626', color: '#fff', border: 'none', borderRadius: 20,
+              padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 6,
+            }}>
+              <FaDoorOpen size={11} /> Left the Team
+            </button>
+          )}
           <button onClick={fetchEmployees} title="Refresh" style={{ border: '1px solid #e5e7eb', background: '#fff', borderRadius: '50%', width: 34, height: 34, cursor: 'pointer', color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <FaSyncAlt size={13} />
           </button>
@@ -1151,6 +1162,13 @@ const EmployeeList = () => {
       <InactiveLoginsModal
         show={showInactiveLogins}
         onClose={() => setShowInactiveLogins(false)}
+        employees={employees}
+        onSuccess={fetchEmployees}
+      />
+
+      <LeftEmployeesModal
+        show={showLeftEmployees}
+        onClose={() => setShowLeftEmployees(false)}
         employees={employees}
         onSuccess={fetchEmployees}
       />

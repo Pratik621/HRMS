@@ -1666,7 +1666,7 @@ exports.getAttendanceReport = async (req, res) => {
         const buildQuery = () => {
             let q = supabase
                 .from('attendance')
-                .select('*, employees(first_name, last_name, department, shift_timing, comp_off_balance, profile_image, "isFlexibleShift")')
+                .select('*, employees(first_name, last_name, department, shift_timing, comp_off_balance, profile_image, "isFlexibleShift", marked_left_at)')
                 .gte('attendance_date', start)
                 .lte('attendance_date', end);
             if (employee_id) q = q.eq('employee_id', employee_id);
@@ -1678,7 +1678,7 @@ exports.getAttendanceReport = async (req, res) => {
             const buildFallbackQuery = () => {
                 let q = supabase
                     .from('attendance')
-                    .select('*, employees(first_name, last_name, department, shift_timing, comp_off_balance, profile_image)')
+                    .select('*, employees(first_name, last_name, department, shift_timing, comp_off_balance, profile_image, marked_left_at)')
                     .gte('attendance_date', start)
                     .lte('attendance_date', end);
                 if (employee_id) q = q.eq('employee_id', employee_id);
@@ -1688,6 +1688,13 @@ exports.getAttendanceReport = async (req, res) => {
             ({ data: attendance, error: attendanceError } = await fetchAllPages(buildFallbackQuery));
         }
         if (attendanceError) throw attendanceError;
+
+        // Hide anyone marked as "left" from this report — their account is still active
+        // (paid through the current salary cycle) but they should no longer clutter the
+        // day-to-day attendance view. Filtered here in JS rather than via a nested PostgREST
+        // filter on the joined employees resource, to avoid depending on embedded-filter
+        // syntax that varies by supabase-js/PostgREST version.
+        attendance = (attendance || []).filter(record => !record.employees?.marked_left_at);
 
         const dedupedAttendanceMap = {};
         (attendance || []).forEach(record => {
@@ -2680,18 +2687,23 @@ exports.getTeamAttendanceReport = async (req, res) => {
         // Get team member details — is_active filter is defense-in-depth here (teamEmployeeIds
         // above already only contains active employees), so a deactivated employee can never
         // resurface even if this query were ever reached with a stale/unfiltered id list.
+        // marked_left_at IS NULL hides anyone a TL/Manager/Admin/HR has marked as "left" —
+        // their account is still active (paid through the current cycle) but they should no
+        // longer clutter the day-to-day team attendance view.
         let { data: teamMembers, error: teamError } = await supabase
             .from('employees')
             .select('employee_id, first_name, last_name, department, designation, joining_date, shift_timing, profile_image, "isFlexibleShift"')
             .in('employee_id', teamEmployeeIds)
-            .eq('is_active', true);
+            .eq('is_active', true)
+            .is('marked_left_at', null);
 
         if (teamError && /isFlexibleShift|does not exist/i.test(teamError.message || '')) {
             ({ data: teamMembers, error: teamError } = await supabase
                 .from('employees')
                 .select('employee_id, first_name, last_name, department, designation, joining_date, shift_timing, profile_image')
                 .in('employee_id', teamEmployeeIds)
-                .eq('is_active', true));
+                .eq('is_active', true)
+                .is('marked_left_at', null));
         }
 
         if (teamError) throw teamError;
