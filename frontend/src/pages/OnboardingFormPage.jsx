@@ -207,7 +207,7 @@ export default function OnboardingFormPage() {
     // files[key] = File | null,  fileSizeErrors[key] = string | null
     const [files, setFiles]           = useState({ passport_photo: null, aadhar_card_doc: null, pan_card_doc: null, offer_letter_doc: null });
     const [fileSizeErrors, setFileSizeErrors] = useState({ passport_photo: null, aadhar_card_doc: null, pan_card_doc: null, offer_letter_doc: null });
-    const [policyChecks, setPolicyChecks] = useState({ contract: false, privacy: false });
+    const [policyChecks, setPolicyChecks] = useState({ privacy: false });
 
     const [submitting, setSubmitting]         = useState(false);
     const [submitErr, setSubmitErr]           = useState('');
@@ -399,7 +399,6 @@ export default function OnboardingFormPage() {
             if (!files.passport_photo)  return { msg: 'Passport size photo is required — go to Documents tab.', tab: 'documents' };
             if (!files.aadhar_card_doc) return { msg: 'Aadhar card is required — go to Documents tab.', tab: 'documents' };
             if (!files.pan_card_doc)    return { msg: 'PAN card is required — go to Documents tab.', tab: 'documents' };
-            if (!policyChecks.contract) return { msg: 'Please read and agree to the Employee Policy Handbook — go to Documents tab.', tab: 'documents' };
             if (!policyChecks.privacy)  return { msg: 'Please read and agree to the Employee Privacy Policy — go to Documents tab.', tab: 'documents' };
             return null;
         }
@@ -583,7 +582,7 @@ export default function OnboardingFormPage() {
 
     const docsDone = DOC_FIELDS.filter(d => d.required && !files[d.key]).length === 0
         && !Object.values(fileSizeErrors).some(Boolean)
-        && policyChecks.contract && policyChecks.privacy;
+        && policyChecks.privacy;
 
     return (
         <div style={pageStyle}>
@@ -730,12 +729,6 @@ export default function OnboardingFormPage() {
                                 />
                             ))}
 
-                            <PolicyAcknowledgement
-                                title="Employee Policy Handbook"
-                                checked={policyChecks.contract}
-                                onChange={(v) => setPolicyChecks(p => ({ ...p, contract: v }))}
-                                checkboxLabel="I have read and agree to the Employee Policy Handbook."
-                            />
                             <PolicyAcknowledgement
                                 title="Employee Privacy Policy"
                                 checked={policyChecks.privacy}

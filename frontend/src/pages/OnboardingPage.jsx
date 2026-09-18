@@ -249,10 +249,10 @@ export default function OnboardingPage() {
                             ))}
 
                             <PolicyAcknowledgement
-                                title="B2BinDemand Employee Policy Handbook"
+                                title="Employee Privacy Policy"
                                 checked={ackChecks.policy}
                                 onChange={(v) => setAckChecks(c => ({ ...c, policy: v }))}
-                                checkboxLabel="I have read and agree to comply with B2BinDemand's company policies, code of conduct, and all applicable employment terms upon joining."
+                                checkboxLabel="I have read and agree to the Employee Privacy Policy."
                             />
                         </div>
 
