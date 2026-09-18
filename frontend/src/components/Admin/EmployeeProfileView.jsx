@@ -22,6 +22,7 @@ import API_ENDPOINTS from '../../config/api';
 import { useNavigate, useParams } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import AttendanceCalendar from './AttendanceCalendar';
+import { useAuth } from '../../context/AuthContext';
 
 ChartJS.register(
   CategoryScale, LinearScale, BarElement,
@@ -149,6 +150,11 @@ const barOpts = (ylabel = 'Hours') => ({
 const EmployeeProfileView = () => {
   const { employeeId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  // UAN is more sensitive than PAN/Aadhar (shown to everyone who can reach this page) —
+  // explicitly scoped to admin/HR only, excluding sub_admin (Manager) even though the route
+  // itself also allows sub_admin in.
+  const canSeeUan = user?.role === 'admin' || user?.role === 'hr';
 
   const [activeTab, setActiveTab] = useState('overview');
   const [employee, setEmployee]   = useState(null);
@@ -678,6 +684,7 @@ const EmployeeProfileView = () => {
                 <Info label="IFSC Code"      value={employee.ifsc_code}     icon={<FaUniversity />} />
                 <Info label="PAN Number"     value={employee.pan_number}    icon={<FaIdCard />} />
                 <Info label="Aadhar No."     value={employee.aadhar_number} icon={<FaIdCard />} />
+                {canSeeUan && <Info label="UAN Number" value={employee.uan} icon={<FaIdCard />} />}
               </Section>
             </Col>
 
