@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Form, Spinner, Alert } from 'react-bootstrap';
+import { Form, Spinner, Alert, Card, Row, Col, Button, Nav } from 'react-bootstrap';
 import {
-    CheckCircle, AlertTriangle, User, CreditCard, ShieldCheck, Phone, FileUp, Upload, X,
+    CheckCircle, AlertTriangle, Upload, X,
 } from 'lucide-react';
 import API_ENDPOINTS from '../config/api';
 import PolicyAcknowledgement from './PolicyAcknowledgement';
@@ -12,11 +12,11 @@ const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
 const RELATIONS    = ['Father', 'Mother', 'Spouse', 'Sibling', 'Friend', 'Other'];
 
 const TABS = [
-    { key: 'personal',  label: 'Personal',  icon: User },
-    { key: 'bank',      label: 'Bank',       icon: CreditCard },
-    { key: 'ids',       label: 'IDs',        icon: ShieldCheck },
-    { key: 'emergency', label: 'Emergency',  icon: Phone },
-    { key: 'documents', label: 'Documents',  icon: FileUp },
+    { key: 'personal',  label: 'Personal' },
+    { key: 'bank',      label: 'Bank' },
+    { key: 'ids',       label: 'IDs' },
+    { key: 'emergency', label: 'Emergency' },
+    { key: 'documents', label: 'Documents' },
 ];
 
 // maxMB enforced client-side before any upload attempt; server also enforces 4 MB.
@@ -116,50 +116,37 @@ function FileField({ label, required, accept, hint, maxMB, file, onChange, sizeE
     const hasError = !!sizeError;
 
     return (
-        <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
-                {label}
-                {required && <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>}
-            </div>
+        <Form.Group className="mb-3">
+            <Form.Label className="fw-semibold small">
+                {label} {required && <span className="text-danger">*</span>}
+            </Form.Label>
             <div
                 onDrop={handleDrop}
                 onDragOver={e => e.preventDefault()}
                 onClick={() => inputRef.current?.click()}
-                style={{
-                    border: `2px dashed ${hasError ? '#ef4444' : file ? '#10b981' : '#c7d2fe'}`,
-                    borderRadius: 10,
-                    padding: '14px 16px',
-                    background: hasError ? '#fff5f5' : file ? '#f0fdf4' : '#f8f9ff',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    transition: 'border-color 0.15s, background 0.15s',
-                }}
+                className={`d-flex align-items-center gap-2 p-2 border rounded ${hasError ? 'border-danger' : ''}`}
+                style={{ cursor: 'pointer', background: hasError ? '#fff5f5' : file ? '#f8f9fa' : '#fff' }}
             >
-                <div style={{
-                    width: 36, height: 36, borderRadius: 8, flexShrink: 0,
-                    background: hasError ? '#fee2e2' : file ? '#d1fae5' : '#e0e7ff',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
+                <div className="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+                    style={{ width: 32, height: 32, background: '#f1f3f5' }}>
                     {hasError
-                        ? <AlertTriangle size={18} color="#ef4444" />
+                        ? <AlertTriangle size={16} className="text-danger" />
                         : file
-                            ? <CheckCircle size={18} color="#10b981" />
-                            : <Upload size={18} color="#6366f1" />}
+                            ? <CheckCircle size={16} className="text-success" />
+                            : <Upload size={16} className="text-secondary" />}
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="flex-grow-1 min-w-0">
                     {hasError ? (
-                        <div style={{ fontSize: 12, color: '#dc2626', fontWeight: 500, lineHeight: 1.4 }}>{sizeError}</div>
+                        <div className="small text-danger fw-semibold">{sizeError}</div>
                     ) : file ? (
                         <>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: '#065f46', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{file.name}</div>
-                            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1 }}>{fmtSize(file.size)}</div>
+                            <div className="small fw-semibold text-truncate">{file.name}</div>
+                            <div className="text-muted" style={{ fontSize: 11 }}>{fmtSize(file.size)}</div>
                         </>
                     ) : (
                         <>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: '#4338ca' }}>Click to upload or drag &amp; drop</div>
-                            <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 1 }}>{hint}</div>
+                            <div className="small fw-semibold">Click to upload or drag &amp; drop</div>
+                            <div className="text-muted" style={{ fontSize: 11 }}>{hint}</div>
                         </>
                     )}
                 </div>
@@ -167,7 +154,7 @@ function FileField({ label, required, accept, hint, maxMB, file, onChange, sizeE
                     <button
                         type="button"
                         onClick={e => { e.stopPropagation(); onChange(null, null); }}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#9ca3af', flexShrink: 0 }}
+                        className="btn btn-sm btn-link text-secondary p-1 flex-shrink-0"
                     >
                         <X size={16} />
                     </button>
@@ -180,7 +167,7 @@ function FileField({ label, required, accept, hint, maxMB, file, onChange, sizeE
                 style={{ display: 'none' }}
                 onChange={e => handleChange(e.target.files[0] || null)}
             />
-        </div>
+        </Form.Group>
     );
 }
 
@@ -503,16 +490,16 @@ export default function OnboardingFormPage() {
     if (offerErr) return (
         <div className="ob-page" style={pageStyle}>
             <style>{RESPONSIVE_CSS}</style>
-            <div className="ob-card" style={cardStyle}>
-                <div style={{ textAlign: 'center' }}>
-                    <AlertTriangle size={48} color="#f97316" style={{ marginBottom: 12 }} />
-                    <h5 style={{ fontWeight: 700 }}>Cannot Load Form</h5>
-                    <p style={{ color: '#6b7280', fontSize: 14 }}>{offerErr}</p>
-                    <button onClick={() => navigate(`/onboarding/${token}`)} style={{ marginTop: 12, background: '#6366f1', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 20px', cursor: 'pointer', fontWeight: 600 }}>
+            <Card className="ob-card shadow-sm" style={cardStyle}>
+                <Card.Body className="text-center p-4">
+                    <AlertTriangle size={44} className="text-warning mb-2" />
+                    <h5 className="fw-bold">Cannot Load Form</h5>
+                    <p className="text-muted small">{offerErr}</p>
+                    <Button variant="primary" onClick={() => navigate(`/onboarding/${token}`)}>
                         Back to Offer
-                    </button>
-                </div>
-            </div>
+                    </Button>
+                </Card.Body>
+            </Card>
         </div>
     );
 
@@ -531,54 +518,57 @@ export default function OnboardingFormPage() {
         return (
             <div className="ob-page" style={pageStyle}>
                 <style>{RESPONSIVE_CSS}</style>
-                <div className="ob-card" style={{ ...cardStyle, textAlign: 'center', maxWidth: credentials ? 460 : 420 }}>
-                    <CheckCircle size={60} color="#10b981" style={{ marginBottom: 16 }} />
-                    <h4 style={{ fontWeight: 800, color: '#111827' }}>Onboarding Form Submitted!</h4>
+                <Card className="ob-card shadow-sm text-center" style={{ ...cardStyle, maxWidth: credentials ? 460 : 420 }}>
+                    <Card.Body className="p-4">
+                        <CheckCircle size={54} className="text-success mb-2" />
+                        <h5 className="fw-bold">Onboarding Form Submitted!</h5>
 
-                    {credentials ? (
-                        <>
-                            <p style={{ color: '#6b7280', fontSize: 14, marginTop: 8, maxWidth: 380, margin: '8px auto 0' }}>
-                                Your employee account has been created. Here are your login credentials —
-                                please save them now, as the password won't be shown again here.
+                        {credentials ? (
+                            <>
+                                <p className="text-muted small mt-2 mx-auto" style={{ maxWidth: 380 }}>
+                                    Your employee account has been created. Here are your login credentials —
+                                    please save them now, as the password won't be shown again here.
+                                </p>
+
+                                <Card className="text-start mt-3" style={{ background: '#fffbeb', borderColor: '#fde68a' }}>
+                                    <Card.Body className="p-3">
+                                        <div className="mb-2">
+                                            <div className="text-uppercase text-muted fw-bold" style={{ fontSize: 11 }}>Employee ID</div>
+                                            <div className="fw-bold font-monospace">{credentials.employeeId}</div>
+                                        </div>
+                                        <div className="mb-2">
+                                            <div className="text-uppercase text-muted fw-bold" style={{ fontSize: 11 }}>Email</div>
+                                            <div className="fw-semibold">{credentials.email}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-uppercase text-muted fw-bold" style={{ fontSize: 11 }}>Temporary Password</div>
+                                            <div className="fw-bold font-monospace">{credentials.tempPassword}</div>
+                                        </div>
+                                    </Card.Body>
+                                </Card>
+
+                                <div className="small fw-semibold mt-2" style={{ color: '#b45309' }}>
+                                    ⚠ Please save these credentials — you'll need them to log in.
+                                </div>
+
+                                <Button variant={credsCopied ? 'success' : 'outline-secondary'} className="mt-3 me-2" onClick={copyCredentials}>
+                                    {credsCopied ? '✓ Copied!' : 'Copy Credentials'}
+                                </Button>
+                                <Button variant="primary" className="mt-3" href={loginUrl}>
+                                    Go to Login →
+                                </Button>
+                                <div className="text-muted mt-2" style={{ fontSize: 11, wordBreak: 'break-all' }}>{loginUrl}</div>
+                                <div className="text-muted small mt-2">
+                                    You can change this password after logging in.
+                                </div>
+                            </>
+                        ) : (
+                            <p className="text-muted small mt-2 mx-auto" style={{ maxWidth: 380 }}>
+                                Thank you! HR will review your information and documents, then create your employee account. You'll be contacted with your login credentials shortly.
                             </p>
-
-                            <div style={{ background: '#fefce8', border: '1px solid #fde68a', borderRadius: 12, padding: '18px 20px', marginTop: 18, textAlign: 'left' }}>
-                                <div style={{ marginBottom: 10 }}>
-                                    <div style={{ fontSize: 11, color: '#92400e', textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: 700 }}>Employee ID</div>
-                                    <div style={{ fontSize: 16, fontWeight: 700, color: '#111827', fontFamily: 'monospace' }}>{credentials.employeeId}</div>
-                                </div>
-                                <div style={{ marginBottom: 10 }}>
-                                    <div style={{ fontSize: 11, color: '#92400e', textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: 700 }}>Email</div>
-                                    <div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{credentials.email}</div>
-                                </div>
-                                <div>
-                                    <div style={{ fontSize: 11, color: '#92400e', textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: 700 }}>Temporary Password</div>
-                                    <div style={{ fontSize: 16, fontWeight: 700, color: '#111827', fontFamily: 'monospace' }}>{credentials.tempPassword}</div>
-                                </div>
-                            </div>
-
-                            <div style={{ fontSize: 12, color: '#b45309', marginTop: 10, fontWeight: 600 }}>
-                                ⚠ Please save these credentials — you'll need them to log in.
-                            </div>
-
-                            <button onClick={copyCredentials} style={{ marginTop: 14, background: credsCopied ? '#dcfce7' : '#fff', color: credsCopied ? '#16a34a' : '#374151', border: '1px solid #e5e7eb', borderRadius: 8, padding: '8px 18px', cursor: 'pointer', fontWeight: 600, fontSize: 13 }}>
-                                {credsCopied ? '✓ Copied!' : 'Copy Credentials'}
-                            </button>
-
-                            <a href={loginUrl} style={{ display: 'block', marginTop: 14, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 20px', cursor: 'pointer', fontWeight: 700, fontSize: 14, textDecoration: 'none' }}>
-                                Go to Login →
-                            </a>
-                            <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 8, wordBreak: 'break-all' }}>{loginUrl}</div>
-                            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 10 }}>
-                                You can change this password after logging in.
-                            </div>
-                        </>
-                    ) : (
-                        <p style={{ color: '#6b7280', fontSize: 14, marginTop: 8, maxWidth: 380, margin: '8px auto 0' }}>
-                            Thank you! HR will review your information and documents, then create your employee account. You'll be contacted with your login credentials shortly.
-                        </p>
-                    )}
-                </div>
+                        )}
+                    </Card.Body>
+                </Card>
             </div>
         );
     }
@@ -587,235 +577,337 @@ export default function OnboardingFormPage() {
         && !Object.values(fileSizeErrors).some(Boolean)
         && policyChecks.privacy;
 
+    const isDone = (key) => {
+        if (key === 'documents') return docsDone;
+        if (key === 'bank') return !!(form.bank_account_name && form.account_number && form.ifsc_code);
+        if (key === 'personal') return !!(form.first_name && form.last_name && form.email);
+        return false;
+    };
+
     return (
         <div className="ob-page" style={pageStyle}>
             <style>{RESPONSIVE_CSS}</style>
-            <div className="ob-card" style={{ ...cardStyle, maxWidth: 660 }}>
-
-                {/* Header */}
-                <div style={{ marginBottom: 20, borderBottom: '1px solid #f3f4f6', paddingBottom: 14 }}>
-                    <div style={{ fontSize: 11, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>B2B InDemand — Employee Onboarding</div>
-                    <h4 style={{ fontWeight: 800, color: '#111827', margin: 0 }}>Complete Your Onboarding</h4>
-                    <p style={{ fontSize: 13, color: '#6b7280', margin: '5px 0 0' }}>
+            <Card className="ob-card shadow-sm" style={{ ...cardStyle, maxWidth: 700 }}>
+                <Card.Header className="bg-light py-2 py-md-3">
+                    <div className="text-uppercase text-muted" style={{ fontSize: 11, letterSpacing: 0.5 }}>B2B InDemand — Employee Onboarding</div>
+                    <h5 className="fw-bold mb-0">Complete Your Onboarding</h5>
+                    <div className="text-muted small">
                         {offer.designation} · {offer.department} · ₹{Number(offer.salary).toLocaleString('en-IN')}/month
-                    </p>
-                </div>
+                    </div>
+                </Card.Header>
 
-                {/* Progress chips */}
-                <div style={{ display: 'flex', gap: 6, marginBottom: 20, overflowX: 'auto' }}>
-                    {TABS.map((t) => {
-                        const Icon = t.icon;
-                        const isActive = tab === t.key;
-                        const isDone = (() => {
-                            if (t.key === 'documents') return docsDone;
-                            if (t.key === 'bank') return !!(form.bank_account_name && form.account_number && form.ifsc_code);
-                            if (t.key === 'personal') return !!(form.first_name && form.last_name && form.email);
-                            return false;
-                        })();
-                        return (
-                            <button
-                                key={t.key} type="button" onClick={() => goToTab(t.key)}
-                                style={{
-                                    display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px',
-                                    border: 'none', borderRadius: 20, cursor: 'pointer', fontSize: 12,
-                                    fontWeight: isActive ? 700 : 500, whiteSpace: 'nowrap',
-                                    background: isActive ? '#6366f1' : isDone ? '#d1fae5' : '#f3f4f6',
-                                    color: isActive ? '#fff' : isDone ? '#065f46' : '#6b7280',
-                                    transition: 'all 0.15s',
-                                }}
-                            >
-                                {isDone && !isActive ? <CheckCircle size={12} /> : <Icon size={12} />}
-                                {t.label}
-                            </button>
-                        );
-                    })}
-                </div>
+                <Card.Body className="p-3 p-md-4">
+                    <Nav variant="pills" className="mb-3 flex-nowrap overflow-auto pb-1">
+                        {TABS.map((t) => (
+                            <Nav.Item key={t.key} className="me-1">
+                                <Nav.Link
+                                    active={tab === t.key}
+                                    onClick={() => goToTab(t.key)}
+                                    className="small py-1 px-3 text-nowrap"
+                                >
+                                    {isDone(t.key) && tab !== t.key && <CheckCircle size={12} className="me-1" />}
+                                    {t.label}
+                                </Nav.Link>
+                            </Nav.Item>
+                        ))}
+                    </Nav>
 
-                <Form onSubmit={handleSubmit}>
-                    {draftRestored && (
-                        <Alert variant="info" style={{ fontSize: 13, marginBottom: 16 }}>
-                            Your saved progress was restored. You can continue from where you left off.
-                        </Alert>
-                    )}
-                    {submitErr && (
-                        <Alert variant="danger" style={{ fontSize: 13, marginBottom: 16 }} dismissible onClose={() => setSubmitErr('')}>
-                            {submitErr}
-                        </Alert>
-                    )}
+                    <Form onSubmit={handleSubmit}>
+                        {draftRestored && (
+                            <Alert variant="info" className="small py-2 mb-3">
+                                Your saved progress was restored. You can continue from where you left off.
+                            </Alert>
+                        )}
+                        {submitErr && (
+                            <Alert variant="danger" className="small py-2 mb-3" dismissible onClose={() => setSubmitErr('')}>
+                                {submitErr}
+                            </Alert>
+                        )}
 
-                    {/* ── Personal Info ── */}
-                    {tab === 'personal' && (
-                        <div style={gridStyle}>
-                            <FieldGroup label="First Name" required><Form.Control size="sm" value={form.first_name} onChange={e => set('first_name', e.target.value)} required style={inputStyle} /></FieldGroup>
-                            <FieldGroup label="Middle Name"><Form.Control size="sm" value={form.middle_name} onChange={e => set('middle_name', e.target.value)} style={inputStyle} /></FieldGroup>
-                            <FieldGroup label="Last Name" required><Form.Control size="sm" value={form.last_name} onChange={e => set('last_name', e.target.value)} required style={inputStyle} /></FieldGroup>
-                            <FieldGroup label="Email Address" required><Form.Control size="sm" type="email" value={form.email} onChange={e => set('email', e.target.value)} required style={inputStyle} /></FieldGroup>
-                            <FieldGroup label="Phone Number" required><Form.Control size="sm" value={form.phone} onChange={e => set('phone', e.target.value)} required style={inputStyle} /></FieldGroup>
-                            <FieldGroup label="Date of Birth" required><Form.Control size="sm" type="date" value={form.dob} onChange={e => set('dob', e.target.value)} required style={inputStyle} /></FieldGroup>
-                            <FieldGroup label="Gender">
-                                <Form.Select size="sm" value={form.gender} onChange={e => set('gender', e.target.value)} style={inputStyle}>
-                                    <option value="">Select gender</option>
-                                    {GENDERS.map(g => <option key={g}>{g}</option>)}
-                                </Form.Select>
-                            </FieldGroup>
-                            <FieldGroup label="Blood Group" required>
-                                <Form.Select size="sm" value={form.blood_group} onChange={e => set('blood_group', e.target.value)} required style={inputStyle}>
-                                    <option value="">Select blood group</option>
-                                    {BLOOD_GROUPS.map(b => <option key={b}>{b}</option>)}
-                                </Form.Select>
-                            </FieldGroup>
-                            <FieldGroup label="Expected Joining Date" required><Form.Control size="sm" type="date" value={form.joining_date} onChange={e => set('joining_date', e.target.value)} required style={inputStyle} /></FieldGroup>
-                            <FieldGroup label="LinkedIn Profile URL"><Form.Control size="sm" type="url" placeholder="https://linkedin.com/in/…" value={form.linkedin_url} onChange={e => set('linkedin_url', e.target.value)} style={inputStyle} /></FieldGroup>
-                            <div style={{ gridColumn: '1 / -1' }}>
-                                <FieldGroup label="Residential Address" required>
-                                    <Form.Control as="textarea" rows={2} size="sm" value={form.address} onChange={e => set('address', e.target.value)} required style={{ ...inputStyle, resize: 'none' }} />
-                                </FieldGroup>
-                            </div>
-                            <FieldGroup label="City"><Form.Control size="sm" value={form.city} onChange={e => set('city', e.target.value)} style={inputStyle} /></FieldGroup>
-                            <FieldGroup label="State"><Form.Control size="sm" value={form.state} onChange={e => set('state', e.target.value)} style={inputStyle} /></FieldGroup>
-                            <FieldGroup label="Pincode"><Form.Control size="sm" value={form.pincode} onChange={e => set('pincode', e.target.value)} style={inputStyle} /></FieldGroup>
-                        </div>
-                    )}
+                        {/* ── Personal Info ── */}
+                        {tab === 'personal' && (
+                            <>
+                                <Row className="g-2 g-md-3 mb-3">
+                                    <Col xs={12} md={4}>
+                                        <Form.Group>
+                                            <Form.Label className="fw-semibold small">First Name <span className="text-danger">*</span></Form.Label>
+                                            <Form.Control size="sm" value={form.first_name} onChange={e => set('first_name', e.target.value)} required />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col xs={12} md={4}>
+                                        <Form.Group>
+                                            <Form.Label className="fw-semibold small">Middle Name</Form.Label>
+                                            <Form.Control size="sm" value={form.middle_name} onChange={e => set('middle_name', e.target.value)} />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col xs={12} md={4}>
+                                        <Form.Group>
+                                            <Form.Label className="fw-semibold small">Last Name <span className="text-danger">*</span></Form.Label>
+                                            <Form.Control size="sm" value={form.last_name} onChange={e => set('last_name', e.target.value)} required />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                                <Row className="g-2 g-md-3 mb-3">
+                                    <Col xs={12} md={6}>
+                                        <Form.Group>
+                                            <Form.Label className="fw-semibold small">Email Address <span className="text-danger">*</span></Form.Label>
+                                            <Form.Control size="sm" type="email" value={form.email} onChange={e => set('email', e.target.value)} required />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col xs={12} md={6}>
+                                        <Form.Group>
+                                            <Form.Label className="fw-semibold small">Phone Number <span className="text-danger">*</span></Form.Label>
+                                            <Form.Control size="sm" value={form.phone} onChange={e => set('phone', e.target.value)} required />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                                <Row className="g-2 g-md-3 mb-3">
+                                    <Col xs={12} md={6}>
+                                        <Form.Group>
+                                            <Form.Label className="fw-semibold small">Date of Birth <span className="text-danger">*</span></Form.Label>
+                                            <Form.Control size="sm" type="date" value={form.dob} onChange={e => set('dob', e.target.value)} required />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col xs={12} md={6}>
+                                        <Form.Group>
+                                            <Form.Label className="fw-semibold small">Gender</Form.Label>
+                                            <Form.Select size="sm" value={form.gender} onChange={e => set('gender', e.target.value)}>
+                                                <option value="">Select gender</option>
+                                                {GENDERS.map(g => <option key={g}>{g}</option>)}
+                                            </Form.Select>
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                                <Row className="g-2 g-md-3 mb-3">
+                                    <Col xs={12} md={6}>
+                                        <Form.Group>
+                                            <Form.Label className="fw-semibold small">Blood Group <span className="text-danger">*</span></Form.Label>
+                                            <Form.Select size="sm" value={form.blood_group} onChange={e => set('blood_group', e.target.value)} required>
+                                                <option value="">Select blood group</option>
+                                                {BLOOD_GROUPS.map(b => <option key={b}>{b}</option>)}
+                                            </Form.Select>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col xs={12} md={6}>
+                                        <Form.Group>
+                                            <Form.Label className="fw-semibold small">Expected Joining Date <span className="text-danger">*</span></Form.Label>
+                                            <Form.Control size="sm" type="date" value={form.joining_date} onChange={e => set('joining_date', e.target.value)} required />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                                <Row className="g-2 g-md-3 mb-3">
+                                    <Col xs={12}>
+                                        <Form.Group>
+                                            <Form.Label className="fw-semibold small">LinkedIn Profile URL</Form.Label>
+                                            <Form.Control size="sm" type="url" placeholder="https://linkedin.com/in/…" value={form.linkedin_url} onChange={e => set('linkedin_url', e.target.value)} />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                                <Row className="g-2 g-md-3 mb-3">
+                                    <Col xs={12}>
+                                        <Form.Group>
+                                            <Form.Label className="fw-semibold small">Residential Address <span className="text-danger">*</span></Form.Label>
+                                            <Form.Control as="textarea" rows={2} size="sm" value={form.address} onChange={e => set('address', e.target.value)} required style={{ resize: 'none' }} />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                                <Row className="g-2 g-md-3">
+                                    <Col xs={12} md={4}>
+                                        <Form.Group>
+                                            <Form.Label className="fw-semibold small">City</Form.Label>
+                                            <Form.Control size="sm" value={form.city} onChange={e => set('city', e.target.value)} />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col xs={12} md={4}>
+                                        <Form.Group>
+                                            <Form.Label className="fw-semibold small">State</Form.Label>
+                                            <Form.Control size="sm" value={form.state} onChange={e => set('state', e.target.value)} />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col xs={12} md={4}>
+                                        <Form.Group>
+                                            <Form.Label className="fw-semibold small">Pincode</Form.Label>
+                                            <Form.Control size="sm" value={form.pincode} onChange={e => set('pincode', e.target.value)} />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                            </>
+                        )}
 
-                    {/* ── Bank Details ── */}
-                    {tab === 'bank' && (
-                        <div style={gridStyle}>
-                            <div style={{ gridColumn: '1 / -1', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8, padding: '10px 14px', fontSize: 12, color: '#92400e', marginBottom: 4 }}>
-                                Bank details are mandatory for salary disbursement and are kept securely.
-                            </div>
-                            <FieldGroup label="Account Holder Name" required><Form.Control size="sm" value={form.bank_account_name} onChange={e => set('bank_account_name', e.target.value)} required style={inputStyle} /></FieldGroup>
-                            <FieldGroup label="Account Number" required><Form.Control size="sm" value={form.account_number} onChange={e => set('account_number', e.target.value)} required style={inputStyle} /></FieldGroup>
-                            <FieldGroup label="IFSC Code" required><Form.Control size="sm" value={form.ifsc_code} onChange={e => set('ifsc_code', e.target.value.toUpperCase())} required maxLength={11} style={inputStyle} /></FieldGroup>
-                            <FieldGroup label="Branch Name"><Form.Control size="sm" value={form.branch_name} onChange={e => set('branch_name', e.target.value)} style={inputStyle} /></FieldGroup>
-                        </div>
-                    )}
+                        {/* ── Bank Details ── */}
+                        {tab === 'bank' && (
+                            <>
+                                <Alert variant="warning" className="small py-2 mb-3">
+                                    Bank details are mandatory for salary disbursement and are kept securely.
+                                </Alert>
+                                <Row className="g-2 g-md-3 mb-3">
+                                    <Col xs={12} md={6}>
+                                        <Form.Group>
+                                            <Form.Label className="fw-semibold small">Account Holder Name <span className="text-danger">*</span></Form.Label>
+                                            <Form.Control size="sm" value={form.bank_account_name} onChange={e => set('bank_account_name', e.target.value)} required />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col xs={12} md={6}>
+                                        <Form.Group>
+                                            <Form.Label className="fw-semibold small">Account Number <span className="text-danger">*</span></Form.Label>
+                                            <Form.Control size="sm" value={form.account_number} onChange={e => set('account_number', e.target.value)} required />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                                <Row className="g-2 g-md-3">
+                                    <Col xs={12} md={6}>
+                                        <Form.Group>
+                                            <Form.Label className="fw-semibold small">IFSC Code <span className="text-danger">*</span></Form.Label>
+                                            <Form.Control size="sm" value={form.ifsc_code} onChange={e => set('ifsc_code', e.target.value.toUpperCase())} required maxLength={11} />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col xs={12} md={6}>
+                                        <Form.Group>
+                                            <Form.Label className="fw-semibold small">Branch Name</Form.Label>
+                                            <Form.Control size="sm" value={form.branch_name} onChange={e => set('branch_name', e.target.value)} />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                            </>
+                        )}
 
-                    {/* ── IDs ── */}
-                    {tab === 'ids' && (
-                        <div style={gridStyle}>
-                            <FieldGroup label="PAN Number"><Form.Control size="sm" value={form.pan_number} onChange={e => set('pan_number', e.target.value.toUpperCase())} maxLength={10} style={inputStyle} /></FieldGroup>
-                            <FieldGroup label="Aadhar Number"><Form.Control size="sm" value={form.aadhar_number} onChange={e => set('aadhar_number', e.target.value)} maxLength={12} style={inputStyle} /></FieldGroup>
-                            <FieldGroup label="UAN (PF Number)"><Form.Control size="sm" value={form.uan} onChange={e => set('uan', e.target.value)} style={inputStyle} /></FieldGroup>
-                        </div>
-                    )}
+                        {/* ── IDs ── */}
+                        {tab === 'ids' && (
+                            <Row className="g-2 g-md-3">
+                                <Col xs={12} md={4}>
+                                    <Form.Group>
+                                        <Form.Label className="fw-semibold small">PAN Number</Form.Label>
+                                        <Form.Control size="sm" value={form.pan_number} onChange={e => set('pan_number', e.target.value.toUpperCase())} maxLength={10} />
+                                    </Form.Group>
+                                </Col>
+                                <Col xs={12} md={4}>
+                                    <Form.Group>
+                                        <Form.Label className="fw-semibold small">Aadhar Number</Form.Label>
+                                        <Form.Control size="sm" value={form.aadhar_number} onChange={e => set('aadhar_number', e.target.value)} maxLength={12} />
+                                    </Form.Group>
+                                </Col>
+                                <Col xs={12} md={4}>
+                                    <Form.Group>
+                                        <Form.Label className="fw-semibold small">UAN (PF Number)</Form.Label>
+                                        <Form.Control size="sm" value={form.uan} onChange={e => set('uan', e.target.value)} />
+                                    </Form.Group>
+                                </Col>
+                            </Row>
+                        )}
 
-                    {/* ── Emergency Contact ── */}
-                    {tab === 'emergency' && (
-                        <div style={gridStyle}>
-                            <FieldGroup label="Contact Person Name"><Form.Control size="sm" value={form.emergency_contact_name} onChange={e => set('emergency_contact_name', e.target.value)} style={inputStyle} /></FieldGroup>
-                            <FieldGroup label="Relationship">
-                                <Form.Select size="sm" value={form.emergency_contact_relation} onChange={e => set('emergency_contact_relation', e.target.value)} style={inputStyle}>
-                                    <option value="">Select relation</option>
-                                    {RELATIONS.map(r => <option key={r}>{r}</option>)}
-                                </Form.Select>
-                            </FieldGroup>
-                            <FieldGroup label="Contact Number" required><Form.Control size="sm" value={form.emergency_contact} onChange={e => set('emergency_contact', e.target.value)} required style={inputStyle} /></FieldGroup>
-                        </div>
-                    )}
+                        {/* ── Emergency Contact ── */}
+                        {tab === 'emergency' && (
+                            <Row className="g-2 g-md-3">
+                                <Col xs={12} md={4}>
+                                    <Form.Group>
+                                        <Form.Label className="fw-semibold small">Contact Person Name</Form.Label>
+                                        <Form.Control size="sm" value={form.emergency_contact_name} onChange={e => set('emergency_contact_name', e.target.value)} />
+                                    </Form.Group>
+                                </Col>
+                                <Col xs={12} md={4}>
+                                    <Form.Group>
+                                        <Form.Label className="fw-semibold small">Relationship</Form.Label>
+                                        <Form.Select size="sm" value={form.emergency_contact_relation} onChange={e => set('emergency_contact_relation', e.target.value)}>
+                                            <option value="">Select relation</option>
+                                            {RELATIONS.map(r => <option key={r}>{r}</option>)}
+                                        </Form.Select>
+                                    </Form.Group>
+                                </Col>
+                                <Col xs={12} md={4}>
+                                    <Form.Group>
+                                        <Form.Label className="fw-semibold small">Contact Number <span className="text-danger">*</span></Form.Label>
+                                        <Form.Control size="sm" value={form.emergency_contact} onChange={e => set('emergency_contact', e.target.value)} required />
+                                    </Form.Group>
+                                </Col>
+                            </Row>
+                        )}
 
-                    {/* ── Documents ── */}
-                    {tab === 'documents' && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                            <p style={{ fontSize: 13, color: '#6b7280', margin: 0 }}>
-                                Upload clear scans or photos. Max 4 MB per file — if your file is larger, please compress it before uploading.
-                            </p>
-                            {DOC_FIELDS.map(d => (
-                                <FileField
-                                    key={d.key}
-                                    label={d.label}
-                                    required={d.required}
-                                    accept={d.accept}
-                                    hint={d.hint}
-                                    maxMB={d.maxMB}
-                                    file={files[d.key]}
-                                    sizeError={fileSizeErrors[d.key]}
-                                    onChange={(f, err) => handleFileChange(d.key, f, err)}
+                        {/* ── Documents ── */}
+                        {tab === 'documents' && (
+                            <>
+                                <p className="text-muted small">
+                                    Upload clear scans or photos. Max 4 MB per file — if your file is larger, please compress it before uploading.
+                                </p>
+                                {DOC_FIELDS.map(d => (
+                                    <FileField
+                                        key={d.key}
+                                        label={d.label}
+                                        required={d.required}
+                                        accept={d.accept}
+                                        hint={d.hint}
+                                        maxMB={d.maxMB}
+                                        file={files[d.key]}
+                                        sizeError={fileSizeErrors[d.key]}
+                                        onChange={(f, err) => handleFileChange(d.key, f, err)}
+                                    />
+                                ))}
+
+                                <PolicyAcknowledgement
+                                    title="Employee Privacy Policy"
+                                    checked={policyChecks.privacy}
+                                    onChange={(v) => setPolicyChecks(p => ({ ...p, privacy: v }))}
+                                    checkboxLabel="I have read and agree to the Employee Privacy Policy."
                                 />
-                            ))}
+                            </>
+                        )}
 
-                            <PolicyAcknowledgement
-                                title="Employee Privacy Policy"
-                                checked={policyChecks.privacy}
-                                onChange={(v) => setPolicyChecks(p => ({ ...p, privacy: v }))}
-                                checkboxLabel="I have read and agree to the Employee Privacy Policy."
-                            />
-                        </div>
-                    )}
-
-                    {/* ── Navigation ── */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 28, alignItems: 'center' }}>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                const idx = TABS.findIndex(t => t.key === tab);
-                                if (idx > 0) goToTab(TABS[idx - 1].key);
-                            }}
-                            disabled={tab === TABS[0].key}
-                            style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontWeight: 600, color: '#374151', opacity: tab === TABS[0].key ? 0.4 : 1 }}
-                        >
-                            ← Back
-                        </button>
-
-                        {tab !== TABS[TABS.length - 1].key ? (
-                            <button
-                                type="button"
+                        {/* ── Navigation ── */}
+                        <div className="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                            <Button
+                                variant="outline-secondary"
                                 onClick={() => {
                                     const idx = TABS.findIndex(t => t.key === tab);
-                                    goToTab(TABS[idx + 1].key);
+                                    if (idx > 0) goToTab(TABS[idx - 1].key);
                                 }}
-                                style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', cursor: 'pointer', fontWeight: 700 }}
+                                disabled={tab === TABS[0].key}
                             >
-                                Next →
-                            </button>
-                        ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
-                                {uploadProgress && (
-                                    <div style={{ fontSize: 12, color: '#6366f1', display: 'flex', alignItems: 'center', gap: 6 }}>
-                                        <Spinner size="sm" animation="border" style={{ width: 14, height: 14 }} />
-                                        {uploadProgress}
-                                    </div>
-                                )}
-                                <button
-                                    type="submit"
-                                    disabled={submitting}
-                                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 24px', borderRadius: 8, border: 'none', background: submitting ? '#9ca3af' : 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', cursor: submitting ? 'not-allowed' : 'pointer', fontWeight: 700 }}
-                                >
-                                    {submitting ? <Spinner size="sm" animation="border" /> : <CheckCircle size={16} />}
-                                    {submitting ? 'Submitting…' : 'Submit Onboarding Form'}
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </Form>
-            </div>
-        </div>
-    );
-}
+                                ← Back
+                            </Button>
 
-function FieldGroup({ label, required, children }) {
-    return (
-        <Form.Group>
-            <Form.Label style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
-                {label} {required && <span style={{ color: '#ef4444' }}>*</span>}
-            </Form.Label>
-            {children}
-        </Form.Group>
+                            {tab !== TABS[TABS.length - 1].key ? (
+                                <Button
+                                    variant="primary"
+                                    onClick={() => {
+                                        const idx = TABS.findIndex(t => t.key === tab);
+                                        goToTab(TABS[idx + 1].key);
+                                    }}
+                                >
+                                    Next →
+                                </Button>
+                            ) : (
+                                <div className="d-flex flex-column align-items-end gap-1">
+                                    {uploadProgress && (
+                                        <div className="small text-primary d-flex align-items-center gap-2">
+                                            <Spinner size="sm" animation="border" />
+                                            {uploadProgress}
+                                        </div>
+                                    )}
+                                    <Button variant="success" type="submit" disabled={submitting} className="d-flex align-items-center gap-2">
+                                        {submitting ? <Spinner size="sm" animation="border" /> : <CheckCircle size={16} />}
+                                        {submitting ? 'Submitting…' : 'Submit Onboarding Form'}
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    </Form>
+                </Card.Body>
+            </Card>
+        </div>
     );
 }
 
 const pageStyle = {
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%)',
+    background: '#f8f9fa',
     display: 'flex',
     alignItems: 'flex-start',
     justifyContent: 'center',
     padding: '32px 16px',
 };
 
-// On phones, the page's own gradient background was showing as wasted space around the
-// card. Below 480px the card just goes edge-to-edge (no page padding, no rounded corners,
-// no shadow) instead of floating in the middle of visible background — same colors, just no
-// gutter. Desktop/tablet layout is untouched.
+// On phones, the page's own padding was showing as wasted space around the card. Below
+// 480px the card just goes edge-to-edge (no page padding, no rounded corners, no shadow)
+// instead of floating in the middle of visible background. Desktop/tablet layout untouched.
 const RESPONSIVE_CSS = `
   @media (max-width: 480px) {
     .ob-page { padding: 0; align-items: stretch; }
@@ -824,18 +916,6 @@ const RESPONSIVE_CSS = `
 `;
 
 const cardStyle = {
-    background: '#fff',
-    borderRadius: 20,
-    padding: '32px 28px',
     width: '100%',
     maxWidth: 520,
-    boxShadow: '0 10px 40px rgba(99,102,241,0.12)',
 };
-
-const gridStyle = {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '14px',
-};
-
-const inputStyle = { borderRadius: 8 };
