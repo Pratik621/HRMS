@@ -14,7 +14,6 @@ import {
     FaExclamationTriangle,
     FaSearch,
     FaEye,
-    FaEyeSlash,
     FaEllipsisV,
     FaUserTie,
     FaSun,
@@ -34,6 +33,7 @@ import {
 } from '../Common/attendanceTheme';
 import Avatar from '../Common/Avatar';
 import ApplyEarlyLogoutModal from '../Common/ApplyEarlyLogoutModal';
+import ConfirmModal from '../Common/ConfirmModal';
 
 const TeamAttendanceReport = () => {
     const { user } = useAuth();
@@ -52,7 +52,6 @@ const TeamAttendanceReport = () => {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [selectedEmployee, setSelectedEmployee] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
-    const [showDetails, setShowDetails] = useState({});
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
     const [liveNow, setLiveNow] = useState(Date.now());
@@ -298,12 +297,13 @@ const TeamAttendanceReport = () => {
         : [];
 
     const [regularizingId, setRegularizingId] = useState(null);
+    const [regularizeConfirm, setRegularizeConfirm] = useState(null); // the record pending confirmation
 
     // Undo an accidental Clock Out — clears clock_out, reopens the session so the employee
     // sees "Working" + the Clock Out button again, clock_in untouched. Backend re-validates
     // this employee is actually this TL/Manager's own report, regardless of what's shown here.
     const handleQuickRegularize = async (record) => {
-        if (!window.confirm(`Undo ${record.employee_name}'s clock-out for ${formatDate(record.attendance_date)}? They will show as still working, with the same clock-in time.`)) return;
+        setRegularizeConfirm(null);
         setRegularizingId(record.id);
         try {
             const res = await axios.post(API_ENDPOINTS.ATTENDANCE_QUICK_REGULARIZE, {
@@ -710,57 +710,25 @@ const TeamAttendanceReport = () => {
                                                         </span>
                                                     </td>
                                                     <td className="text-center">
-                                                        <div className="d-inline-flex align-items-center gap-1">
-                                                            <button
+                                                        <Dropdown align="end">
+                                                            <Dropdown.Toggle
+                                                                as="button"
                                                                 className="btn btn-sm da-action-btn d-inline-flex align-items-center gap-1"
                                                                 style={{ borderRadius: 999, border: `1px solid ${DA.border}`, background: '#fff', color: DA.secondary, fontSize: 12 }}
-                                                                onClick={() => setShowDetails(prev => ({ ...prev, [index]: !prev[index] }))}
                                                             >
-                                                                {showDetails[index] ? <FaEyeSlash size={11} /> : <FaEllipsisV size={11} />} Details
-                                                            </button>
-                                                            <Dropdown align="end">
-                                                                <Dropdown.Toggle
-                                                                    as="button"
-                                                                    className="btn btn-sm da-action-btn"
-                                                                    style={{ borderRadius: 999, border: `1px solid ${DA.border}`, background: '#fff', color: DA.secondary, fontSize: 12, padding: '4px 8px' }}
+                                                                <FaEllipsisV size={11} /> Actions
+                                                            </Dropdown.Toggle>
+                                                            <Dropdown.Menu>
+                                                                <Dropdown.Item
+                                                                    disabled={!(record.clock_in && record.clock_out) || regularizingId === record.id}
+                                                                    onClick={() => setRegularizeConfirm(record)}
                                                                 >
-                                                                    ⋯
-                                                                </Dropdown.Toggle>
-                                                                <Dropdown.Menu>
-                                                                    <Dropdown.Item
-                                                                        disabled={!(record.clock_in && record.clock_out) || regularizingId === record.id}
-                                                                        onClick={() => handleQuickRegularize(record)}
-                                                                    >
-                                                                        {regularizingId === record.id ? 'Regularizing…' : 'Quick Regularize (undo clock-out)'}
-                                                                    </Dropdown.Item>
-                                                                </Dropdown.Menu>
-                                                            </Dropdown>
-                                                        </div>
+                                                                    {regularizingId === record.id ? 'Regularizing…' : 'Quick Regularize (undo clock-out)'}
+                                                                </Dropdown.Item>
+                                                            </Dropdown.Menu>
+                                                        </Dropdown>
                                                     </td>
                                                 </tr>
-                                                {showDetails[index] && (
-                                                    <tr className="bg-light">
-                                                        <td colSpan="9" className="p-3">
-                                                            <Row className="g-2 small">
-                                                                <Col xs={12} md={4}><strong>Employee:</strong> {record.employee_name}</Col>
-                                                                <Col xs={12} md={4}><strong>ID:</strong> {record.employee_id}</Col>
-                                                                <Col xs={12} md={4}><strong>Department:</strong> {record.department || 'N/A'}</Col>
-                                                                <Col xs={12} md={4}><strong>Date:</strong> {formatDate(record.attendance_date)}</Col>
-                                                                <Col xs={12} md={4}><strong>Clock In:</strong> {formatTime(record.clock_in) || '--:--'}</Col>
-                                                                <Col xs={12} md={4}><strong>Clock Out:</strong> {formatTime(record.clock_out) || '--:--'}</Col>
-                                                                <Col xs={12} md={4}>
-                                                                    <strong>Total Hours:</strong>{' '}
-                                                                    {record.status === 'working'
-                                                                        ? <span className="text-success">{getLiveHoursDisplay(record)} (live)</span>
-                                                                        : `${record.total_hours || 0}h`}
-                                                                </Col>
-                                                                {record.is_late && <Col xs={12} md={4}><strong className="text-warning">Late Duration:</strong> {record.late_display}</Col>}
-                                                                {record.overtime_hours > 0 && <Col xs={12} md={4}><strong className="text-success">Overtime:</strong> +{record.overtime_hours}h</Col>}
-                                                                {record.leave_type && <Col xs={12}><strong>Leave Type:</strong> {record.leave_type}</Col>}
-                                                            </Row>
-                                                        </td>
-                                                    </tr>
-                                                )}
                                             </React.Fragment>
                                         );
                                     })
@@ -915,6 +883,18 @@ const TeamAttendanceReport = () => {
                 candidates={earlyLogoutCandidates}
                 onSuccess={() => { setMessage('Early logout applied successfully!'); setTimeout(() => setMessage(''), 3000); refreshData(); }}
             />
+
+            {regularizeConfirm && (
+                <ConfirmModal
+                    icon="🕐"
+                    title="Quick Regularize?"
+                    message={`Undo ${regularizeConfirm.employee_name}'s clock-out for ${formatDate(regularizeConfirm.attendance_date)}? They'll be marked as working again, with the same clock-in time.`}
+                    confirmLabel="Yes, Regularize"
+                    busy={regularizingId === regularizeConfirm.id}
+                    onConfirm={() => handleQuickRegularize(regularizeConfirm)}
+                    onCancel={() => setRegularizeConfirm(null)}
+                />
+            )}
         </div>
     );
 };

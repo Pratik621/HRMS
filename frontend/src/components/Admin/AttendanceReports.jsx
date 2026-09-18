@@ -40,6 +40,7 @@ import {
 } from '../Common/attendanceTheme';
 import Avatar from '../Common/Avatar';
 import ApplyEarlyLogoutModal from '../Common/ApplyEarlyLogoutModal';
+import ConfirmModal from '../Common/ConfirmModal';
 import { useAuth } from '../../context/AuthContext';
 
 const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
@@ -1066,6 +1067,7 @@ const AttendanceReports = () => {
     : [];
 
   const [regularizingId, setRegularizingId] = useState(null);
+  const [regularizeConfirm, setRegularizeConfirm] = useState(null); // the record pending confirmation
 
   // Undo an accidental Clock Out — clears clock_out, reopens the session so the employee
   // sees "Working" + the Clock Out button again, clock_in untouched. Only makes sense for a
@@ -1073,7 +1075,7 @@ const AttendanceReports = () => {
   // nothing to undo).
   const handleQuickRegularize = async (record) => {
     const name = `${record.first_name || ''} ${record.last_name || ''}`.trim() || record.employee_id;
-    if (!window.confirm(`Undo ${name}'s clock-out for ${formatDate(record.attendance_date || selectedDate)}? They will show as still working, with the same clock-in time.`)) return;
+    setRegularizeConfirm(null);
     setRegularizingId(record.id);
     try {
       const res = await axios.post(API_ENDPOINTS.ATTENDANCE_QUICK_REGULARIZE, {
@@ -1979,7 +1981,7 @@ const AttendanceReports = () => {
                               <Dropdown.Menu>
                                 <Dropdown.Item
                                   disabled={!(record.clock_in && record.clock_out) || regularizingId === record.id}
-                                  onClick={() => handleQuickRegularize(record)}
+                                  onClick={() => setRegularizeConfirm(record)}
                                 >
                                   {regularizingId === record.id ? 'Regularizing…' : 'Quick Regularize (undo clock-out)'}
                                 </Dropdown.Item>
@@ -2156,6 +2158,18 @@ const AttendanceReports = () => {
         candidates={earlyLogoutCandidates}
         onSuccess={() => { setMessage('Early logout applied successfully!'); setMessageType('success'); fetchDailyAttendance(); }}
       />
+
+      {regularizeConfirm && (
+        <ConfirmModal
+          icon="🕐"
+          title="Quick Regularize?"
+          message={`Undo ${`${regularizeConfirm.first_name || ''} ${regularizeConfirm.last_name || ''}`.trim() || regularizeConfirm.employee_id}'s clock-out for ${formatDate(regularizeConfirm.attendance_date || selectedDate)}? They'll be marked as working again, with the same clock-in time.`}
+          confirmLabel="Yes, Regularize"
+          busy={regularizingId === regularizeConfirm.id}
+          onConfirm={() => handleQuickRegularize(regularizeConfirm)}
+          onCancel={() => setRegularizeConfirm(null)}
+        />
+      )}
     </div>
   );
 };
