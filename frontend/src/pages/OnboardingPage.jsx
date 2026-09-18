@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Spinner, Alert, Modal, Form, Button } from 'react-bootstrap';
 import { CheckCircle, XCircle, Clock, Briefcase, Building2, DollarSign, User, Calendar, AlertTriangle, PenLine, ShieldCheck, Wallet, Receipt } from 'lucide-react';
 import API_ENDPOINTS from '../config/api';
+import PolicyAcknowledgement from './PolicyAcknowledgement';
 
 const fmtMoney = (n) => n ? `₹${Number(n).toLocaleString('en-IN')}` : '—';
 const fmtDate  = (s) => s ? new Date(s).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '—';
@@ -191,11 +192,13 @@ export default function OnboardingPage() {
         );
     }
 
+    // 'policy' is intentionally not in this list — it's rendered as a full-text
+    // PolicyAcknowledgement block below instead of a one-line item, but still lives in the
+    // same ackChecks state so allAckChecked/handleSubmitAck don't need to change.
     const ACK_ITEMS = [
         { key: 'terms',   text: `I have carefully read and understood all the terms and conditions of this job offer from B2B InDemand.` },
         { key: 'salary',  text: `I confirm that the offered designation, department, employment type, and salary of ${fmtMoney(offer.salary)} per month are as agreed with HR.` },
         { key: 'docs',    text: `I understand that this offer is subject to successful verification of all submitted documents and information. Any discrepancy may result in withdrawal of the offer.` },
-        { key: 'policy',  text: `I agree to comply with B2B InDemand's company policies, code of conduct, and all applicable employment terms upon joining.` },
     ];
 
     // Default: pending state
@@ -244,6 +247,13 @@ export default function OnboardingPage() {
                                     <span style={{ fontSize: 13, color: '#374151', lineHeight: 1.5 }}>{item.text}</span>
                                 </label>
                             ))}
+
+                            <PolicyAcknowledgement
+                                title="B2BinDemand Employee Policy Handbook"
+                                checked={ackChecks.policy}
+                                onChange={(v) => setAckChecks(c => ({ ...c, policy: v }))}
+                                checkboxLabel="I have read and agree to comply with B2BinDemand's company policies, code of conduct, and all applicable employment terms upon joining."
+                            />
                         </div>
 
                         {/* Digital signature */}
