@@ -97,7 +97,7 @@ const EmployeeDashboard = () => {
       const res = await axios.get(API_ENDPOINTS.ATTENDANCE_CLOCK_OUT_PREVIEW(user?.employeeId));
       setClockOutPreview(res.data);
     } catch (err) {
-      setClockOutPreview(null); // fall back to the plain confirm message on failure
+      setClockOutPreview({ is_clocked_in: false }); // fall back to the plain confirm message on failure
     }
   };
 
@@ -1740,20 +1740,29 @@ const EmployeeDashboard = () => {
         {/* </Col> */}
       </Row>
 
-      {/* Clock-out confirmation overlay */}
+      {/* Clock-out confirmation overlay — waits for the hours check before showing anything,
+          so it never flashes the wrong popup (plain vs Half Day warning) while loading. */}
       {showClockOutConfirm && (() => {
-        const willBeHalfDay = clockOutPreview?.is_clocked_in && clockOutPreview.status_if_clocked_out_now !== 'present';
+        if (clockOutPreview === null) {
+          return (
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ background: '#fff', borderRadius: 18, padding: '32px 28px', boxShadow: '0 24px 64px rgba(0,0,0,0.22)', textAlign: 'center', maxWidth: 340, width: '90%' }}>
+                <Spinner animation="border" variant="warning" style={{ marginBottom: 14 }} />
+                <div style={{ color: '#6b7280', fontSize: 14 }}>Checking your hours worked…</div>
+              </div>
+            </div>
+          );
+        }
+        const willBeHalfDay = clockOutPreview.is_clocked_in && clockOutPreview.status_if_clocked_out_now !== 'present';
         return (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ background: willBeHalfDay ? '#fff7ed' : '#fff0ec', border: willBeHalfDay ? '1px solid #fb923c' : '1px solid #fdb8a0', borderRadius: 18, padding: '32px 28px', boxShadow: '0 24px 64px rgba(0,0,0,0.22)', textAlign: 'center', maxWidth: 340, width: '90%' }}>
             <div style={{ fontSize: 44, marginBottom: 10 }}>{willBeHalfDay ? '⚠️' : '🕐'}</div>
             <div style={{ fontWeight: 700, fontSize: 18, color: '#111827', marginBottom: 8 }}>
-              {clockOutPreview === null ? 'Clock Out?' : willBeHalfDay ? 'Shift not complete yet' : 'Clock Out?'}
+              {willBeHalfDay ? 'Shift not complete yet' : 'Clock Out?'}
             </div>
             <div style={{ color: '#6b7280', fontSize: 14, marginBottom: 24 }}>
-              {clockOutPreview === null ? (
-                'Are you sure you want to clock out?'
-              ) : willBeHalfDay ? (
+              {willBeHalfDay ? (
                 <>
                   You've worked <strong>{clockOutPreview.total_hours_display}</strong> so far — a{' '}
                   <strong>Half Day</strong> will get marked. Please complete{' '}

@@ -209,7 +209,7 @@ const AdminDashboard = () => {
       const res = await axios.get(API_ENDPOINTS.ATTENDANCE_CLOCK_OUT_PREVIEW(user?.employeeId));
       setClockOutPreview(res.data);
     } catch (err) {
-      setClockOutPreview(null);
+      setClockOutPreview({ is_clocked_in: false }); // fall back to the plain confirm message on failure
     }
   };
 
@@ -2295,7 +2295,17 @@ const AdminDashboard = () => {
       <style>{'@keyframes dashspin { to { transform: rotate(360deg); } }'}</style>
 
       {showClockOutConfirm && (() => {
-        const willBeHalfDay = clockOutPreview?.is_clocked_in && clockOutPreview.status_if_clocked_out_now !== 'present';
+        if (clockOutPreview === null) {
+          return (
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ background: '#fff', borderRadius: 18, padding: '32px 28px', boxShadow: '0 24px 64px rgba(0,0,0,0.22)', textAlign: 'center', maxWidth: 340, width: '90%' }}>
+                <Spinner animation="border" variant="warning" style={{ marginBottom: 14 }} />
+                <div style={{ color: '#6b7280', fontSize: 14 }}>Checking your hours worked…</div>
+              </div>
+            </div>
+          );
+        }
+        const willBeHalfDay = clockOutPreview.is_clocked_in && clockOutPreview.status_if_clocked_out_now !== 'present';
         return (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ background: '#fff', borderRadius: 18, padding: '32px 28px', boxShadow: '0 24px 64px rgba(0,0,0,0.22)', textAlign: 'center', maxWidth: 340, width: '90%' }}>
