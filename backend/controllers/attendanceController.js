@@ -210,6 +210,45 @@ const istStringToUTCISO = (istStr) => {
     return ms != null ? new Date(ms).toISOString() : null;
 };
 
+// Single source of truth for turning a clock-in/clock-out pair into total_minutes,
+// total_hours, total_hours_display and status. Every place that stores these four fields
+// together (clockOut, clockOutMissed, regularization approval) must call this instead of
+// recomputing status from its own copy of totalMinutes — the four fields drifting apart
+// (e.g. total_hours=9 but total_minutes=514, giving a status that matches neither) was
+// exactly the "9h4m but Half Day" bug this fixes: status must always be derived FROM the
+// same minutes value that gets stored, never from an independently-rounded/edited one.
+const computeAttendanceFromClockTimes = (clockInIST, clockOutIST, shiftTimingStr, isFlexibleShift) => {
+    const clockInMs = toUTCMs(clockInIST);
+    const clockOutMs = toUTCMs(clockOutIST);
+    let totalMinutes = Math.round((clockOutMs - clockInMs) / 60000);
+    if (totalMinutes < 0) totalMinutes += 24 * 60;
+    const totalHours = totalMinutes / 60;
+
+    const shiftObj = parseShiftTiming(shiftTimingStr);
+    // Clock-in never crosses midnight relative to attendance_date — only clock-out does —
+    // so the calendar date portion of clockInIST is always the correct attendanceDate for
+    // the shift-start-vs-clock-in late calculation below.
+    const attendanceDateForLate = String(clockInIST || '').substring(0, 10);
+    let status, late = null, overtime = null;
+    if (isFlexibleShift) {
+        status = getFlexibleShiftStatus(totalMinutes).status;
+    } else {
+        const expectedWorkMinutes = (shiftObj.totalHours || 9) * 60;
+        status = totalMinutes >= expectedWorkMinutes ? 'present' : (totalMinutes < 300 ? 'absent' : 'half_day');
+        late = recalculateLate(clockInIST, clockInIST, shiftTimingStr, attendanceDateForLate);
+        overtime = calculateOvertime(clockInIST, clockOutIST, shiftObj);
+    }
+
+    return {
+        totalMinutes,
+        totalHours: parseFloat(totalHours.toFixed(2)),
+        totalHoursDisplay: `${Math.floor(totalMinutes / 60)}h ${Math.round(totalMinutes % 60)}m`,
+        status,
+        late,
+        overtime,
+    };
+};
+
 // Check if a date is a holiday
 const isHoliday = (date) => {
     const dateStr = date.toISOString().split('T')[0];
@@ -1038,35 +1077,11 @@ exports.clockOut = async (req, res) => {
             clockOutIST = currentIST;
         }
 
-        const clockInMs = toUTCMs(clockInIST);
-        const clockOutMs = toUTCMs(clockOutIST);
-        let totalMinutes = Math.round((clockOutMs - clockInMs) / (1000 * 60));
-
-        // midnight crossing guard
-        if (totalMinutes < 0) totalMinutes += 24 * 60;
-        const totalHours = totalMinutes / 60;
-
-        // Flexible-shift employees are evaluated by total working hours only.
-        let status = 'half_day';
-        const shiftTiming = parseShiftTiming(employee?.shift_timing);
-        const expectedWorkMinutes = isFlexibleShift ? 540 : (shiftTiming.totalHours || 9) * 60;
-        if (isFlexibleShift) {
-            const flexibleStatus = getFlexibleShiftStatus(totalMinutes);
-            status = flexibleStatus.status;
-        } else {
-            if (totalMinutes >= expectedWorkMinutes) {
-                status = 'present';
-            } else if (totalMinutes < 300) {
-                status = 'absent';
-            }
-        }
-
-        const overtime = isFlexibleShift ? { overtimeHours: 0, overtimeMinutes: 0, hasOvertime: false, overtimeAmount: 0 } : calculateOvertime(clockInIST, clockOutIST, shiftTiming);
-
-        // Calculate display hours and minutes
-        const displayHours = Math.floor(totalMinutes / 60);
-        const displayMinutes = totalMinutes % 60;
-        const totalHoursDisplay = `${displayHours}h ${displayMinutes}m`;
+        const computed = computeAttendanceFromClockTimes(clockInIST, clockOutIST, employee?.shift_timing, isFlexibleShift);
+        const { totalMinutes, totalHours, totalHoursDisplay, status } = computed;
+        const overtime = isFlexibleShift
+            ? { overtimeHours: 0, overtimeMinutes: 0, hasOvertime: false, overtimeAmount: 0 }
+            : { overtimeHours: computed.overtime.overtimeHours, overtimeMinutes: computed.overtime.overtimeMinutes, hasOvertime: computed.overtime.hasOvertime, overtimeAmount: computed.overtime.overtimeAmount };
 
         // Update attendance record
         const updateData = {
@@ -1084,7 +1099,7 @@ exports.clockOut = async (req, res) => {
         updateData.overtime_amount = overtime.overtimeAmount;
         updateData.has_overtime = overtime.hasOvertime;
 
-        console.log(`⏱️ Total minutes: ${totalMinutes}, Expected: ${expectedWorkMinutes}, Status: ${status}`);
+        console.log(`⏱️ Total minutes: ${totalMinutes}, Status: ${status}`);
         console.log(`⏱️ Storing clock_out_ist as: ${clockOutIST}`);
 
         const { error: updateError } = await supabase
@@ -1204,37 +1219,15 @@ exports.clockOutMissed = async (req, res) => {
             clockOutIST = currentIST;
         }
 
-        // Parse clock in time and current time
-        const clockInTime = new Date(attendance.clock_in_ist || attendance.clock_in);
-        const currentTime = new Date(clockOutIST);  // Use the adjusted clock-out time
-
-        let totalMinutes = Math.round((currentTime - clockInTime) / (1000 * 60));
-        if (totalMinutes < 0) {
-            totalMinutes += 24 * 60;
-        }
-
         console.log(`⏰ Clock out for ${attendance.attendance_date}: ${clockOutIST}`);
 
-        const totalHours = totalMinutes / 60;
-
-        const displayHours = Math.floor(totalMinutes / 60);
-        const displayMinutes = totalMinutes % 60;
-        const totalHoursDisplay = `${displayHours}h ${displayMinutes}m`;
-
-        // Determine status
         const isFlexibleShift = isFlexibleShiftEnabled(employeeProfile || {});
-        let status = 'half_day';
-        if (isFlexibleShift) {
-            status = getFlexibleShiftStatus(totalMinutes).status;
-        } else {
-            const shiftTiming = parseShiftTiming(attendance.shift_time_used || employeeProfile?.shift_timing);
-            const expectedWorkMinutes = (shiftTiming.totalHours || 9) * 60;
-            if (totalMinutes >= expectedWorkMinutes) {
-                status = 'present';
-            } else if (totalMinutes < 300) {
-                status = 'absent';
-            }
-        }
+        const { totalMinutes, totalHours, totalHoursDisplay, status } = computeAttendanceFromClockTimes(
+            attendance.clock_in_ist || attendance.clock_in,
+            clockOutIST,
+            attendance.shift_time_used || employeeProfile?.shift_timing,
+            isFlexibleShift
+        );
 
         // Update attendance
         const { error: updateError } = await supabase
@@ -4005,7 +3998,7 @@ exports.quickRegularizeClockOut = async (req, res) => {
 // duplicate this logic elsewhere; import it from here instead.
 exports._shared = {
     parseShiftTiming, calculateOvertime, recalculateLate, getEffectiveShiftTiming,
-    toUTCMs, istStringToUTCISO, nowIST, pickBetterAttendanceRow,
+    toUTCMs, istStringToUTCISO, nowIST, pickBetterAttendanceRow, computeAttendanceFromClockTimes,
 };
 
 module.exports = exports;
