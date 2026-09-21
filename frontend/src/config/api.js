@@ -89,6 +89,7 @@ export const API_ENDPOINTS = {
   ATTENDANCE_EMPLOYEE_REPORT: (employeeId, start, end) =>
     ep(`/api/attendance/employee-report/${employeeId}?start=${start}&end=${end}`),
   ATTENDANCE_TODAY:       (employeeId) => ep(`/api/attendance/today/${employeeId}`),
+  ATTENDANCE_CLOCK_OUT_PREVIEW: (employeeId) => ep(`/api/attendance/clock-out-preview/${employeeId}`),
   ATTENDANCE_CLOCK_IN:    ep('/api/attendance/clock-in'),
   ATTENDANCE_CLOCK_OUT:   ep('/api/attendance/clock-out'),
   ATTENDANCE_HEARTBEAT:   ep('/api/attendance/heartbeat'),

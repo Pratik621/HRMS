@@ -85,7 +85,21 @@ const EmployeeDashboard = () => {
   const [clockLoading, setClockLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [showClockOutConfirm, setShowClockOutConfirm] = useState(false);
+  const [clockOutPreview, setClockOutPreview] = useState(null);
   const [networkBlocked, setNetworkBlocked] = useState(false);
+
+  // Fetches "what would my status be if I clocked out right now" before showing the confirm
+  // popup, so the popup can warn about an incomplete shift instead of a bare "are you sure".
+  const openClockOutConfirm = async () => {
+    setShowClockOutConfirm(true);
+    setClockOutPreview(null);
+    try {
+      const res = await axios.get(API_ENDPOINTS.ATTENDANCE_CLOCK_OUT_PREVIEW(user?.employeeId));
+      setClockOutPreview(res.data);
+    } catch (err) {
+      setClockOutPreview(null); // fall back to the plain confirm message on failure
+    }
+  };
 
   // Tickets the employee raised that the team has marked resolved and is now waiting on
   // THEM to confirm (status 'resolved_pending') — surfaced as a popup on dashboard load
@@ -1035,7 +1049,7 @@ const EmployeeDashboard = () => {
                 <FaSignInAlt size={14} /> Clock In
               </button>
               <button
-                onClick={() => setShowClockOutConfirm(true)}
+                onClick={openClockOutConfirm}
                 disabled={clockLoading || !isClockedInToday}
                 title="Clock Out"
                 style={{
@@ -1079,7 +1093,7 @@ const EmployeeDashboard = () => {
         attendance={attendance}
         activeSession={activeSession}
         onClockIn={handleClockIn}
-        onRequestClockOut={() => setShowClockOutConfirm(true)}
+        onRequestClockOut={openClockOutConfirm}
         clockLoading={clockLoading}
         readOnly={networkBlocked}
         readOnlyMessage="Please connect to company Wi-Fi for clock in."
@@ -1727,18 +1741,36 @@ const EmployeeDashboard = () => {
       </Row>
 
       {/* Clock-out confirmation overlay */}
-      {showClockOutConfirm && (
+      {showClockOutConfirm && (() => {
+        const willBeHalfDay = clockOutPreview?.is_clocked_in && clockOutPreview.status_if_clocked_out_now !== 'present';
+        return (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: '#fff0ec', border: '1px solid #fdb8a0', borderRadius: 18, padding: '32px 28px', boxShadow: '0 24px 64px rgba(0,0,0,0.22)', textAlign: 'center', maxWidth: 320, width: '90%' }}>
-            <div style={{ fontSize: 44, marginBottom: 10 }}>🕐</div>
-            <div style={{ fontWeight: 700, fontSize: 18, color: '#111827', marginBottom: 8 }}>Clock Out?</div>
-            <div style={{ color: '#6b7280', fontSize: 14, marginBottom: 24 }}>Are you sure you want to clock out?</div>
+          <div style={{ background: willBeHalfDay ? '#fff7ed' : '#fff0ec', border: willBeHalfDay ? '1px solid #fb923c' : '1px solid #fdb8a0', borderRadius: 18, padding: '32px 28px', boxShadow: '0 24px 64px rgba(0,0,0,0.22)', textAlign: 'center', maxWidth: 340, width: '90%' }}>
+            <div style={{ fontSize: 44, marginBottom: 10 }}>{willBeHalfDay ? '⚠️' : '🕐'}</div>
+            <div style={{ fontWeight: 700, fontSize: 18, color: '#111827', marginBottom: 8 }}>
+              {clockOutPreview === null ? 'Clock Out?' : willBeHalfDay ? 'Shift not complete yet' : 'Clock Out?'}
+            </div>
+            <div style={{ color: '#6b7280', fontSize: 14, marginBottom: 24 }}>
+              {clockOutPreview === null ? (
+                'Are you sure you want to clock out?'
+              ) : willBeHalfDay ? (
+                <>
+                  You've worked <strong>{clockOutPreview.total_hours_display}</strong> so far — a{' '}
+                  <strong>Half Day</strong> will get marked. Please complete{' '}
+                  <strong>{clockOutPreview.remaining_display}</strong> more, or ask your TL for an
+                  early clock-out to be marked Present.
+                  <div style={{ marginTop: 10, fontSize: 13 }}>If you still clock out now, you'll be marked <strong>Half Day</strong>.</div>
+                </>
+              ) : (
+                'Are you sure you want to clock out?'
+              )}
+            </div>
             <div style={{ display: 'flex', gap: 10 }}>
               <button
                 onClick={() => { setShowClockOutConfirm(false); handleClockOut(); }}
-                style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', background: '#f97316', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}
+                style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', background: willBeHalfDay ? '#ea580c' : '#f97316', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}
               >
-                Sure
+                {willBeHalfDay ? 'Clock Out Anyway' : 'Sure'}
               </button>
               <button
                 onClick={() => setShowClockOutConfirm(false)}
@@ -1749,7 +1781,8 @@ const EmployeeDashboard = () => {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* Full Performance Rating History Modal */}
       <Modal show={showRatingHistory} onHide={() => setShowRatingHistory(false)} centered size="lg">

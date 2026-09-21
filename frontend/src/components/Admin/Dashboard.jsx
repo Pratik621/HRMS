@@ -197,7 +197,21 @@ const AdminDashboard = () => {
   const [subAdminClockLoading, setSubAdminClockLoading] = useState(false);
   const [subAdminClockMessage, setSubAdminClockMessage] = useState({ type: '', text: '' });
   const [showClockOutConfirm, setShowClockOutConfirm] = useState(false);
+  const [clockOutPreview, setClockOutPreview] = useState(null);
   const [perfAnalytics, setPerfAnalytics] = useState(null);
+
+  // Fetches "what would my status be if I clocked out right now" before showing the confirm
+  // popup, so the popup can warn about an incomplete shift instead of a bare "are you sure".
+  const openClockOutConfirm = async () => {
+    setShowClockOutConfirm(true);
+    setClockOutPreview(null);
+    try {
+      const res = await axios.get(API_ENDPOINTS.ATTENDANCE_CLOCK_OUT_PREVIEW(user?.employeeId));
+      setClockOutPreview(res.data);
+    } catch (err) {
+      setClockOutPreview(null);
+    }
+  };
 
   // Manager Dashboard "View Team" filter — 'ALL' = company-wide (default, reproduces
   // the pre-filter dashboard exactly). Any other value is a Team Leader/Manager's
@@ -1075,7 +1089,7 @@ const AdminDashboard = () => {
         attendance={subAdminAttendance}
         activeSession={subAdminSession}
         onClockIn={handleSubAdminClockIn}
-        onRequestClockOut={() => setShowClockOutConfirm(true)}
+        onRequestClockOut={openClockOutConfirm}
         clockLoading={subAdminClockLoading}
         readOnly={!['admin', 'sub_admin', 'hr'].includes(user?.role)}
         unlimitedBreaks={(user?.department || '').trim().toLowerCase() === 'sales'}
@@ -2280,18 +2294,34 @@ const AdminDashboard = () => {
       </Modal>
       <style>{'@keyframes dashspin { to { transform: rotate(360deg); } }'}</style>
 
-      {showClockOutConfirm && (
+      {showClockOutConfirm && (() => {
+        const willBeHalfDay = clockOutPreview?.is_clocked_in && clockOutPreview.status_if_clocked_out_now !== 'present';
+        return (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: '#fff', borderRadius: 18, padding: '32px 28px', boxShadow: '0 24px 64px rgba(0,0,0,0.22)', textAlign: 'center', maxWidth: 320, width: '90%' }}>
-            <div style={{ fontSize: 44, marginBottom: 10 }}>🕐</div>
-            <div style={{ fontWeight: 700, fontSize: 18, color: '#111827', marginBottom: 8 }}>Clock Out?</div>
-            <div style={{ color: '#6b7280', fontSize: 14, marginBottom: 24 }}>Are you sure you want to clock out?</div>
+          <div style={{ background: '#fff', borderRadius: 18, padding: '32px 28px', boxShadow: '0 24px 64px rgba(0,0,0,0.22)', textAlign: 'center', maxWidth: 340, width: '90%' }}>
+            <div style={{ fontSize: 44, marginBottom: 10 }}>{willBeHalfDay ? '⚠️' : '🕐'}</div>
+            <div style={{ fontWeight: 700, fontSize: 18, color: '#111827', marginBottom: 8 }}>
+              {willBeHalfDay ? 'Shift not complete yet' : 'Clock Out?'}
+            </div>
+            <div style={{ color: '#6b7280', fontSize: 14, marginBottom: 24 }}>
+              {willBeHalfDay ? (
+                <>
+                  You've worked <strong>{clockOutPreview.total_hours_display}</strong> so far — a{' '}
+                  <strong>Half Day</strong> will get marked. Please complete{' '}
+                  <strong>{clockOutPreview.remaining_display}</strong> more, or ask your TL for an
+                  early clock-out to be marked Present.
+                  <div style={{ marginTop: 10, fontSize: 13 }}>If you still clock out now, you'll be marked <strong>Half Day</strong>.</div>
+                </>
+              ) : (
+                'Are you sure you want to clock out?'
+              )}
+            </div>
             <div style={{ display: 'flex', gap: 10 }}>
               <button
                 onClick={() => { setShowClockOutConfirm(false); handleSubAdminClockOut(); }}
-                style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', background: '#f97316', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}
+                style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', background: willBeHalfDay ? '#ea580c' : '#f97316', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}
               >
-                Sure
+                {willBeHalfDay ? 'Clock Out Anyway' : 'Sure'}
               </button>
               <button
                 onClick={() => setShowClockOutConfirm(false)}
@@ -2302,7 +2332,8 @@ const AdminDashboard = () => {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 };

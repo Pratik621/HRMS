@@ -878,6 +878,71 @@ exports.clockIn = async (req, res) => {
     }
 };
 
+// GET /api/attendance/clock-out-preview/:employee_id
+// Live "what would happen if I clocked out right now" check, using the exact same
+// computeAttendanceFromClockTimes() the real clock-out uses — so the confirm popup's Half
+// Day warning can never disagree with what actually gets stored a moment later. Powers the
+// dashboard's Clock Out confirmation (shows a Half Day warning + minutes remaining until
+// Present, instead of a bare "are you sure").
+exports.getClockOutPreview = async (req, res) => {
+    try {
+        const { employee_id } = req.params;
+        if (!employee_id) return res.status(400).json({ success: false, message: 'Employee ID is required' });
+        if (req.user?.employeeId !== employee_id && !['admin', 'hr', 'sub_admin', 'manager'].includes(req.user?.role)) {
+            return res.status(403).json({ success: false, message: 'Access denied' });
+        }
+
+        const { data: attendanceRecord } = await supabase
+            .from('attendance')
+            .select('id, clock_in, clock_in_ist, attendance_date, shift_time_used')
+            .eq('employee_id', employee_id)
+            .is('clock_out', null)
+            .not('clock_in', 'is', null)
+            .order('clock_in', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        if (!attendanceRecord) {
+            return res.json({ success: true, is_clocked_in: false });
+        }
+
+        // Fetched with a fallback so a not-yet-migrated isFlexibleShift column can't break
+        // this preview — defaults to false on error, same pattern as clockOut/regularizationService.
+        let { data: employee, error: empErr } = await supabase
+            .from('employees').select('shift_timing, "isFlexibleShift"').eq('employee_id', employee_id).maybeSingle();
+        if (empErr && /isFlexibleShift|does not exist/i.test(empErr.message || '')) {
+            ({ data: employee } = await supabase
+                .from('employees').select('shift_timing').eq('employee_id', employee_id).maybeSingle());
+        }
+        employee = employee || {};
+        const isFlexibleShift = isFlexibleShiftEnabled(employee);
+        const clockInIST = attendanceRecord.clock_in_ist || attendanceRecord.clock_in;
+        const shiftTimingStr = await getEffectiveShiftTiming(
+            employee_id, attendanceRecord.attendance_date,
+            attendanceRecord.shift_time_used || employee.shift_timing,
+        );
+
+        const computed = computeAttendanceFromClockTimes(clockInIST, nowIST(), shiftTimingStr, isFlexibleShift);
+        const shiftObj = parseShiftTiming(shiftTimingStr);
+        const expectedMinutes = isFlexibleShift ? 540 : (shiftObj.totalHours || 9) * 60;
+        const remainingMinutes = Math.max(0, Math.ceil(expectedMinutes - computed.totalMinutes));
+
+        res.json({
+            success: true,
+            is_clocked_in: true,
+            status_if_clocked_out_now: computed.status,
+            total_minutes_worked: computed.totalMinutes,
+            total_hours_display: computed.totalHoursDisplay,
+            expected_minutes: expectedMinutes,
+            remaining_minutes: remainingMinutes,
+            remaining_display: `${Math.floor(remainingMinutes / 60)}h ${remainingMinutes % 60}m`,
+        });
+    } catch (error) {
+        console.error('❌ getClockOutPreview error:', error);
+        res.status(500).json({ success: false, message: 'Failed to compute clock-out preview', error: error.message });
+    }
+};
+
 // In attendanceController.js - Update clockOut function
 
 exports.clockOut = async (req, res) => {
