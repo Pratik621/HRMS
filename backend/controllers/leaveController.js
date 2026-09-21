@@ -383,6 +383,15 @@ exports.applyLeave = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
 
+        // Guards against malformed dates (e.g. a stray extra "20" prefix on the year — seen
+        // once in production as "202026-09-02") slipping through to be stored, which silently
+        // breaks the leave-approval → attendance sync for that request since it iterates the
+        // literal start_date..end_date range.
+        const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+        if (!DATE_RE.test(start_date) || (end_date && !DATE_RE.test(end_date))) {
+            return res.status(400).json({ success: false, message: 'Invalid date format for leave request' });
+        }
+
         if (!reporting_manager || !reporting_manager.trim()) {
             return res.status(400).json({ success: false, message: 'Reporting manager is required' });
         }
