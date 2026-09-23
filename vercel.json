@@ -9,8 +9,6 @@
       "includeFiles": "backend/node_modules/pdfkit/**"
     }
   },
-
-  
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api" },
     { "source": "/((?!api).*)", "destination": "/index.html" }
@@ -37,11 +35,4 @@
       "schedule": "30 18 * * *"
     }
   ]
-
-  {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "npm install",
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist"
-}
 }
