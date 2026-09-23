@@ -26,21 +26,11 @@ const upload = multer({
 // MAX-based generator in utils/employeeId.js (also used by the offer-link onboarding flow,
 // after a count-based duplicate there caused a real "duplicate key value violates unique
 // constraint employees_employee_id_key" production error). Kept as a thin wrapper here (same
-// name/signature) so the two existing call sites below don't need to change, and so this
-// route keeps its own timestamp-based fallback if generation ever throws.
+// name/signature) so the existing call sites below don't need to change. No fallback on
+// failure — a generation error (e.g. a transient DB/network issue) must fail the request
+// rather than fabricate a timestamp-based ID that violates the MAX+1 sequencing rule.
 const generateEmployeeIdBasedOnJoiningDate = async (joiningDate) => {
-    const date = new Date(joiningDate);
-    const year = date.getFullYear().toString().slice(-2);
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    try {
-        return await generateNextEmployeeId(joiningDate);
-    } catch (error) {
-        console.error('Error generating employee ID:', error);
-        // Fallback with timestamp to ensure uniqueness
-        const timestamp = Date.now().toString().slice(-4);
-        const fallbackSeq = timestamp.slice(-2);
-        return `B2B${year}${month}${fallbackSeq}`;
-    }
+    return generateNextEmployeeId(joiningDate);
 };
 
 // Get employee statistics (Admin only) — MUST be before /:id
@@ -501,6 +491,12 @@ router.post('/', verifyToken, isAdminOrDesktopSupport, async (req, res) => {
                 return res.status(400).json({ success: false, message: `${label} is required`, field });
             }
         }
+
+        // The server is the single authoritative source of employee_id — always generate it
+        // here and ignore/overwrite anything the client sent. A generation failure (e.g. a
+        // transient DB error) fails the request via the outer catch below, same as any other
+        // error in this handler.
+        employeeData.employee_id = await generateEmployeeIdBasedOnJoiningDate(employeeData.joining_date);
 
         let retryCount = 0;
         const maxRetries = 5;

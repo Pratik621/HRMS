@@ -338,81 +338,6 @@ const AddEmployee = () => {
     return completedTabs.personal && completedTabs.salary && completedTabs.policy;
   };
 
-  // Generate employee ID based on joining date - 2-digit sequence
-  const generateEmployeeId = async () => {
-    if (!tempPersonalData.joining_date) return null;
-
-    const date = new Date(tempPersonalData.joining_date);
-    const year = date.getFullYear().toString().slice(-2);
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-
-    try {
-      console.log('🔍 Generating employee ID for joining date:', tempPersonalData.joining_date);
-
-      // Get all employees (active AND inactive) to check existing IDs — a deactivated
-      // employee's employee_id is still taken and must never be reissued to someone new.
-      const response = await axios.get(API_ENDPOINTS.EMPLOYEES, { params: { active: 'all' } });
-      let employees = [];
-
-      if (Array.isArray(response.data)) {
-        employees = response.data;
-      } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
-        employees = response.data.data;
-      } else {
-        employees = [];
-      }
-
-      console.log('📊 Total employees:', employees.length);
-
-      // Filter employees with the same year and month prefix
-      const prefix = `B2B${year}${month}`;
-      const sameMonthEmployees = employees.filter(emp => {
-        return emp.employee_id && emp.employee_id.startsWith(prefix);
-      });
-
-      console.log(`📊 Found ${sameMonthEmployees.length} employees with prefix ${prefix}`);
-
-      // Find the highest sequence number (2 digits)
-      let maxSeq = 0;
-      sameMonthEmployees.forEach(emp => {
-        const id = emp.employee_id;
-        if (id && id.length >= 9) { // B2BYYMMSS = 9 chars
-          const seqStr = id.slice(-2); // Last 2 characters
-          const seq = parseInt(seqStr, 10);
-          if (!isNaN(seq) && seq > maxSeq) {
-            maxSeq = seq;
-          }
-        }
-      });
-
-      console.log('📊 Current max sequence:', maxSeq);
-
-      // Generate new sequence (start from 1 if no employees)
-      const newSeq = (maxSeq + 1).toString().padStart(2, '0');
-
-      // Ensure sequence doesn't exceed 99
-      if (maxSeq >= 99) {
-        throw new Error('Maximum employees for this month reached (99)');
-      }
-
-      const newEmployeeId = `${prefix}${newSeq}`;
-
-      console.log('✅ Generated new employee ID:', newEmployeeId);
-      return newEmployeeId;
-
-    } catch (error) {
-      console.error('❌ Error generating employee ID:', error);
-
-      // Fallback: Use timestamp to ensure uniqueness
-      const timestamp = Date.now().toString().slice(-4);
-      const fallbackSeq = timestamp.slice(-2);
-      const fallbackId = `B2B${year}${month}${fallbackSeq}`;
-
-      console.log('⚠️ Using fallback ID:', fallbackId);
-      return fallbackId;
-    }
-  };
-
   // Upload documents function
   const uploadDocuments = async (empId) => {
     const validUploads = selectedFiles.reduce((acc, file, index) => {
@@ -508,37 +433,13 @@ const AddEmployee = () => {
         throw new Error("Cannot connect to server. Please check if backend is running.");
       }
 
-      // Generate employee ID
-      let empId = null;
-      let retryCount = 0;
-      const maxRetries = 5;
-
-      while (!empId && retryCount < maxRetries) {
-        try {
-          empId = await generateEmployeeId();
-          if (!empId) {
-            throw new Error('Failed to generate employee ID');
-          }
-          retryCount++;
-        } catch (err) {
-          retryCount++;
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
-      }
-
-      if (!empId) {
-        throw new Error("Could not generate unique employee ID after multiple attempts");
-      }
-
-      setEmployeeId(empId);
-      console.log('✅ Final Employee ID:', empId);
-
-
+      // employee_id is no longer generated here — the backend (POST /api/employees) is the
+      // single authoritative source and always assigns it server-side, regardless of what
+      // (if anything) is sent in this payload.
       const employeeData = {
         first_name: tempPersonalData.first_name?.trim(),
         middle_name: tempPersonalData.middle_name?.trim() || null,
         last_name: tempPersonalData.last_name?.trim(),
-        employee_id: empId,
         email: tempPersonalData.email?.trim().toLowerCase(),
         password: tempPersonalData.password,
         joining_date: tempPersonalData.joining_date,
@@ -573,17 +474,29 @@ const AddEmployee = () => {
       console.log('📦 Submitting employee data:', JSON.stringify(employeeData, null, 2));
       setDebugInfo(employeeData);
 
-      // Create employee
+      // Create employee — employee_id is assigned server-side; the response is the only
+      // source of truth for it (see backend/routes/employeeRoutes.js POST / handler, which
+      // returns { success, message, employee: { id, employee_id } }).
       const response = await axios.post(API_ENDPOINTS.EMPLOYEES, employeeData);
 
       console.log('✅ Employee created:', response.data);
+
+      const createdEmployeeId = response.data?.employee?.employee_id;
+      if (!createdEmployeeId) {
+        // The insert may have already succeeded server-side even though the ID didn't come
+        // back — do not silently proceed (e.g. uploading documents against no employee_id).
+        throw new Error('Employee may have been created, but the server did not return its employee ID. Please check the employee list before retrying.');
+      }
+
+      setEmployeeId(createdEmployeeId);
+      console.log('✅ Final Employee ID:', createdEmployeeId);
 
       setSuccess('Employee added successfully!');
       showNotification('Employee added successfully!', 'success');
 
       // Upload documents if any
       if (selectedFiles.length > 0) {
-        await uploadDocuments(empId);
+        await uploadDocuments(createdEmployeeId);
       }
 
       // Navigate back after delay
