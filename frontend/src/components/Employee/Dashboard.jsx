@@ -243,7 +243,11 @@ const EmployeeDashboard = () => {
       setMessage({ type: 'success', text: response.data.message || 'Clocked out successfully!' });
     } catch (error) {
       if (error.response?.data?.code === 'IP_BLOCKED') setNetworkBlocked(true);
-      setMessage({ type: 'danger', text: error.response?.data?.message || 'Failed to clock out' });
+      if (error.response?.data?.code === 'MINIMUM_CLOCK_OUT_TIME') {
+        setMessage({ type: 'warning', text: error.response.data.message });
+      } else {
+        setMessage({ type: 'danger', text: error.response?.data?.message || 'Failed to clock out' });
+      }
     } finally {
       setClockLoading(false);
     }

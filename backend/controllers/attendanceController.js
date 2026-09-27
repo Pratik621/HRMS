@@ -1114,7 +1114,10 @@ exports.clockOut = async (req, res) => {
                 const remaining = Math.ceil(15 - minutesSince);
                 return res.status(400).json({
                     success: false,
-                    message: `Please wait ${remaining} more minute(s) before clocking out.`,
+                    message: `Clock out is available after 15 minutes from clock-in. Please try again in ${remaining} minute${remaining === 1 ? '' : 's'}.`,
+                    code: 'MINIMUM_CLOCK_OUT_TIME',
+                    remainingMinutes: remaining,
+                    // Kept for existing clients (Employee/Attendance.jsx checks too_early).
                     too_early: true,
                     remaining_minutes: remaining
                 });
