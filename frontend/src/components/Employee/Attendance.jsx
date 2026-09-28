@@ -1640,7 +1640,7 @@ const Attendance = () => {
       console.error('❌ Clock-out error:', error);
       const errData = error.response?.data;
       if (errData?.code === 'IP_BLOCKED') setNetworkBlocked(true);
-      if (errData?.too_early) {
+      if (errData?.code === 'MINIMUM_CLOCK_OUT_TIME' || errData?.too_early) {
         setMessage({ type: 'warning', text: errData.message });
       } else if (errData?.already_clocked_out || error.response?.status === 404) {
         setActiveSession(null);

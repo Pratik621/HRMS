@@ -326,7 +326,9 @@ const getAllRatings = async (req, res) => {
     try {
         const userRole = req.user?.role;
 
-        if (userRole !== 'admin') {
+        const allowedRoles = ['admin', 'sub_admin', 'hr'];
+
+        if (!allowedRoles.includes(userRole)) {
             return res.status(403).json({ success: false, message: 'Admin access required' });
         }
 
@@ -498,7 +500,9 @@ const adminRateEmployee = async (req, res) => {
         const adminId = req.user?.employeeId;
         const userRole = req.user?.role;
 
-        if (userRole !== 'admin') {
+        const allowedRoles = ['admin', 'sub_admin', 'hr'];
+
+        if (!allowedRoles.includes(userRole)) {
             return res.status(403).json({ success: false, message: 'Only admins can use this endpoint' });
         }
 

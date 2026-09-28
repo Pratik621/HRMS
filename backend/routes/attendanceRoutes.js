@@ -36,6 +36,10 @@ module.exports = (supabase, authenticateToken, requireAdmin) => {
     // Get today's attendance for an employee
     router.get('/today/:employee_id', attendanceController.getTodayAttendance);
 
+    // Live "what would happen if I clocked out right now" preview — powers the Clock Out
+    // confirmation popup's Half Day warning on the dashboards.
+    router.get('/clock-out-preview/:employee_id', authenticateToken, attendanceController.getClockOutPreview);
+
     // Employee self-service attendance report
     router.get('/employee-report/:employee_id', authenticateToken, attendanceController.getEmployeeAttendanceReport);
 
