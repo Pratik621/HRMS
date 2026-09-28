@@ -1,44 +1,78 @@
 import React, { useState, useEffect } from 'react';
-import { FaSignInAlt, FaSignOutAlt, FaSyncAlt, FaClock } from 'react-icons/fa';
+import {
+  FaSignInAlt,
+  FaSignOutAlt,
+  FaSyncAlt,
+  FaClock,
+  FaBriefcase,
+} from 'react-icons/fa';
 import BreakWidget from './BreakWidget';
 import TicketBadge from './TicketBadge';
-import { QA } from './quickAccessTheme';
 import { getTrustedNow } from '../../utils/serverTime';
 
-// timeZone pinned to India — otherwise this renders in whatever timezone the OS happens to be
-// set to, independent of (and in addition to) the device's clock itself.
-const fmtClock = (d) => d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' });
-const fmtDate = (d) => d.toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' });
+// India timezone
+const fmtClock = (d) =>
+  d.toLocaleTimeString('en-IN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+    timeZone: 'Asia/Kolkata',
+  });
 
-// Fallback formatter for attendance.clock_in/clock_out when the backend hasn't already
-// provided clock_in_display/clock_out_display. The value here is usually clock_in_ist/
-// clock_out_ist — a naive "YYYY-MM-DD HH:MM:SS" string that IS ALREADY India wall-clock time,
-// not a UTC instant — so it must be read directly rather than passed through `new Date()`,
-// which would interpret those digits against this device's own timezone (wrong the moment the
-// OS timezone isn't India, even though the digits were already correct). Only the rarer
-// raw-UTC fallback (a proper ISO string with a Z/offset) needs an actual timezone conversion.
+const fmtDate = (d) =>
+  d.toLocaleDateString('en-IN', {
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'Asia/Kolkata',
+  });
+
+// Formats attendance timestamps safely as India time.
 const formatIstTimeField = (val) => {
   if (!val) return null;
+
   const s = String(val);
-  const isUtcTagged = /[Zz]$/.test(s) || /[+-]\d{2}:?\d{2}$/.test(s);
+
+  const isUtcTagged =
+    /[Zz]$/.test(s) || /[+-]\d{2}:?\d{2}$/.test(s);
+
   if (isUtcTagged) {
     const d = new Date(s);
+
     return isNaN(d.getTime())
       ? null
-      : d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' });
+      : d.toLocaleTimeString('en-IN', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+          timeZone: 'Asia/Kolkata',
+        });
   }
+
   const timePart = s.replace('T', ' ').split(' ')[1];
+
   if (!timePart) return null;
+
   let [h, m] = timePart.split(':').map(Number);
-  if (Number.isNaN(h) || Number.isNaN(m)) return null;
+
+  if (Number.isNaN(h) || Number.isNaN(m)) {
+    return null;
+  }
+
   const ampm = h >= 12 ? 'PM' : 'AM';
-  h = h % 12; if (h === 0) h = 12;
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} ${ampm}`;
+
+  h = h % 12;
+
+  if (h === 0) h = 12;
+
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(
+    2,
+    '0'
+  )} ${ampm}`;
 };
 
-// Presentational-only card: all attendance state/handlers are owned by the parent
-// dashboard (existing, already-working clock-in/out logic) — this component just
-// renders them inside the new premium layout. No attendance logic lives here.
 export default function AttendanceCard({
   attendance,
   activeSession,
@@ -54,106 +88,247 @@ export default function AttendanceCard({
   unlimitedBreaks = false,
   hideClockToggle = false,
 }) {
-  // Anchored to the trusted server clock (utils/serverTime.js), not this device's own clock —
-  // the employee/admin's laptop time must never be able to move this display, since it's the
-  // same clock the actual clock-in/out timestamps are computed from on the backend.
+  // Trusted server clock
   const [now, setNow] = useState(getTrustedNow());
+
   useEffect(() => {
-    const id = setInterval(() => setNow(getTrustedNow()), 1000);
+    const id = setInterval(() => {
+      setNow(getTrustedNow());
+    }, 1000);
+
     return () => clearInterval(id);
   }, []);
 
-  const hasOpen = !!activeSession || (!!attendance?.clock_in && !attendance?.clock_out);
-  const isClockedOutToday = !!(attendance?.clock_out && !activeSession);
+  const hasOpen =
+    !!activeSession ||
+    (!!attendance?.clock_in && !attendance?.clock_out);
+
+  const isClockedOutToday =
+    !!(attendance?.clock_out && !activeSession);
+
+  const clockInDisplay =
+    attendance?.clock_in_display ||
+    formatIstTimeField(attendance?.clock_in) ||
+    '--:--';
+
+  const clockOutDisplay =
+    attendance?.clock_out_display ||
+    formatIstTimeField(attendance?.clock_out) ||
+    '--:--';
 
   return (
-    <div style={{
-      background: 'linear-gradient(135deg, #F59E0B 0%, #F97316 100%)',
-      borderRadius: 18, padding: 18, color: '#fff', position: 'relative', overflow: 'hidden',
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, opacity: 0.85 }}>Time Today</div>
-          <div style={{ fontSize: 12, opacity: 0.85 }}>{fmtDate(now)}</div>
-        </div>
-        {!readOnly && <TicketBadge variant="dark" />}
-      </div>
+    <div className="attendance-card-modern">
 
-      <div style={{ fontSize: 34, fontWeight: 800, letterSpacing: 0.5, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <FaClock size={22} style={{ opacity: 0.85 }} />
-        {fmtClock(now)}
-      </div>
+      {/* Header */}
+      <div className="attendance-card-header">
+        <div>
+          <div className="attendance-card-title">
+            Time Today
+          </div>
 
-      <div style={{ display: 'flex', gap: 18, fontSize: 12, marginBottom: 14, flexWrap: 'wrap' }}>
-        <div>
-          <div style={{ opacity: 0.8, fontSize: 10, textTransform: 'uppercase' }}>In</div>
-          <div style={{ fontWeight: 700 }}>{attendance?.clock_in_display || formatIstTimeField(attendance?.clock_in) || '--:--'}</div>
+          <div className="attendance-card-date">
+            {fmtDate(now)}
+          </div>
         </div>
-        <div>
-          <div style={{ opacity: 0.8, fontSize: 10, textTransform: 'uppercase' }}>Out</div>
-          <div style={{ fontWeight: 700 }}>{attendance?.clock_out_display || formatIstTimeField(attendance?.clock_out) || '--:--'}</div>
-        </div>
-        {attendance?.total_hours_display && (
-          <div>
-            <div style={{ opacity: 0.8, fontSize: 10, textTransform: 'uppercase' }}>Hours</div>
-            <div style={{ fontWeight: 700 }}>{attendance.total_hours_display}</div>
+
+        {!readOnly && (
+          <div className="attendance-ticket">
+            <TicketBadge variant="dark" />
           </div>
         )}
       </div>
 
+      {/* Current Time */}
+      <div className="attendance-current-time">
+        <div className="attendance-clock-icon">
+          <FaClock size={18} />
+        </div>
+
+        <div>
+          <div className="attendance-live-label">
+            Current Time
+          </div>
+
+          <div className="attendance-time-value">
+            {fmtClock(now)}
+          </div>
+        </div>
+      </div>
+
+      {/* Working Status */}
+      <div
+        className={`attendance-status ${
+          hasOpen
+            ? 'attendance-status-working'
+            : 'attendance-status-idle'
+        }`}
+      >
+        <span className="attendance-status-dot"></span>
+
+        <span>
+          {hasOpen ? 'Working' : 'Not Clocked In'}
+        </span>
+      </div>
+
+      {/* Attendance Summary */}
+      <div className="attendance-summary-grid">
+
+        <div className="attendance-summary-item">
+          <span className="attendance-summary-label">
+            In
+          </span>
+
+          <span className="attendance-summary-value">
+            {clockInDisplay}
+          </span>
+        </div>
+
+        <div className="attendance-summary-item">
+          <span className="attendance-summary-label">
+            Out
+          </span>
+
+          <span className="attendance-summary-value">
+            {clockOutDisplay}
+          </span>
+        </div>
+
+        {attendance?.total_hours_display && (
+          <div className="attendance-summary-item">
+            <span className="attendance-summary-label">
+              Hours
+            </span>
+
+            <span className="attendance-summary-value">
+              {attendance.total_hours_display}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Attendance Actions */}
       {readOnly ? (
-        <div style={{ fontSize: 12, fontWeight: 600, background: 'rgba(255,255,255,0.18)', display: 'inline-block', padding: '6px 12px', borderRadius: 20 }}>
+        <div className="attendance-readonly-message">
           {readOnlyMessage}
         </div>
       ) : disabledMobile ? (
-        <div>
-          <button disabled style={{ background: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.7)', border: 'none', borderRadius: 10, padding: '9px 20px', fontWeight: 700, fontSize: 13, cursor: 'not-allowed', display: 'flex', alignItems: 'center', gap: 7 }}>
-            <FaSignInAlt size={13} /> Clock In / Clock Out
+        <div className="attendance-mobile-warning">
+          <button
+            type="button"
+            disabled
+            className="attendance-disabled-button"
+          >
+            <FaSignInAlt size={13} />
+            Clock In / Clock Out
           </button>
-          <div style={{ fontSize: 11, marginTop: 6, opacity: 0.85 }}>Not available on mobile/tablet — use a desktop to mark attendance.</div>
+
+          <div className="attendance-mobile-text">
+            Not available on mobile/tablet — use a desktop to mark
+            attendance.
+          </div>
         </div>
       ) : hasOpen && !canClockOut ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap' }}>
-          <span style={{ fontSize: 12, fontWeight: 600, background: 'rgba(255,255,255,0.18)', padding: '8px 16px', borderRadius: 10, whiteSpace: 'nowrap' }}>Clocked in ✓</span>
-          <BreakWidget mode="inline-button" isClockedIn={!!(attendance?.clock_in || activeSession)} isClockedOut={isClockedOutToday} unlimitedBreaks={unlimitedBreaks} />
+        <div className="attendance-break-row">
+          <span className="attendance-clocked-badge">
+            <span className="attendance-small-dot"></span>
+            Clocked in
+          </span>
+
+          <BreakWidget
+            mode="inline-button"
+            isClockedIn={
+              !!(attendance?.clock_in || activeSession)
+            }
+            isClockedOut={isClockedOutToday}
+            unlimitedBreaks={unlimitedBreaks}
+          />
         </div>
       ) : hideClockToggle ? (
-        // Clock In/Clock Out now live as separate buttons elsewhere (e.g. the dashboard's
-        // welcome banner) — this card just keeps the Break button here on its own.
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap' }}>
-          <BreakWidget mode="inline-button" isClockedIn={!!(attendance?.clock_in || activeSession)} isClockedOut={isClockedOutToday} unlimitedBreaks={unlimitedBreaks} />
+        /*
+         * Clock In / Clock Out are handled by the WelcomeBanner.
+         * AttendanceCard therefore only displays the Break action.
+         */
+        <div className="attendance-break-row">
+          <BreakWidget
+            mode="inline-button"
+            isClockedIn={
+              !!(attendance?.clock_in || activeSession)
+            }
+            isClockedOut={isClockedOutToday}
+            unlimitedBreaks={unlimitedBreaks}
+          />
         </div>
       ) : (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap' }}>
+        <div className="attendance-break-row">
           <button
-            onClick={hasOpen ? onRequestClockOut : onClockIn}
+            type="button"
+            onClick={
+              hasOpen ? onRequestClockOut : onClockIn
+            }
             disabled={clockLoading}
-            style={{
-              background: '#fff', color: hasOpen ? '#b45309' : '#065f46', border: 'none', borderRadius: 10,
-              padding: '8px 16px', fontWeight: 800, fontSize: 13, cursor: clockLoading ? 'not-allowed' : 'pointer',
-              display: 'flex', alignItems: 'center', gap: 6, opacity: clockLoading ? 0.7 : 1, whiteSpace: 'nowrap',
-            }}
+            className={`attendance-primary-action ${
+              hasOpen
+                ? 'attendance-clockout-action'
+                : 'attendance-clockin-action'
+            }`}
           >
-            {clockLoading
-              ? <><FaSyncAlt size={12} style={{ animation: 'attcardspin 0.8s linear infinite' }} /> Processing…</>
-              : hasOpen ? <><FaSignOutAlt size={13} /> Clock Out</> : <><FaSignInAlt size={13} /> Clock In</>}
+            {clockLoading ? (
+              <>
+                <FaSyncAlt
+                  size={12}
+                  className="attendance-spin"
+                />
+                Processing...
+              </>
+            ) : hasOpen ? (
+              <>
+                <FaSignOutAlt size={13} />
+                Clock Out
+              </>
+            ) : (
+              <>
+                <FaSignInAlt size={13} />
+                Clock In
+              </>
+            )}
           </button>
-          <BreakWidget mode="inline-button" isClockedIn={!!(attendance?.clock_in || activeSession)} isClockedOut={isClockedOutToday} unlimitedBreaks={unlimitedBreaks} />
+
+          <BreakWidget
+            mode="inline-button"
+            isClockedIn={
+              !!(attendance?.clock_in || activeSession)
+            }
+            isClockedOut={isClockedOutToday}
+            unlimitedBreaks={unlimitedBreaks}
+          />
         </div>
       )}
 
+      {/* Shift */}
       {shiftTiming && (
-        <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.25)', fontSize: 11 }}>
-          <span style={{ opacity: 0.8 }}>Today's Shift: </span>
-          <span style={{ fontWeight: 700 }}>{shiftTiming}</span>
+        <div className="attendance-shift">
+          <div className="attendance-shift-icon">
+            <FaBriefcase size={12} />
+          </div>
+
+          <div>
+            <div className="attendance-shift-label">
+              Today's Shift
+            </div>
+
+            <div className="attendance-shift-value">
+              {shiftTiming}
+            </div>
+          </div>
         </div>
       )}
 
+      {/* Extra footer content */}
       {footerExtra && (
-        <div style={{ marginTop: 10 }}>{footerExtra}</div>
+        <div className="attendance-footer-extra">
+          {footerExtra}
+        </div>
       )}
-
-      <style>{`@keyframes attcardspin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

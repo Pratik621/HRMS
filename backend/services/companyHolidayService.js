@@ -17,6 +17,7 @@ const supabase = require('../config/supabase');
 // Degrade to "no dynamic holidays" if the table/column isn't there (or PostgREST's schema
 // cache hasn't picked up a recent DDL change yet) — same defensive pattern used elsewhere in
 // this codebase (e.g. leave_balance_adjustments, attendance_type).
+
 const isMissingTable = (error) => /does not exist|schema cache/i.test(error?.message || '');
 
 // DB row -> the shape every consumer of this service expects.

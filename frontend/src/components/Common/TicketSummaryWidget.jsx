@@ -1,7 +1,9 @@
+import { dashboardGet } from '../../utils/dashboardGet';
+import DashboardNotice from './DashboardNotice';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaTicketAlt } from 'react-icons/fa';
-import axios from '../../config/axios';
+
 import API_ENDPOINTS from '../../config/api';
 
 // Small ticket KPI card for Admin/Manager dashboards. Reuses GET /api/tickets/count
@@ -16,19 +18,21 @@ const BUCKETS = [
 ];
 
 export default function TicketSummaryWidget({ managerId } = {}) {
+  const [loadError, setLoadError] = useState('');
   const navigate = useNavigate();
   const [counts, setCounts] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
+      setLoadError('');
       try {
         const url = managerId && managerId !== 'ALL'
           ? `${API_ENDPOINTS.TICKET_COUNT}?manager_id=${managerId}`
           : API_ENDPOINTS.TICKET_COUNT;
-        const res = await axios.get(url);
+        const res = await dashboardGet(url);
         if (!cancelled && res.data?.success) setCounts(res.data);
-      } catch { /* silent */ }
+      } catch { if (!cancelled) setLoadError('Unable to load ticket overview. Refresh the dashboard to retry.'); }
     };
     // Fetch once on mount — no 60s poll (re-fetches when the Manager Dashboard "View
     // Team" filter changes). Clicking any bucket navigates to the full ticket list,
@@ -45,11 +49,12 @@ export default function TicketSummaryWidget({ managerId } = {}) {
     }
   };
 
+  if (loadError) return <DashboardNotice type="error" text={loadError} />;
   if (!counts) return null;
 
   return (
-    <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #E5E7EB', boxShadow: '0 1px 3px rgba(0,0,0,.06)', overflow: 'hidden', marginBottom: 20 }}>
-      <div style={{ padding: '14px 18px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', gap: 8 }}>
+    <div className="role-ticket-card" style={{ background: '#fff', borderRadius: 16, border: '1px solid #E5E7EB', boxShadow: '0 1px 3px rgba(0,0,0,.06)', overflow: 'hidden', marginBottom: 20 }}>
+      <div className="role-card-header" style={{ padding: '14px 18px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', gap: 8 }}>
         <FaTicketAlt size={13} color="#4F46E5" />
         <span style={{ fontWeight: 700, fontSize: 13, color: '#111827' }}>Ticket Overview</span>
       </div>

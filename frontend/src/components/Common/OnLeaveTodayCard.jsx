@@ -32,12 +32,41 @@ export default function OnLeaveTodayCard({ scope = 'department', department, man
         <div style={{ fontSize: 12, color: QA.textMuted }}>Loading…</div>
       ) : employees.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '10px 0' }}>
-          <div style={{ width: 46, height: 46, borderRadius: '50%', background: QA.successLight, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
-            <FaUserClock size={18} color={QA.success} />
-          </div>
-          <div style={{ fontSize: 12, color: QA.success, fontWeight: 700 }}>Everyone is working today!</div>
-          <div style={{ fontSize: 11, color: QA.textMuted, marginTop: 2 }}>No one is on leave today.</div>
-        </div>
+  <div
+    style={{
+      width: 46,
+      height: 46,
+      borderRadius: '50%',
+      background: '#F3F4F6',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      margin: '0 auto 8px'
+    }}
+  >
+    <FaUserClock size={18} color="#374151" />
+  </div>
+
+  <div
+    style={{
+      fontSize: 12,
+      color: '#374151',
+      fontWeight: 700
+    }}
+  >
+    Everyone is working today!
+  </div>
+
+  <div
+    style={{
+      fontSize: 11,
+      color: '#6B7280',
+      marginTop: 2
+    }}
+  >
+    No one is on leave today.
+  </div>
+</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 160, overflowY: 'auto' }}>
           {employees.map(e => (

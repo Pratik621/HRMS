@@ -6,6 +6,10 @@ const { sendNoticeBoardEmail } = require('../services/emailService');
 
 // ── GET /api/notice-board/active  (no auth — called by navbar for all users)
 router.get('/active', async (req, res) => {
+    const start = Date.now();
+
+    console.log('📢 GET /api/notice-board/active - START');
+
     try {
         const { data, error } = await supabase
             .from('notice_board')
@@ -14,10 +18,37 @@ router.get('/active', async (req, res) => {
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle();
-        if (error) throw error;
-        res.json({ success: true, notice: data || null });
+
+        console.log(
+            '📢 GET /api/notice-board/active - DB finished:',
+            Date.now() - start,
+            'ms'
+        );
+
+        if (error) {
+            console.error('❌ Notice board DB error:', error);
+            throw error;
+        }
+
+        console.log('📢 Notice returned:', data);
+
+        res.json({
+            success: true,
+            notice: data || null
+        });
+
     } catch (err) {
-        res.status(500).json({ success: false, message: err.message });
+        console.error(
+            '❌ Notice board /active failed after',
+            Date.now() - start,
+            'ms:',
+            err
+        );
+
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
     }
 });
 

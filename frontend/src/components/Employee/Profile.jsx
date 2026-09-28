@@ -110,7 +110,7 @@ const Profile = () => {
             fetchDocumentCount();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user]);
+    }, [user?.employeeId]);
 
     // Listen for employee updates
     useEffect(() => {

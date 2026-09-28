@@ -27,16 +27,19 @@ function Ring({ value, max, color, label, size = 64 }) {
   );
 }
 
-export default function LeaveBalanceRingsCard({ employeeId }) {
-  const [balance, setBalance] = useState(null);
+export default function LeaveBalanceRingsCard({ employeeId, suppliedBalance, suppliedLoading = false }) {
+  const hasSuppliedBalance = suppliedBalance !== undefined;
+  const [fetchedBalance, setBalance] = useState(null);
+  const balance = hasSuppliedBalance ? suppliedBalance : fetchedBalance;
   const [usage, setUsage] = useState(null);
   const [loading, setLoading] = useState(!!employeeId);
 
   useEffect(() => {
     if (!employeeId) return;
+    setLoading(true);
     let cancelled = false;
     Promise.all([
-      axios.get(API_ENDPOINTS.LEAVE_BALANCE(employeeId)).catch(() => null),
+      hasSuppliedBalance ? Promise.resolve(null) : axios.get(API_ENDPOINTS.LEAVE_BALANCE(employeeId)).catch(() => null),
       axios.get(API_ENDPOINTS.LEAVE_USAGE_BY_TYPE(employeeId)).catch(() => null),
     ]).then(([balRes, usageRes]) => {
       if (cancelled) return;
@@ -44,23 +47,34 @@ export default function LeaveBalanceRingsCard({ employeeId }) {
       if (usageRes?.data?.success) setUsage(usageRes.data.usage);
     }).finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [employeeId]);
+  }, [employeeId, hasSuppliedBalance]);
 
   const usageEntries = usage ? Object.entries(usage).filter(([, days]) => days > 0) : [];
 
   return (
     <div style={QA_CARD_STYLE}>
       <div style={QA_CARD_TITLE_STYLE}>Leave Balances</div>
-      {loading ? (
+      {loading || suppliedLoading ? (
         <div style={{ fontSize: 12, color: QA.textMuted }}>Loading…</div>
       ) : !balance ? (
         <div style={{ fontSize: 12, color: QA.textMuted }}>Leave balance unavailable</div>
       ) : (
         <>
           <div style={{ display: 'flex', gap: 20, justifyContent: 'center', marginBottom: usageEntries.length > 0 ? 14 : 0 }}>
-            <Ring value={Math.round(balance.available || 0)} max={Math.max(1, Math.round(balance.total_accrued || 0))} color={QA.primary} label="Available" />
-            <Ring value={Math.round(balance.comp_off_balance || 0)} max={COMP_OFF_VISUAL_MAX} color={QA.success} label="Comp-Off" />
-          </div>
+  <Ring
+    value={Math.round(balance.available || 0)}
+    max={Math.max(1, Math.round(balance.total_accrued || 0))}
+    color="#374151"
+    label="Available"
+  />
+
+  <Ring
+    value={Math.round(balance.comp_off_balance || 0)}
+    max={COMP_OFF_VISUAL_MAX}
+    color="#374151"
+    label="Comp-Off"
+  />
+</div>
           {usageEntries.length > 0 && (
             <div style={{ borderTop: `1px solid ${QA.border}`, paddingTop: 10 }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: QA.textMuted, textTransform: 'uppercase', marginBottom: 6 }}>Used this year</div>

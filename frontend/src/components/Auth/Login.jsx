@@ -198,7 +198,7 @@ const Login = () => {
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
-        fontFamily: "'Inter', -apple-system, sans-serif",
+        fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
         position: 'relative',
       }}>
 

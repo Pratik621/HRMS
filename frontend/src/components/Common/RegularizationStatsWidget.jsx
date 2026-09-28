@@ -7,7 +7,7 @@ import { QA, QA_CARD_STYLE, QA_CARD_TITLE_STYLE } from './quickAccessTheme';
 function Tile({ label, value, color }) {
   return (
     <div style={{ flex: '1 1 0', minWidth: 70, textAlign: 'center' }}>
-      <div style={{ fontSize: 18, fontWeight: 800, color }}>{value}</div>
+      <div className="regularization-stat-value" style={{ fontSize: 18, fontWeight: 800, color }}>{value}</div>
       <div style={{ fontSize: 10, color: QA.textMuted, fontWeight: 600 }}>{label}</div>
     </div>
   );
@@ -53,10 +53,10 @@ export default function RegularizationStatsWidget({ managerId } = {}) {
         </div>
       ) : (
         <div style={{ display: 'flex', gap: 6, marginTop: 12, flexWrap: 'wrap' }}>
-          <Tile label="Pending" value={stats.pending} color={QA.warning} />
-          <Tile label="Approved" value={stats.approved} color={QA.success} />
-          <Tile label="Rejected" value={stats.rejected} color={QA.danger} />
-        </div>
+  <Tile label="Pending" value={stats.pending} color="#374151" />
+  <Tile label="Approved" value={stats.approved} color="#374151" />
+  <Tile label="Rejected" value={stats.rejected} color="#374151" />
+</div>
       )}
     </div>
   );

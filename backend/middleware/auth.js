@@ -64,10 +64,6 @@ const isAdminOrFinance = (req, res, next) => {
     next();
 };
 
-// Attendance report is shared by the Admin/Manager/HR/Finance/IT dashboard widget
-// (Admin/Dashboard.jsx calls GET /api/attendance/report on mount for every role that
-// can land on that page) — isAdminOrFinance alone excluded desktop_support (IT),
-// even though the frontend already routes IT to that same dashboard.
 const isAdminOrFinanceOrDesktopSupport = (req, res, next) => {
     if (!['admin', 'sub_admin', 'finance', 'desktop_support', 'hr'].includes(req.user?.role)) {
         return res.status(403).json({ success: false, message: 'Admin, Finance, or IT access required' });

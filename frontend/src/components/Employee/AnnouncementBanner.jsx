@@ -1,3 +1,4 @@
+import { dashboardGet } from '../../utils/dashboardGet';
 // src/components/Employee/AnnouncementBanner.jsx
 import React, { useState, useEffect } from 'react';
 import { Card, Badge, Button, Modal, Collapse } from 'react-bootstrap';
@@ -5,7 +6,7 @@ import {
   FaBullhorn, FaBell, FaExclamationTriangle, FaCalendarAlt,
   FaFileAlt, FaGift, FaShieldAlt, FaChevronDown, FaChevronUp, FaEye
 } from 'react-icons/fa';
-import axios from '../../config/axios';
+
 import API_ENDPOINTS from '../../config/api';
 
 const TYPE_CONFIG = {
@@ -26,7 +27,7 @@ const AnnouncementBanner = () => {
   const [viewItem, setViewItem]           = useState(null);
 
   useEffect(() => {
-    axios.get(API_ENDPOINTS.ANNOUNCEMENTS)
+    dashboardGet(API_ENDPOINTS.ANNOUNCEMENTS)
       .then(res => {
         const sorted = (res.data?.announcements || [])
           .sort((a, b) => (PRIORITY_ORDER[a.priority] ?? 2) - (PRIORITY_ORDER[b.priority] ?? 2));

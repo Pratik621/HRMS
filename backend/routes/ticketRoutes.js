@@ -188,14 +188,48 @@ module.exports = (supabase, authenticateToken) => {
 
     // ── GET /api/tickets ──────────────────────────────────────────────────
     router.get('/', authenticateToken, async (req, res) => {
-        try {
-            const { data, error } = await visibleTicketsQuery(req.user, req.query.manager_id);
-            if (error) throw error;
-            return res.json({ success: true, tickets: data || [] });
-        } catch (err) {
-            return res.status(500).json({ success: false, message: err.message });
-        }
-    });
+    const start = Date.now();
+
+    console.log(
+        '🎫 GET /api/tickets - START',
+        'employeeId:', req.user?.employeeId,
+        'role:', req.user?.role
+    );
+
+    try {
+        const { data, error } = await visibleTicketsQuery(
+            req.user,
+            req.query.manager_id
+        );
+
+        console.log(
+            '🎫 GET /api/tickets - DB finished:',
+            Date.now() - start,
+            'ms',
+            'rows:',
+            data?.length || 0
+        );
+
+        if (error) throw error;
+
+        return res.json({
+            success: true,
+            tickets: data || []
+        });
+    } catch (err) {
+        console.error(
+            '❌ GET /api/tickets failed after',
+            Date.now() - start,
+            'ms:',
+            err
+        );
+
+        return res.status(500).json({
+            success: false,
+            message: err.message
+        });
+    }
+});
 
     // Hours a still-open ticket has been pending (finished tickets don't count as pending)
     const pendingAgeHours = (t) => {

@@ -45,7 +45,7 @@ const clearStorage = () => {
 
 export const AuthProvider = ({ children }) => {
   const stored = loadFromStorage();
-  const [user, setUser] = useState(stored.user);
+  const [user, setUser] = useState(null);
   const [token, setToken] = useState(stored.token);
   const [loading, setLoading] = useState(true);
 

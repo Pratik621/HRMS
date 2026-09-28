@@ -1,3 +1,4 @@
+import { dashboardGet } from '../../utils/dashboardGet';
 import React, { useState, useEffect } from 'react';
 import { FaEdit, FaChartBar, FaAward, FaBullhorn, FaHeart, FaRegHeart, FaCommentDots, FaTimes } from 'react-icons/fa';
 import axios from '../../config/axios';
@@ -23,9 +24,9 @@ function AnnouncementsList() {
 
   useEffect(() => {
     let cancelled = false;
-    axios.get(API_ENDPOINTS.ANNOUNCEMENTS)
+    dashboardGet(API_ENDPOINTS.ANNOUNCEMENTS)
       .then(res => { if (!cancelled) setItems(res.data?.announcements || []); })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
@@ -96,12 +97,12 @@ function PostCard({ post, onLikeToggle, onVote, onViewPollDetails }) {
           <div style={{ fontSize: 13, color: QA.textDark, lineHeight: 1.5 }}>{post.content}</div>
           <PollWidget post={post} onVote={(index) => onVote(post.id, index)} onViewDetails={() => onViewPollDetails(post.id)} />
           <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
-            <button onClick={() => onLikeToggle(post.id)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: post.liked_by_me ? QA.danger : QA.textMuted, fontSize: 11, padding: 0 }}>
+            <button className={`post-social-action${post.liked_by_me ? ' is-active' : ''}`} onClick={() => onLikeToggle(post.id)}
+              style={{ border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: post.liked_by_me ? QA.textDark : QA.textMuted, fontSize: 11, padding: '5px 8px' }}>
               {post.liked_by_me ? <FaHeart size={11} /> : <FaRegHeart size={11} />} {post.like_count > 0 ? post.like_count : 'Like'}
             </button>
-            <button onClick={toggleComments}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: QA.textMuted, fontSize: 11, padding: 0 }}>
+            <button className={`post-social-action${openComments ? ' is-active' : ''}`} onClick={toggleComments}
+              style={{ border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: QA.textMuted, fontSize: 11, padding: '5px 8px' }}>
               <FaCommentDots size={11} /> {commentCount > 0 ? commentCount : 'Comment'}
             </button>
           </div>
@@ -145,6 +146,7 @@ export default function PostComposerCard() {
   const [showDrawer, setShowDrawer] = useState(false);
   const [postsLastSeen, setPostsLastSeen] = useState(getPostsLastSeen());
   const [pollDrawerPostId, setPollDrawerPostId] = useState(null);
+  const [showComposer, setShowComposer] = useState(false);
 
   const newPostCount = posts.filter(p => new Date(p.created_at) > new Date(postsLastSeen)).length;
 
@@ -158,7 +160,7 @@ export default function PostComposerCard() {
   const fetchPosts = () => {
     axios.get(API_ENDPOINTS.POSTS)
       .then(res => { if (res.data?.success) setPosts(res.data.posts || []); })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   };
 
@@ -227,10 +229,10 @@ export default function PostComposerCard() {
       fetchPosts();
     }
   };
-
+  
   return (
-    <div style={QA_CARD_STYLE}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, gap: 8, flexWrap: 'wrap' }}>
+    <div className="post-composer-card" style={QA_CARD_STYLE}>
+      <div className="post-composer-toolbar">
         <button onClick={openDrawer}
           style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: `1px solid ${QA.border}`, borderRadius: 20, padding: '6px 14px', fontSize: 12, fontWeight: 700, color: QA.primary, cursor: 'pointer' }}>
           View All Posts
@@ -240,93 +242,90 @@ export default function PostComposerCard() {
             </span>
           )}
         </button>
-      </div>
-
-      <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
         {TABS.map(t => (
-          <button key={t.key} onClick={() => { setTab(t.key); setError(''); }}
+          <button key={t.key} className={`post-composer-tab${tab === t.key && showComposer ? ' is-selected' : ''}`} onClick={() => { setTab(t.key); setShowComposer(true); setError(''); }}
             style={{
               display: 'flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 20, border: 'none',
               cursor: 'pointer', fontSize: 12, fontWeight: 700,
-              background: tab === t.key ? QA.primary : '#f3f4f6',
-              color: tab === t.key ? '#fff' : QA.textMuted,
+              background: tab === t.key && showComposer ? QA.primary : '#f3f4f6',
+              color: tab === t.key && showComposer ? '#fff' : QA.textMuted,
             }}>
             <t.icon size={11} /> {t.label}
           </button>
         ))}
       </div>
 
-      {tab === 'announcements' ? (
+      {showComposer && (tab === 'announcements' ? (
         <AnnouncementsList />
       ) : (
         <>
-      <textarea
-        value={content}
-        onChange={e => setContent(e.target.value)}
-        placeholder={tab === 'poll' ? 'Ask a question…' : tab === 'praise' ? 'Say something nice…' : 'Write your post here and mention your peers'}
-        rows={2}
-        style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${QA.border}`, fontSize: 13, outline: 'none', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit' }}
-      />
+          <textarea
+            value={content}
+            onChange={e => setContent(e.target.value)}
+            placeholder={tab === 'poll' ? 'Ask a question…' : tab === 'praise' ? 'Say something nice…' : 'Write your post here and mention your peers'}
+            rows={2}
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${QA.border}`, fontSize: 13, outline: 'none', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit' }}
+          />
 
-      {tab === 'poll' && (
-        <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {pollOptions.map((opt, i) => (
-            <div key={i} style={{ display: 'flex', gap: 6 }}>
-              <input
-                value={opt}
-                onChange={e => setPollOptions(prev => prev.map((o, idx) => idx === i ? e.target.value : o))}
-                placeholder={`Option ${i + 1}`}
-                style={{ flex: 1, padding: '6px 10px', borderRadius: 6, border: `1px solid ${QA.border}`, fontSize: 12, outline: 'none' }}
-              />
-              {pollOptions.length > 2 && (
-                <button onClick={() => setPollOptions(prev => prev.filter((_, idx) => idx !== i))}
-                  style={{ background: 'none', border: 'none', color: QA.danger, cursor: 'pointer' }}>
-                  <FaTimes size={11} />
+          {tab === 'poll' && (
+            <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {pollOptions.map((opt, i) => (
+                <div key={i} style={{ display: 'flex', gap: 6 }}>
+                  <input
+                    value={opt}
+                    onChange={e => setPollOptions(prev => prev.map((o, idx) => idx === i ? e.target.value : o))}
+                    placeholder={`Option ${i + 1}`}
+                    style={{ flex: 1, padding: '6px 10px', borderRadius: 6, border: `1px solid ${QA.border}`, fontSize: 12, outline: 'none' }}
+                  />
+                  {pollOptions.length > 2 && (
+                    <button onClick={() => setPollOptions(prev => prev.filter((_, idx) => idx !== i))}
+                      style={{ background: 'none', border: 'none', color: QA.danger, cursor: 'pointer' }}>
+                      <FaTimes size={11} />
+                    </button>
+                  )}
+                </div>
+              ))}
+              {pollOptions.length < 4 && (
+                <button onClick={() => setPollOptions(prev => [...prev, ''])}
+                  style={{ alignSelf: 'flex-start', background: 'none', border: 'none', color: QA.primary, fontSize: 11, fontWeight: 600, cursor: 'pointer', padding: 0 }}>
+                  + Add option
                 </button>
               )}
             </div>
-          ))}
-          {pollOptions.length < 4 && (
-            <button onClick={() => setPollOptions(prev => [...prev, ''])}
-              style={{ alignSelf: 'flex-start', background: 'none', border: 'none', color: QA.primary, fontSize: 11, fontWeight: 600, cursor: 'pointer', padding: 0 }}>
-              + Add option
-            </button>
           )}
-        </div>
-      )}
 
-      {tab === 'praise' && (
-        <input
-          value={praisedName}
-          onChange={e => setPraisedName(e.target.value)}
-          placeholder="Who are you praising?"
-          style={{ marginTop: 8, width: '100%', padding: '7px 10px', borderRadius: 8, border: `1px solid ${QA.border}`, fontSize: 12, outline: 'none', boxSizing: 'border-box' }}
-        />
-      )}
+          {tab === 'praise' && (
+            <input
+              value={praisedName}
+              onChange={e => setPraisedName(e.target.value)}
+              placeholder="Who are you praising?"
+              style={{ marginTop: 8, width: '100%', padding: '7px 10px', borderRadius: 8, border: `1px solid ${QA.border}`, fontSize: 12, outline: 'none', boxSizing: 'border-box' }}
+            />
+          )}
 
-      {error && <div style={{ fontSize: 11, color: QA.danger, marginTop: 8 }}>{error}</div>}
+          {error && <div style={{ fontSize: 11, color: QA.danger, marginTop: 8 }}>{error}</div>}
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
-        <button onClick={submit} disabled={posting}
-          style={{ padding: '7px 18px', borderRadius: 8, border: 'none', background: QA.primary, color: '#fff', fontSize: 12, fontWeight: 700, cursor: posting ? 'not-allowed' : 'pointer', opacity: posting ? 0.6 : 1 }}>
-          {posting ? 'Posting…' : 'Post'}
-        </button>
-      </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
+            <button onClick={submit} disabled={posting}
+              style={{ padding: '7px 18px', borderRadius: 8, border: 'none', background: QA.primary, color: '#fff', fontSize: 12, fontWeight: 700, cursor: posting ? 'not-allowed' : 'pointer', opacity: posting ? 0.6 : 1 }}>
+              {posting ? 'Posting…' : 'Post'}
+            </button>
+          </div>
 
-      {loading ? (
-        <div style={{ fontSize: 12, color: QA.textMuted, marginTop: 10 }}>Loading feed…</div>
-      ) : posts.length === 0 ? (
-        <div style={{ fontSize: 12, color: QA.textMuted, marginTop: 10 }}>No posts yet — say hello to your team!</div>
-      ) : (
-        <div>
-          {/* Compact card shows only the latest update — the rest live behind "View All Posts" */}
-          {posts.slice(0, 1).map(p => (
-            <PostCard key={p.id} post={p} onLikeToggle={toggleLike} onVote={voteOnPoll} onViewPollDetails={setPollDrawerPostId} />
-          ))}
-        </div>
-      )}
+          {loading ? (
+            <div style={{ fontSize: 12, color: QA.textMuted, marginTop: 10 }}>Loading feed…</div>
+          ) : posts.length === 0 ? (
+            <div style={{ fontSize: 12, color: QA.textMuted, marginTop: 10 }}>No posts yet — say hello to your team!</div>
+          ) : (
+            <div>
+              {/* Compact card shows only the latest update — the rest live behind "View All Posts" */}
+              {posts.slice(0, 1).map(p => (
+                <PostCard key={p.id} post={p} onLikeToggle={toggleLike} onVote={voteOnPoll} onViewPollDetails={setPollDrawerPostId} />
+              ))}
+            </div>
+          )}
         </>
-      )}
+      ))}
 
       <PostsDrawer show={showDrawer} onClose={() => setShowDrawer(false)} />
       <PollDetailsDrawer show={!!pollDrawerPostId} onHide={() => setPollDrawerPostId(null)} postId={pollDrawerPostId} />

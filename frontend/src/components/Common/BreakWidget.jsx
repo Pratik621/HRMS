@@ -1,25 +1,26 @@
+import BreakTypeIcon from './BreakTypeIcon';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Spinner } from 'react-bootstrap';
-import { Coffee, Square, Clock, Users, ChevronDown, CheckCircle, History } from 'lucide-react';
+import { Timer, Square, Clock, Users, ChevronDown, CheckCircle, History } from 'lucide-react';
 import axios from '../../config/axios';
 import API_ENDPOINTS from '../../config/api';
 import { useAuth } from '../../context/AuthContext';
 
 // ── Break type definitions ────────────────────────────────────────────────────
 const BREAK_TYPES = [
-    { key: 'tea_break_1', label: 'Tea Break 1', minutes: 15, emoji: '☕' },
-    { key: 'tea_break_2', label: 'Tea Break 2', minutes: 15, emoji: '☕' },
-    { key: 'lunch_break', label: 'Lunch Break',  minutes: 30, emoji: '🍽️' },
+    { key: 'tea_break_1', label: 'Tea Break 1', minutes: 15, icon: <BreakTypeIcon /> },
+    { key: 'tea_break_2', label: 'Tea Break 2', minutes: 15, icon: <BreakTypeIcon /> },
+    { key: 'lunch_break', label: 'Lunch Break', minutes: 30, icon: <BreakTypeIcon type="lunch_break" /> },
 ];
 
-const breakDef   = (key) => BREAK_TYPES.find(t => t.key === key) || { label: 'Break', emoji: '☕', minutes: 0 };
+const breakDef = (key) => BREAK_TYPES.find(t => t.key === key) || { label: 'Break', icon: <BreakTypeIcon />, minutes: 0 };
 const breakLabel = (key) => breakDef(key).label;
-const breakEmoji = (key) => breakDef(key).emoji;
+const breakIcon = (key) => breakDef(key).icon;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-const AVATAR_COLORS = ['#6366f1','#8b5cf6','#10b981','#f59e0b','#ef4444','#0ea5e9','#ec4899'];
+const AVATAR_COLORS = ['#6366f1', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#0ea5e9', '#ec4899'];
 const avatarColor = (str) => AVATAR_COLORS[((str || '').charCodeAt(0) || 0) % AVATAR_COLORS.length];
-const initials    = (f, l) => ((f || '')[0] || '?').toUpperCase() + ((l || '')[0] || '').toUpperCase();
+const initials = (f, l) => ((f || '')[0] || '?').toUpperCase() + ((l || '')[0] || '').toUpperCase();
 
 const fmtDuration = (start) => {
     const diff = Math.floor((Date.now() - new Date(start).getTime()) / 1000);
@@ -31,9 +32,9 @@ const fmtDuration = (start) => {
 
 const fmtTime = (iso) => {
     if (!iso) return '--:--';
-    const d   = new Date(iso);
+    const d = new Date(iso);
     const ist = new Date(d.getTime() + 5.5 * 60 * 60 * 1000);
-    const h   = ist.getUTCHours(), m = ist.getUTCMinutes();
+    const h = ist.getUTCHours(), m = ist.getUTCMinutes();
     return `${h % 12 === 0 ? 12 : h % 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
 };
 
@@ -51,10 +52,7 @@ const fmtHMS = (totalSeconds) => {
     return [h, m, sec].map(v => String(v).padStart(2, '0')).join(':');
 };
 
-// ── Shared centered confirmation popup — same visual pattern as the Clock
-// Out confirmation (blurred backdrop, centered card, icon/title/message,
-// two buttons) so every break start/end action confirms the same way.
-function BreakConfirmModal({ icon = '☕', title, message, confirmLabel = 'Yes', confirmColor = '#f97316', busy = false, onConfirm, onCancel }) {
+function BreakConfirmModal({ icon = <BreakTypeIcon />, title, message, confirmLabel = 'Yes', confirmColor = '#f97316', busy = false, onConfirm, onCancel }) {
     return (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 18, padding: '32px 28px', boxShadow: '0 24px 64px rgba(0,0,0,0.22)', textAlign: 'center', maxWidth: 320, width: '90%' }}>
@@ -76,10 +74,10 @@ function BreakConfirmModal({ icon = '☕', title, message, confirmLabel = 'Yes',
 
 // ── Break dropdown (fixed-position, escapes overflow:hidden parents) ──────────
 function BreakDropdown({ activeBreak, usedTypes, canInteract, acting, error, onStart, onEnd }) {
-    const [open, setOpen]           = useState(false);
+    const [open, setOpen] = useState(false);
     const [pendingType, setPending] = useState(null);
     const [confirmEnd, setConfirmEnd] = useState(false);
-    const allUsed    = BREAK_TYPES.every(t => usedTypes.includes(t.key));
+    const allUsed = BREAK_TYPES.every(t => usedTypes.includes(t.key));
     const pendingDef = BREAK_TYPES.find(t => t.key === pendingType);
 
     const openDropdown = () => {
@@ -126,27 +124,30 @@ function BreakDropdown({ activeBreak, usedTypes, canInteract, acting, error, onS
 
     return (
         <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <button onClick={openDropdown}
+            <button
+                className="break-start-btn"
+                onClick={openDropdown}
                 disabled={acting || !canInteract || allUsed}
                 style={{
                     ...btnBase,
-                    background: allUsed ? '#e5e7eb' : '#f4a46b',
-                    color: allUsed ? '#fcfdff' : '#fff',
                     cursor: (acting || !canInteract || allUsed) ? 'not-allowed' : 'pointer',
                     opacity: (acting || !canInteract) ? 0.55 : 1,
                 }}
             >
-                {acting ? <Spinner size="sm" animation="border" /> : <Coffee size={15} />}
+                {acting ? <Spinner size="sm" animation="border" /> : <Timer size={15} />}
                 {allUsed ? 'All Breaks Used' : 'Start Break'}
                 {!allUsed && <ChevronDown size={12} />}
             </button>
 
             {open && (
                 <div
+                    className="break-type-modal-overlay"
                     onClick={() => setOpen(false)}
-                    style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                    <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 18, minWidth: 260, maxWidth: 320, width: '90%', boxShadow: '0 24px 64px rgba(0,0,0,0.22)', overflow: 'hidden' }}>
+                    <div
+                        className="break-type-modal"
+                        onClick={e => e.stopPropagation()}
+                    >
                         <div style={{ padding: '16px 18px 10px', fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.6, textAlign: 'center' }}>
                             Select Break Type
                         </div>
@@ -154,24 +155,26 @@ function BreakDropdown({ activeBreak, usedTypes, canInteract, acting, error, onS
                             const used = usedTypes.includes(t.key);
                             return (
                                 <button key={t.key}
-                                    onClick={() => { if (!used) { setPending(t.key); setOpen(false); } }}
-                                    disabled={used}
-                                    style={{
-                                        display: 'flex', alignItems: 'center', gap: 10,
-                                        width: '100%', padding: '12px 18px',
-                                        border: 'none', textAlign: 'left',
-                                        background: used ? '#fafafa' : 'transparent',
-                                        cursor: used ? 'not-allowed' : 'pointer',
-                                        borderTop: '1px solid #f3f4f6',
-                                        transition: 'background 0.15s',
+                                    className={`break-type-row ${used ? 'is-used' : ''}`}
+                                    onClick={() => {
+                                        if (!used) {
+                                            setPending(t.key);
+                                            setOpen(false);
+                                        }
                                     }}
-                                    onMouseEnter={e => { if (!used) e.currentTarget.style.background = '#f5f3ff'; }}
-                                    onMouseLeave={e => { e.currentTarget.style.background = used ? '#fafafa' : 'transparent'; }}
+                                    disabled={used}
+
+
                                 >
-                                    <span style={{ fontSize: 20 }}>{t.emoji}</span>
+                                    <span style={{ fontSize: 20 }}>{t.icon}</span>
                                     <div style={{ flex: 1 }}>
-                                        <div style={{ fontSize: 14, fontWeight: 600, color: used ? '#9ca3af' : '#111827' }}>{t.label}</div>
-                                        <div style={{ fontSize: 11, color: '#9ca3af' }}>{t.minutes} mins</div>
+                                        <div className="break-option-label">
+                                            {t.label}
+                                        </div>
+
+                                        <div className="break-option-duration">
+                                            {t.minutes} mins
+                                        </div>
                                     </div>
                                     {used
                                         ? <CheckCircle size={15} color="#10b981" />
@@ -179,10 +182,10 @@ function BreakDropdown({ activeBreak, usedTypes, canInteract, acting, error, onS
                                 </button>
                             );
                         })}
-                        <button onClick={() => setOpen(false)} style={{
-                            width: '100%', padding: '12px 0', border: 'none', borderTop: '1px solid #f3f4f6',
-                            background: '#fafafa', color: '#374151', fontWeight: 600, fontSize: 13, cursor: 'pointer',
-                        }}>
+                        <button
+                            className="break-type-modal-cancel"
+                            onClick={() => setOpen(false)}
+                        >
                             Cancel
                         </button>
                     </div>
@@ -191,7 +194,7 @@ function BreakDropdown({ activeBreak, usedTypes, canInteract, acting, error, onS
             {error && <div style={{ fontSize: 10, color: '#ef4444', textAlign: 'center', maxWidth: 160 }}>{error}</div>}
             {pendingType && (
                 <BreakConfirmModal
-                    icon={pendingDef?.emoji}
+                    icon={pendingDef?.icon}
                     title={`Start ${pendingDef?.label}?`}
                     message={`Are you sure you want to go for a ${pendingDef?.minutes}-minute break?`}
                     confirmLabel="Yes, Start"
@@ -265,7 +268,7 @@ function SimpleBreakControl({ activeBreak, canInteract, acting, error, totalSeco
                     cursor: (acting || !canInteract) ? 'not-allowed' : 'pointer',
                     opacity: (acting || !canInteract) ? 0.55 : 1,
                 }}>
-                    {acting ? <Spinner size="sm" animation="border" /> : <Coffee size={15} />}
+                    {acting ? <Spinner size="sm" animation="border" /> : <Timer size={15} />}
                     Start Break
                 </button>
             )}
@@ -273,7 +276,7 @@ function SimpleBreakControl({ activeBreak, canInteract, acting, error, totalSeco
             {open && (
                 <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <div style={{ background: '#fff', borderRadius: 18, padding: '32px 28px', boxShadow: '0 24px 64px rgba(0,0,0,0.22)', textAlign: 'center', maxWidth: 340, width: '90%' }}>
-                        <div style={{ fontSize: 44, marginBottom: 10 }}>☕</div>
+                        <div style={{ fontSize: 44, marginBottom: 10 }}><BreakTypeIcon /></div>
                         <div style={{ fontWeight: 700, fontSize: 18, color: '#111827', marginBottom: 8 }}>Add a note for this break</div>
                         <div style={{ color: '#6b7280', fontSize: 14, marginBottom: 16 }}>Optional — helps your manager see what the break was for.</div>
                         <textarea
@@ -320,23 +323,53 @@ function SimpleBreakControl({ activeBreak, canInteract, acting, error, totalSeco
             )}
 
             <div style={{
-                marginTop: 4, background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.25)',
-                borderRadius: 10, padding: '2px 4px 4px', textAlign: 'center', minWidth: 180,
+                marginTop: 4,
+                background: '#F9FAFB',
+                border: '1px solid #E5E7EB',
+                borderRadius: 10,
+                padding: '6px 8px 7px',
+                textAlign: 'center',
+                minWidth: 180,
             }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.8)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                <div style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: '#6B7280',
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5
+                }}>
                     Today's Break
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 800, color: '#fff', marginTop: 1 }}>
+
+                <div style={{
+                    fontSize: 14,
+                    fontWeight: 800,
+                    color: '#1F2937',
+                    marginTop: 1
+                }}>
                     Total Break Time: {fmtHMS(totalSeconds)}
                 </div>
+
                 {completedCount > 0 && (
-                    <button onClick={() => setShowHistory(true)} style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4,
-                        background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.3)',
-                        borderRadius: 8, padding: '3px 10px', fontSize: 10, fontWeight: 700,
-                        color: '#fff', cursor: 'pointer',
-                    }}>
-                        <History size={11} /> View History ({completedCount})
+                    <button
+                        onClick={() => setShowHistory(true)}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            marginTop: 4,
+                            background: '#F3F4F6',
+                            border: '1px solid #D1D5DB',
+                            borderRadius: 8,
+                            padding: '3px 10px',
+                            fontSize: 10,
+                            fontWeight: 700,
+                            color: '#374151',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        <History size={11} />
+                        View History ({completedCount})
                     </button>
                 )}
             </div>
@@ -367,7 +400,7 @@ function BreakHistoryModal({ breaks, onClose }) {
                         <div key={b.id} style={{ border: '1px solid #f3f4f6', borderRadius: 10, padding: '10px 12px', textAlign: 'left', background: '#fafafa' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>
-                                    ☕ {fmtTime(b.break_start)} → {fmtTime(b.break_end)}
+                                    <BreakTypeIcon /> {fmtTime(b.break_start)} → {fmtTime(b.break_end)}
                                 </span>
                                 <span style={{ fontSize: 11, fontWeight: 700, color: '#f97316' }}>
                                     {fmtMins(b.break_duration_minutes)}
@@ -401,11 +434,15 @@ function MyBreakHistory({ breaks }) {
         <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 4, justifyContent: 'center' }}>
             {done.map(b => (
                 <span key={b.id} style={{
-                    fontSize: 10, background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.75)',
-                    borderRadius: 10, padding: '2px 8px', whiteSpace: 'nowrap',
-                    border: '1px solid rgba(255,255,255,0.15)',
+                    fontSize: 10,
+                    background: '#F3F4F6',
+                    color: '#374151',
+                    borderRadius: 10,
+                    padding: '2px 8px',
+                    whiteSpace: 'nowrap',
+                    border: '1px solid #D1D5DB',
                 }}>
-                    {breakEmoji(b.break_type)} {fmtTime(b.break_start)} → {fmtTime(b.break_end)}
+                    {breakIcon(b.break_type)} {fmtTime(b.break_start)} → {fmtTime(b.break_end)}
                     {b.break_duration_minutes ? ` · ${b.break_duration_minutes}m` : ''}
                 </span>
             ))}
@@ -415,12 +452,12 @@ function MyBreakHistory({ breaks }) {
 
 // ── Team break panel (active + today's history) ───────────────────────────────
 function TeamPanel({ todayBreaks, loading }) {
-    const active    = (todayBreaks || []).filter(b => !b.break_end);
+    const active = (todayBreaks || []).filter(b => !b.break_end);
     const completed = (todayBreaks || []).filter(b => b.break_end);
 
     const EmpChip = ({ b, live }) => {
-        const emp   = b.employee || {};
-        const name  = `${emp.first_name || ''} ${emp.last_name || ''}`.trim() || b.employee_id;
+        const emp = b.employee || {};
+        const name = `${emp.first_name || ''} ${emp.last_name || ''}`.trim() || b.employee_id;
         const color = avatarColor(emp.first_name);
         return (
             <div style={{
@@ -439,7 +476,7 @@ function TeamPanel({ todayBreaks, loading }) {
                         {name}
                     </div>
                     <div style={{ fontSize: 11, color: live ? '#d97706' : '#6b7280', display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <span>{breakEmoji(b.break_type)}</span>
+                        <span>{breakIcon(b.break_type)}</span>
                         <span>{breakLabel(b.break_type)}</span>
                         {live
                             ? <><span style={{ color: '#d1d5db' }}>·</span><span>{fmtDuration(b.break_start)}</span></>
@@ -501,6 +538,7 @@ function TeamPanel({ todayBreaks, loading }) {
                     {completed.map(b => <EmpChip key={b.id} b={b} live={false} />)}
                 </div>
             )}
+
         </div>
     );
 }
@@ -511,14 +549,14 @@ function TeamPanel({ todayBreaks, loading }) {
 // mode="full"          — legacy combined card
 export default function BreakWidget({ isClockedIn = false, isClockedOut = false, mode = 'full', unlimitedBreaks = false }) {
     const { user } = useAuth();
-    const [activeBreak,   setActiveBreak]   = useState(null);
-    const [usedTypes,     setUsedTypes]     = useState([]);
+    const [activeBreak, setActiveBreak] = useState(null);
+    const [usedTypes, setUsedTypes] = useState([]);
     const [sessionBreaks, setSessionBreaks] = useState([]); // own breaks this session
-    const [todayBreaks,   setTodayBreaks]   = useState([]); // team breaks today
+    const [todayBreaks, setTodayBreaks] = useState([]); // team breaks today
     const [totalBreakSecondsToday, setTotalBreakSecondsToday] = useState(0);
-    const [loading,       setLoading]       = useState(true);
-    const [acting,        setActing]        = useState(false);
-    const [error,         setError]         = useState('');
+    const [loading, setLoading] = useState(true);
+    const [acting, setActing] = useState(false);
+    const [error, setError] = useState('');
     const [, setTicker] = useState(0);
     const timerRef = useRef(null);
 
@@ -644,7 +682,7 @@ export default function BreakWidget({ isClockedIn = false, isClockedOut = false,
     // ── team-panel mode ───────────────────────────────────────────────────────
     if (mode === 'team-panel') {
         if (!isManager) return null;
-        const activeCount    = todayBreaks.filter(b => !b.break_end).length;
+        const activeCount = todayBreaks.filter(b => !b.break_end).length;
         const completedCount = todayBreaks.filter(b => b.break_end).length;
         return (
             <div style={{ marginBottom: 16 }}>
@@ -652,7 +690,7 @@ export default function BreakWidget({ isClockedIn = false, isClockedOut = false,
                     {/* Panel header */}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderBottom: '1px solid #f3f4f6' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                            <Coffee size={14} color="#f59e0b" />
+                            <Timer size={14} color="#f59e0b" />
                             <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>Team Break Activity</span>
                         </div>
                         <div style={{ display: 'flex', gap: 6 }}>
@@ -682,7 +720,7 @@ export default function BreakWidget({ isClockedIn = false, isClockedOut = false,
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #f3f4f6', flexWrap: 'wrap', gap: 10 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <div style={{ width: 30, height: 30, borderRadius: 8, background: activeBreak ? '#fef3c7' : '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Coffee size={15} color={activeBreak ? '#92400e' : '#4338ca'} />
+                            <Timer size={15} color={activeBreak ? '#92400e' : '#4338ca'} />
                         </div>
                         <div>
                             <div style={{ fontWeight: 700, fontSize: 13, color: '#111827' }}>
@@ -697,7 +735,7 @@ export default function BreakWidget({ isClockedIn = false, isClockedOut = false,
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 3 }}>
                                     {sessionBreaks.filter(b => b.break_end).map(b => (
                                         <span key={b.id} style={{ fontSize: 10, borderRadius: 10, padding: '1px 7px', background: '#f3f4f6', color: '#6b7280' }}>
-                                            {breakEmoji(b.break_type)} {fmtMins(b.break_duration_minutes)}
+                                            {breakIcon(b.break_type)} {fmtMins(b.break_duration_minutes)}
                                         </span>
                                     ))}
                                 </div>

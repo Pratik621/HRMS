@@ -199,10 +199,10 @@ const Sidebar = () => {
 
         {/* ── Logo ── */}
         <div className="hrms-sidebar__logo">
-          <div className="hrms-sidebar__logo-mark">E</div>
+          <div className="hrms-sidebar__logo-mark">H</div>
           {isOpen && (
             <div className="hrms-sidebar__logo-text">
-              <div className="hrms-sidebar__logo-title">EMS Portal</div>
+              <div className="hrms-sidebar__logo-title">HRMS Portal</div>
               <div className="hrms-sidebar__logo-sub">
                 {user?.role === 'admin' ? 'Admin Dashboard' : user?.role === 'hr' ? 'HR Dashboard' : user?.role === 'sub_admin' ? 'Manager Dashboard' : user?.role === 'desktop_support' ? 'Desktop Support' : user?.role === 'manager' ? 'TL Dashboard' : user?.role === 'finance' ? 'Finance Dashboard' : user?.role === 'housekeeper' ? 'Housekeeper Dashboard' : 'Employee Dashboard'}
               </div>

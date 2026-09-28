@@ -10,31 +10,125 @@ import PostComposerCard from './PostComposerCard';
 import { QA_ANIMATIONS_CSS } from './quickAccessTheme';
 
 const QUICK_ACCESS_CSS = `
+  /* =========================================================
+     MAIN DASHBOARD LAYOUT
+     ========================================================= */
+
   .dash-quick-access {
+    width: 100%;
     display: grid;
-    grid-template-columns: 330px 1fr;
-    gap: 16px;
-    margin-bottom: 20px;
+    grid-template-columns: 380px minmax(0, 1fr);
+    gap: 18px;
+    margin-bottom: 24px;
     align-items: start;
   }
+
+  /* =========================================================
+     LEFT COLUMN
+     ========================================================= */
+
   .dash-quick-access__left {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-  .dash-quick-access__right {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
   }
+
+  /* =========================================================
+     RIGHT COLUMN
+     ========================================================= */
+
+  .dash-quick-access__right {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* =========================================================
+     LOWER DASHBOARD CARDS
+     ========================================================= */
+
+ .dash-quick-access__lower-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+.dash-quick-access__lower-card {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+}
+
+.dash-quick-access__lower-card > * {
+  width: 100%;
+  height: 100%;
+}
+
+  /* =========================================================
+     TABLET
+     ========================================================= */
+
+  @media (max-width: 1100px) {
+    .dash-quick-access {
+      grid-template-columns: 340px minmax(0, 1fr);
+      gap: 16px;
+    }
+
+    .dash-quick-access__lower-cards {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* =========================================================
+     MOBILE / SMALL TABLET
+     ========================================================= */
+
   @media (max-width: 900px) {
-    .dash-quick-access { grid-template-columns: 1fr; }
+    .dash-quick-access {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .dash-quick-access__left,
+    .dash-quick-access__right {
+      width: 100%;
+    }
+
+    .dash-quick-access__lower-cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* =========================================================
+     MOBILE
+     ========================================================= */
+
+  @media (max-width: 600px) {
+    .dash-quick-access {
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .dash-quick-access__left,
+    .dash-quick-access__right {
+      gap: 14px;
+    }
+
+    .dash-quick-access__lower-cards {
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
   }
 `;
 
 export default function DashboardQuickAccess({
   employeeId,
+  leaveBalance,
+  leaveBalanceLoading,
   onLeaveScope = 'department',
   department,
   attendance,
@@ -51,11 +145,22 @@ export default function DashboardQuickAccess({
   unlimitedBreaks = false,
   managerId,
   hideClockToggle = false,
+  belowInsights = null,
 }) {
   return (
     <div className="dash-quick-access">
-      <style>{QUICK_ACCESS_CSS}{QA_ANIMATIONS_CSS}</style>
+      <style>
+        {QUICK_ACCESS_CSS}
+        {QA_ANIMATIONS_CSS}
+      </style>
+
+      {/* =====================================================
+          LEFT COLUMN
+          ===================================================== */}
+
       <div className="dash-quick-access__left">
+
+        {/* Time Today */}
         <AttendanceCard
           attendance={attendance}
           activeSession={activeSession}
@@ -71,15 +176,58 @@ export default function DashboardQuickAccess({
           unlimitedBreaks={unlimitedBreaks}
           hideClockToggle={hideClockToggle}
         />
-        <RegularizationStatsWidget managerId={managerId} />
-        <HolidayCountdownCard />
-        <LeaveBalanceRingsCard employeeId={employeeId} />
-        <OnLeaveTodayCard scope={onLeaveScope} department={department} managerId={managerId} />
+
+        {/* Additional employee widgets */}
+        <div className="dash-quick-access__lower-cards">
+
+          <div className="dash-quick-access__lower-card">
+            <RegularizationStatsWidget
+              managerId={managerId}
+            />
+          </div>
+
+          <div className="dash-quick-access__lower-card">
+            <HolidayCountdownCard />
+          </div>
+
+          <div className="dash-quick-access__lower-card">
+            <LeaveBalanceRingsCard
+              suppliedBalance={leaveBalance}
+              suppliedLoading={leaveBalanceLoading}
+              employeeId={employeeId}
+            />
+          </div>
+
+          <div className="dash-quick-access__lower-card">
+            <OnLeaveTodayCard
+              scope={onLeaveScope}
+              department={department}
+              managerId={managerId}
+            />
+          </div>
+
+        </div>
       </div>
+
+      {/* =====================================================
+          RIGHT COLUMN
+          ===================================================== */}
+
       <div className="dash-quick-access__right">
+
+        {/* Posts / Quick Actions */}
         <PostComposerCard />
+
+        {/* Celebrations */}
         <CelebrationsCard />
-        <AttendanceInsightsCard employeeId={employeeId} />
+
+        {/* Attendance Insights */}
+        <AttendanceInsightsCard
+          employeeId={employeeId}
+        />
+
+        {/* Anything supplied by parent */}
+        {belowInsights}
 
       </div>
     </div>

@@ -44,7 +44,7 @@ const reactionSummary = (reactions, viewerId) => {
   return text || `${reactions.length} reaction${reactions.length === 1 ? '' : 's'}`;
 };
 
-function Composer({ onPosted }) {
+function Composer({ onPosted, active }) {
   const [content, setContent] = useState('');
   const [postType, setPostType] = useState('post'); // 'post' | 'poll' | 'praise'
   const [category, setCategory] = useState('');
@@ -65,10 +65,13 @@ function Composer({ onPosted }) {
   const tagRef = useRef(null);
 
   useEffect(() => {
+    if (!active) return;
+    let cancelled = false;
     axios.get(API_ENDPOINTS.EMPLOYEES)
-      .then(res => setAllEmployees(Array.isArray(res.data) ? res.data : res.data?.data || []))
+      .then(res => { if (!cancelled) setAllEmployees(Array.isArray(res.data) ? res.data : res.data?.data || []); })
       .catch(() => {});
-  }, []);
+    return () => { cancelled = true; };
+  }, [active]);
 
   useEffect(() => {
     const close = (e) => { if (tagRef.current && !tagRef.current.contains(e.target)) setShowTagDD(false); };
@@ -469,14 +472,14 @@ function FeedPost({ post, viewer, following, onToggleFollow, onReact, onDelete, 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           {REACTIONS.map(r => (
-            <button key={r.key} onClick={() => onReact(post.id, r.key)} title={r.label}
-              style={{ background: post.my_reaction === r.key ? `${r.color}18` : 'none', border: 'none', borderRadius: 20, padding: '5px 9px', cursor: 'pointer', color: post.my_reaction === r.key ? r.color : QA.textMuted, display: 'flex', alignItems: 'center' }}>
+            <button key={r.key} className={`post-social-action${post.my_reaction === r.key ? ' is-active' : ''}`} onClick={() => onReact(post.id, r.key)} title={r.label}
+              style={{ border: 'none', borderRadius: 20, padding: '5px 9px', cursor: 'pointer', color: post.my_reaction === r.key ? QA.textDark : QA.textMuted, display: 'flex', alignItems: 'center' }}>
               <r.icon size={13} />
             </button>
           ))}
           {summary && <span style={{ fontSize: 11, color: QA.textMuted, marginLeft: 4 }}>{summary}</span>}
         </div>
-        <button onClick={() => setShowComments(s => !s)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: QA.textMuted, fontSize: 11, fontWeight: 600 }}>
+        <button className={`post-social-action${showComments ? ' is-active' : ''}`} onClick={() => setShowComments(s => !s)} style={{ border: 'none', cursor: 'pointer', color: QA.textMuted, fontSize: 11, fontWeight: 600, padding: '5px 8px' }}>
           {commentCount > 0 ? `${commentCount} comment${commentCount === 1 ? '' : 's'}` : 'Comment'}
         </button>
       </div>
@@ -651,7 +654,7 @@ export default function PostsDrawer({ show, onClose }) {
 
         <div style={{ flex: 1, overflowY: 'auto' }}>
           <div style={{ background: '#fff', margin: 14, borderRadius: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-            <Composer onPosted={(p) => setPosts(prev => [p, ...prev])} />
+            <Composer active={show} onPosted={(p) => setPosts(prev => [p, ...prev])} />
           </div>
 
           <div style={{ background: '#fff', margin: '0 14px 14px', borderRadius: 16, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>

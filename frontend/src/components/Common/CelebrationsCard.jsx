@@ -37,28 +37,48 @@ const fmtShort = (dateStr) => parseDateOnly(dateStr)?.toLocaleDateString('en-IN'
 // any external reference design's exact brand colors or illustration assets.
 const TAB_THEME = {
   birthdays: {
-    label: 'Birthdays', icon: FaBirthdayCake, accent: '#7C3AED', light: '#F3E8FF',
-    illustration: '🎂', floaters: ['🎈', '🎁', '✨'],
-    heroTitle: (name) => <>Happy Birthday, <span style={{ color: '#7C3AED' }}>{name}!</span> 🎉</>,
-    actionLabel: 'Send Wishes', actionIcon: FaHeart,
-    footer: '🎉 Celebrate together and make every birthday memorable.',
-    emptyToday: 'No birthdays today', emptyIcon: '🎂',
+    label: 'Birthdays',
+    icon: FaBirthdayCake,
+    accent: '#1F2937',
+    light: '#F3F4F6',
+    illustration: '🎂',
+    floaters: [],
+    heroTitle: (name) => <>Happy Birthday, <span style={{ color: '#1F2937' }}>{name}!</span></>,
+    actionLabel: 'Send Wishes',
+    actionIcon: FaHeart,
+    footer: 'Celebrate together and make every birthday memorable.',
+    emptyToday: 'No birthdays today',
+    emptyIcon: '🎂',
   },
+
   anniversaries: {
-    label: 'Work Anniversaries', icon: FaTrophy, accent: '#F59E0B', light: '#FFFBEB',
-    illustration: '🏆', floaters: ['🎗️', '🥇', '✨'],
-    heroTitle: (name) => <>Happy Work Anniversary, <span style={{ color: '#F59E0B' }}>{name}!</span> 🏆</>,
-    actionLabel: 'Celebrate', actionIcon: FaGift,
-    footer: '🏆 Recognizing dedication and celebrating milestones together.',
-    emptyToday: 'No work anniversaries today', emptyIcon: '🏆',
+    label: 'Work Anniversaries',
+    icon: FaTrophy,
+    accent: '#1F2937',
+    light: '#F3F4F6',
+    illustration: '🏆',
+    floaters: [],
+    heroTitle: (name) => <>Happy Work Anniversary, <span style={{ color: '#1F2937' }}>{name}!</span></>,
+    actionLabel: 'Celebrate',
+    actionIcon: FaGift,
+    footer: 'Recognizing dedication and celebrating milestones together.',
+    emptyToday: 'No work anniversaries today',
+    emptyIcon: '🏆',
   },
+
   new_joiners: {
-    label: 'New Joiners', icon: FaUserFriends, accent: '#10B981', light: '#ECFDF5',
-    illustration: '👋', floaters: ['💼', '🪴', '🎊'],
-    heroTitle: (name) => <>Welcome Aboard, <span style={{ color: '#10B981' }}>{name}!</span> 🎉</>,
-    actionLabel: 'Welcome', actionIcon: FaUserFriends,
-    footer: '💚 Every new teammate brings fresh ideas and new energy.',
-    emptyToday: 'No new joiners today', emptyIcon: '👋',
+    label: 'New Joiners',
+    icon: FaUserFriends,
+    accent: '#1F2937',
+    light: '#F3F4F6',
+    illustration: '👋',
+    floaters: [],
+    heroTitle: (name) => <>Welcome Aboard, <span style={{ color: '#1F2937' }}>{name}!</span></>,
+    actionLabel: 'Welcome',
+    actionIcon: FaUserFriends,
+    footer: 'Every new teammate brings fresh ideas and new energy.',
+    emptyToday: 'No new joiners today',
+    emptyIcon: '👋',
   },
 };
 
@@ -95,7 +115,7 @@ function WishThread({ recipientEmployeeId, recipientName, eventType, accent }) {
     setLoading(true);
     axios.get(API_ENDPOINTS.WISHES, { params: { recipient_employee_id: recipientEmployeeId, event_date: todayStr(), event_type: eventType } })
       .then(res => { if (res.data?.success) setWishes(res.data.wishes || []); })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   };
 
@@ -139,7 +159,7 @@ function WishThread({ recipientEmployeeId, recipientName, eventType, accent }) {
     if (!comments[wishId]) {
       axios.get(API_ENDPOINTS.WISH_COMMENTS(wishId))
         .then(res => setComments(prev => ({ ...prev, [wishId]: res.data?.comments || [] })))
-        .catch(() => {});
+        .catch(() => { });
     }
   };
 
@@ -222,7 +242,7 @@ function HeroCard({ theme, person, eventType, expanded, confetti, onAction, onHi
   const suffix = eventType === 'anniversary' ? `${person.years} Year${person.years === 1 ? '' : 's'}` : null;
 
   return (
-    <div className="qa-fade-in" style={{
+    <div className="qa-fade-in celebrations-hero" style={{
       position: 'relative', overflow: 'hidden', borderRadius: 20, padding: 20,
       background: theme.light, display: 'grid', gridTemplateColumns: '1fr 140px', gap: 16, alignItems: 'center',
     }}>
@@ -298,7 +318,16 @@ function HeroCard({ theme, person, eventType, expanded, confetti, onAction, onHi
 
 function EmptyToday({ theme }) {
   return (
-    <div style={{ textAlign: 'center', padding: '22px 0', color: QA.textMuted, background: theme.light, borderRadius: 20 }}>
+    <div
+      className="celebrations-empty"
+      style={{
+        textAlign: 'center',
+        padding: '22px 0',
+        color: QA.textMuted,
+        background: theme.light,
+        borderRadius: 20,
+      }}
+    >
       <div style={{ fontSize: 34, marginBottom: 6 }}>{theme.emptyIcon}</div>
       <div style={{ fontSize: 13, fontWeight: 600 }}>{theme.emptyToday}</div>
     </div>
@@ -306,86 +335,291 @@ function EmptyToday({ theme }) {
 }
 
 function UpcomingRow({ theme, people, showViewAllTile, onViewAll, eventType, canManage, onHide, hidingId }) {
-  // The View All tile takes the last slot itself, so up to (LIMIT - 1) real
-  // people are shown alongside it — LIMIT divs total, always ending on View All.
+  // The View All tile takes the last slot itself.
   const peopleSlots = showViewAllTile ? UPCOMING_LIMIT - 1 : UPCOMING_LIMIT;
   const shown = people.slice(0, peopleSlots);
   const isNewJoiner = eventType === 'new_joiner';
   const [openMenuId, setOpenMenuId] = useState(null);
 
   return (
-    <div className="qa-scroll-x">
+    <div className="qa-scroll-x celebrations-upcoming-scroll">
       {shown.map(p => {
-        // New joiners don't carry days_until/date from the backend (that's an "upcoming
-        // occurrence" concept for birthdays/anniversaries) — for this tab show how long ago
-        // they actually joined instead, computed from their real joining_date.
         const daysAgo = isNewJoiner && p.joining_date
-          ? Math.round((new Date().setHours(0, 0, 0, 0) - parseDateOnly(p.joining_date).getTime()) / 86400000)
+          ? Math.round(
+              (new Date().setHours(0, 0, 0, 0) -
+                parseDateOnly(p.joining_date).getTime()) / 86400000
+            )
           : null;
-        const pct = isNewJoiner ? 100 : Math.max(8, Math.round(((UPCOMING_WINDOW_DAYS - p.days_until) / UPCOMING_WINDOW_DAYS) * 100));
+
+        const pct = isNewJoiner
+          ? 100
+          : Math.max(
+              8,
+              Math.round(
+                ((UPCOMING_WINDOW_DAYS - p.days_until) /
+                  UPCOMING_WINDOW_DAYS) * 100
+              )
+            );
+
         const menuOpen = openMenuId === p.employee_id;
+
         return (
-          <div key={p.employee_id} style={{ position: 'relative', width: 142, flexShrink: 0, boxSizing: 'border-box', padding: '10px', borderRadius: 12, background: '#f9fafb' }}>
+          <div
+            key={p.employee_id}
+            className="celebration-person-card"
+            style={{
+              position: 'relative',
+              width: 142,
+              flexShrink: 0,
+              boxSizing: 'border-box',
+              padding: '10px',
+              borderRadius: 12,
+              background: '#f9fafb',
+            }}
+          >
             {canManage && (
               <div style={{ position: 'absolute', top: 6, right: 6, zIndex: 3 }}>
                 <button
-                  onClick={() => setOpenMenuId(menuOpen ? null : p.employee_id)}
+                  onClick={() =>
+                    setOpenMenuId(menuOpen ? null : p.employee_id)
+                  }
                   title="More options"
-                  style={{ width: 22, height: 22, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.9)', color: QA.textMuted, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: '50%',
+                    border: 'none',
+                    background: 'rgba(255,255,255,0.9)',
+                    color: QA.textMuted,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
                   <FaEllipsisV size={10} />
                 </button>
+
                 {menuOpen && (
-                  <div style={{ position: 'absolute', top: 24, right: 0, background: '#fff', border: `1px solid ${QA.border}`, borderRadius: 8, boxShadow: '0 4px 14px rgba(0,0,0,0.14)', minWidth: 168, overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 24,
+                      right: 0,
+                      background: '#fff',
+                      border: `1px solid ${QA.border}`,
+                      borderRadius: 8,
+                      boxShadow: '0 4px 14px rgba(0,0,0,0.14)',
+                      minWidth: 168,
+                      overflow: 'hidden',
+                    }}
+                  >
                     <button
-                      onClick={() => { setOpenMenuId(null); onHide(p); }}
+                      onClick={() => {
+                        setOpenMenuId(null);
+                        onHide(p);
+                      }}
                       disabled={hidingId === p.employee_id}
-                      style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '8px 10px', background: 'none', border: 'none', textAlign: 'left', fontSize: 11, fontWeight: 600, color: QA.danger, cursor: hidingId === p.employee_id ? 'not-allowed' : 'pointer' }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        width: '100%',
+                        padding: '8px 10px',
+                        background: 'none',
+                        border: 'none',
+                        textAlign: 'left',
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: QA.danger,
+                        cursor:
+                          hidingId === p.employee_id
+                            ? 'not-allowed'
+                            : 'pointer',
+                      }}
                     >
-                      <FaTrashAlt size={10} /> Hide from celebrations
+                      <FaTrashAlt size={10} />
+                      Hide from celebrations
                     </button>
                   </div>
                 )}
               </div>
             )}
-            <Avatar photo={p.profile_image} id={p.employee_id} firstName={p.first_name} lastName={p.last_name} size={34} />
-            <div style={{ fontSize: 11, fontWeight: 700, color: QA.textDark, marginTop: 6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-              title={`${p.first_name} ${p.last_name}`}>
+
+            <Avatar
+              photo={p.profile_image}
+              id={p.employee_id}
+              firstName={p.first_name}
+              lastName={p.last_name}
+              size={34}
+            />
+
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: QA.textDark,
+                marginTop: 6,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+              title={`${p.first_name} ${p.last_name}`}
+            >
               {p.first_name} {p.last_name}
             </div>
-            {/* <div style={{ fontSize: 10, color: QA.textMuted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-              title={p.position || p.designation}>
-              {p.position || p.designation}
-            </div> */}
+
             <div style={{ marginTop: 6 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: theme.accent, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {isNewJoiner ? (p.joining_date ? fmtShort(p.joining_date) : '') : (p.date ? fmtShort(p.date) : '')}
-              </div>
-              <div style={{ fontSize: 9, color: QA.textMuted, marginTop: 1 }}>
+              <div
+                style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  color: theme.accent,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
                 {isNewJoiner
-                  ? (daysAgo === 0 ? 'Today' : daysAgo === 1 ? 'Yesterday' : daysAgo != null ? `${daysAgo} days ago` : '')
-                  : (p.days_until === 1 ? 'Tomorrow' : `in ${p.days_until} days`)}
+                  ? p.joining_date
+                    ? fmtShort(p.joining_date)
+                    : ''
+                  : p.date
+                    ? fmtShort(p.date)
+                    : ''}
+              </div>
+
+              <div
+                style={{
+                  fontSize: 9,
+                  color: QA.textMuted,
+                  marginTop: 1,
+                }}
+              >
+                {isNewJoiner
+                  ? daysAgo === 0
+                    ? 'Today'
+                    : daysAgo === 1
+                      ? 'Yesterday'
+                      : daysAgo != null
+                        ? `${daysAgo} days ago`
+                        : ''
+                  : p.days_until === 1
+                    ? 'Tomorrow'
+                    : `in ${p.days_until} days`}
               </div>
             </div>
-            <div style={{ height: 4, borderRadius: 4, background: '#e5e7eb', marginTop: 6, overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${pct}%`, background: theme.accent, borderRadius: 4 }} />
+
+            <div
+              style={{
+                height: 4,
+                borderRadius: 4,
+                background: '#e5e7eb',
+                marginTop: 6,
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  height: '100%',
+                  width: `${pct}%`,
+                  background: theme.accent,
+                  borderRadius: 4,
+                }}
+              />
             </div>
           </div>
         );
       })}
+
       {showViewAllTile && (
-        <button onClick={onViewAll}
+        <button
+          type="button"
+          className="celebrations-view-all"
+          onClick={onViewAll}
+          aria-label="View all celebrations"
           style={{
-            width: 132, flexShrink: 0, boxSizing: 'border-box', padding: '10px', borderRadius: 12,
-            background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)', border: 'none', cursor: 'pointer',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center',
-            boxShadow: '0 4px 14px rgba(124,58,237,0.35)',
-          }}>
-          <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
-            <FaUserFriends size={14} color="#fff" />
+            width: 132,
+            minHeight: 150,
+            flexShrink: 0,
+            boxSizing: 'border-box',
+            padding: '16px 10px',
+            borderRadius: 12,
+
+            /* Default: light grayscale */
+            background: '#FFFFFF',
+            border: '1px solid #D9DEE5',
+            color: '#1F2937',
+
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+
+            boxShadow:
+              '0 2px 8px rgba(15, 23, 42, 0.06)',
+
+            transition:
+              'background-color 0.2s ease, ' +
+              'border-color 0.2s ease, ' +
+              'color 0.2s ease, ' +
+              'transform 0.2s ease, ' +
+              'box-shadow 0.2s ease',
+          }}
+        >
+          {/* Icon circle */}
+          <div
+            className="celebrations-view-all-icon"
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: '50%',
+              background: '#F1F3F5',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 10,
+              transition:
+                'background-color 0.2s ease, color 0.2s ease',
+            }}
+          >
+            <FaUserFriends
+              size={17}
+              className="celebrations-view-all-icon-svg"
+              color="#374151"
+            />
           </div>
-          <div style={{ fontSize: 12, fontWeight: 800, color: '#fff' }}>View All</div>
-          <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.85)', marginTop: 1 }}>See everyone →</div>
+
+          {/* Main text */}
+          <div
+            className="celebrations-view-all-title"
+            style={{
+              fontSize: 13,
+              fontWeight: 800,
+              color: '#111827',
+              lineHeight: 1.3,
+              transition: 'color 0.2s ease',
+            }}
+          >
+            View All
+          </div>
+
+          {/* Supporting text */}
+          <div
+            className="celebrations-view-all-subtitle"
+            style={{
+              fontSize: 10,
+              fontWeight: 600,
+              color: '#6B7280',
+              marginTop: 4,
+              lineHeight: 1.3,
+              transition: 'color 0.2s ease',
+            }}
+          >
+            See everyone →
+          </div>
         </button>
       )}
     </div>
@@ -408,7 +642,7 @@ function AllUpcomingModal({ show, onClose, theme, eventType }) {
           setList(res.data[eventType === 'birthday' ? 'birthdays' : 'anniversaries'] || []);
         }
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [show, eventType]);
@@ -475,7 +709,7 @@ export default function CelebrationsCard() {
   const loadUpcoming = useCallback(() => {
     return axios.get(API_ENDPOINTS.TODAY_EVENTS_UPCOMING, { params: { all: 'true' } })
       .then(res => { if (res.data?.success) setUpcoming(res.data); })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   useEffect(() => { loadUpcoming(); }, [loadUpcoming]);
@@ -508,8 +742,8 @@ export default function CelebrationsCard() {
 
   const autoTab = todayBirthdays.length > 0 ? 'birthdays'
     : todayAnniversaries.length > 0 ? 'anniversaries'
-    : todayNewJoiners.length > 0 ? 'new_joiners'
-    : 'birthdays';
+      : todayNewJoiners.length > 0 ? 'new_joiners'
+        : 'birthdays';
   const activeTab = tab || autoTab;
 
   const TABS = [
@@ -524,25 +758,44 @@ export default function CelebrationsCard() {
   const upcomingPeople = activeTab === 'birthdays' ? upcoming.birthdays : activeTab === 'anniversaries' ? upcoming.anniversaries : laterNewJoiners;
 
   return (
-    <div className="qa-hover-lift" style={{ background: '#fff', borderRadius: 22, border: `1px solid ${QA.border}`, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', padding: 20 }}>
+    <div
+      className="qa-hover-lift celebrations-card"
+      style={{
+        background: '#fff',
+        borderRadius: 22,
+        border: `1px solid ${QA.border}`,
+        boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+        padding: 20,
+      }}
+    >
       <style>{QA_ANIMATIONS_CSS}</style>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-        <div style={{ fontSize: 15, fontWeight: 800, color: QA.textDark }}>🎉 Celebrations</div>
+      <div className="celebrations-header">
+        <div className="celebrations-title">
+          <span className="celebrations-title-icon">🎉</span>
+          <span>Celebrations</span>
+        </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+      <div className="celebrations-tabs">
         {TABS.map(t => {
           const th = TAB_THEME[t.key];
           const active = activeTab === t.key;
           return (
-            <button key={t.key} onClick={() => setTab(t.key)}
+            <button
+              key={t.key}
+              className={`celebration-tab ${active ? 'is-active' : ''}`}
+              onClick={() => setTab(t.key)}
               style={{
                 display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 20,
                 border: active ? 'none' : `1px solid ${QA.border}`, cursor: 'pointer', fontSize: 12, fontWeight: 700,
                 background: active ? th.accent : '#fff',
                 color: active ? '#fff' : QA.textMuted,
                 transition: 'all 0.15s',
+                // Carried into CSS so the active pill's accent background survives the
+                // `!important` rules in EmployeeDashboard.css (an inline background without
+                // !important can't), and so it still matches whichever tab is active.
+                '--tab-accent': th.accent,
               }}>
               <th.icon size={11} /> {th.label}
               <span style={{
@@ -619,7 +872,19 @@ export default function CelebrationsCard() {
         </>
       )}
 
-      <div style={{ marginTop: 16, padding: '10px 14px', borderRadius: 14, background: theme.light, color: theme.accent, fontSize: 12, fontWeight: 600, textAlign: 'center' }}>
+      <div
+        className="celebrations-footer"
+        style={{
+          marginTop: 16,
+          padding: '10px 14px',
+          borderRadius: 14,
+          background: theme.light,
+          color: theme.accent,
+          fontSize: 12,
+          fontWeight: 600,
+          textAlign: 'center',
+        }}
+      >
         {theme.footer}
       </div>
 

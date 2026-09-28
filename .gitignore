@@ -1,4 +1,30 @@
+# Dependencies
 node_modules/
+
+# Environment files and local secrets
 .env
-.vercel
-.env*
+.env.*
+!.env.example
+!.env.*.example
+
+# Build and deployment output
+dist/
+dist-ssr/
+.vite/
+.vercel/
+coverage/
+
+# Runtime files
+logs/
+*.log
+uploads/
+
+# Editor and operating-system files
+.vscode/
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.user
+*.swp
+*.swo

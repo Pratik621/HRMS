@@ -6,10 +6,10 @@
 // external reference design's exact brand colors, logo, or artwork).
 
 export const QA = {
-  primary: '#7C3AED', primaryLight: '#F3E8FF',
+  primary: '#2563EB', primaryLight: '#EFF6FF',
   success: '#10B981', successLight: '#ECFDF5',
   warning: '#F59E0B', warningLight: '#FFFBEB',
-  purple:  '#7C3AED', purpleLight:  '#F3E8FF',
+  purple:  '#0F766E', purpleLight:  '#F0FDFA',
   danger:  '#EF4444', dangerLight:  '#FEF2F2',
   textDark: '#111827', textMuted: '#6B7280', border: '#E5E7EB',
 };
@@ -33,7 +33,7 @@ export const QA_CARD_TITLE_STYLE = {
 
 // Banner gradient — this app's own violet/indigo tokens, not a copy of any
 // external reference design's specific brand colors or artwork.
-export const QA_BANNER_GRADIENT = 'linear-gradient(135deg, #4338CA 0%, #6D28D9 50%, #7C3AED 100%)';
+export const QA_BANNER_GRADIENT = '#1F4E79';
 
 // Shared animation classes — plain CSS only (no animation library). Render once
 // via <style>{QA_ANIMATIONS_CSS}</style> inside any component using these classes.

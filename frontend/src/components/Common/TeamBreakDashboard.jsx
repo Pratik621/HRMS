@@ -1,3 +1,5 @@
+import DashboardNotice from './DashboardNotice';
+import BreakTypeIcon from './BreakTypeIcon';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Modal, Spinner } from 'react-bootstrap';
 import { FaSyncAlt } from 'react-icons/fa';
@@ -5,9 +7,9 @@ import axios from '../../config/axios';
 import API_ENDPOINTS from '../../config/api';
 
 const BREAK_DEFS = [
-  { key: 'tea_break_1',  label: 'Tea Break 1',  emoji: '☕', color: '#10b981', light: '#d1fae5' },
-  { key: 'tea_break_2',  label: 'Tea Break 2',  emoji: '☕', color: '#6366f1', light: '#e0e7ff' },
-  { key: 'lunch_break',  label: 'Lunch Break',  emoji: '🍽️', color: '#8b5cf6', light: '#ede9fe' },
+  { key: 'tea_break_1',  label: 'Tea Break 1',  icon: <BreakTypeIcon />, color: '#10b981', light: '#d1fae5' },
+  { key: 'tea_break_2',  label: 'Tea Break 2',  icon: <BreakTypeIcon />, color: '#6366f1', light: '#e0e7ff' },
+  { key: 'lunch_break',  label: 'Lunch Break',  icon: <BreakTypeIcon type="lunch_break" />, color: '#8b5cf6', light: '#ede9fe' },
 ];
 
 const AVATAR_COLORS = ['#6366f1','#8b5cf6','#10b981','#f59e0b','#ef4444','#0ea5e9','#ec4899','#14b8a6'];
@@ -31,7 +33,7 @@ const fmtDuration = start => {
 const Avatar = ({ first, last, size = 34 }) => (
   <div style={{
     width: size, height: size, borderRadius: '50%', flexShrink: 0,
-    background: avatarColor(first), color: '#fff',
+    background: 'var(--team-break-avatar, ' + avatarColor(first) + ')', color: '#fff',
     fontSize: size * 0.33, fontWeight: 700,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
   }}>
@@ -40,6 +42,7 @@ const Avatar = ({ first, last, size = 34 }) => (
 );
 
 export default function TeamBreakDashboard({ managerId } = {}) {
+  const [loadError, setLoadError] = useState('');
   const [data,        setData]        = useState(null);
   const [loading,     setLoading]     = useState(true);
   const [, setTick]                   = useState(0);
@@ -49,13 +52,14 @@ export default function TeamBreakDashboard({ managerId } = {}) {
   const [detailTab,   setDetailTab]   = useState('used');
 
   const fetchStats = useCallback(async () => {
+    setLoadError('');
     try {
       const url = managerId && managerId !== 'ALL'
         ? `${API_ENDPOINTS.BREAK_TEAM_STATS}?manager_id=${managerId}`
         : API_ENDPOINTS.BREAK_TEAM_STATS;
       const res = await axios.get(url);
       if (res.data?.success) setData(res.data);
-    } catch { /* silent */ } finally { setLoading(false); }
+    } catch { setLoadError('Unable to load team break activity. Refresh the dashboard to retry.'); } finally { setLoading(false); }
   }, [managerId]);
 
   // Manager Dashboard "View Team" filter changing re-fetches; otherwise this only
@@ -75,6 +79,7 @@ export default function TeamBreakDashboard({ managerId } = {}) {
       <Spinner animation="border" size="sm" />
     </div>
   );
+  if (loadError) return <DashboardNotice type="error" text={loadError} />;
   if (!data || data.team_size === 0) return null;
 
   const { team_size, today_breaks = [], break_stats = {} } = data;
@@ -106,7 +111,7 @@ export default function TeamBreakDashboard({ managerId } = {}) {
           <Avatar first={emp.first_name} last={emp.last_name} size={32} />
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</div>
-            <div style={{ fontSize: 10, color: '#6b7280' }}>{def.emoji} {def.label}</div>
+            <div style={{ fontSize: 10, color: '#6b7280' }}>{def.icon} {def.label}</div>
           </div>
         </div>
         <div style={{ fontSize: 10, color: '#9ca3af', marginBottom: 6 }}>
@@ -116,7 +121,7 @@ export default function TeamBreakDashboard({ managerId } = {}) {
         </div>
         <span style={{
           fontSize: 10, fontWeight: 700, borderRadius: 6, padding: '2px 8px',
-          background: active ? '#dbeafe' : def.light, color: active ? '#1d4ed8' : def.color,
+          background: 'var(--team-break-tint, ' + (active ? '#dbeafe' : def.light) + ')', color: 'var(--team-break-accent, ' + (active ? '#1d4ed8' : def.color) + ')',
         }}>
           {active ? 'On Break' : 'Completed'}
         </span>
@@ -133,10 +138,10 @@ export default function TeamBreakDashboard({ managerId } = {}) {
   return (
     <>
       {/* ── Two-panel grid ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 16, marginBottom: 24 }}>
 
         {/* LEFT – Team Break Activity */}
-        <div style={{ background: '#fff', borderRadius: 14, boxShadow: '0 2px 10px rgba(0,0,0,0.07)', padding: '18px 20px' }}>
+        <div className="role-break-card" style={{ background: '#fff', borderRadius: 14, boxShadow: '0 2px 10px rgba(0,0,0,0.07)', padding: '18px 20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <span style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>Team Break Activity</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -164,7 +169,7 @@ export default function TeamBreakDashboard({ managerId } = {}) {
 
           {today_breaks.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '28px 0', color: '#9ca3af', fontSize: 13 }}>
-              <div style={{ fontSize: 28, marginBottom: 6 }}>☕</div>
+              <div style={{ fontSize: 28, marginBottom: 6 }}><BreakTypeIcon /></div>
               No breaks taken today
             </div>
           ) : (
@@ -175,7 +180,7 @@ export default function TeamBreakDashboard({ managerId } = {}) {
         </div>
 
         {/* RIGHT – Break Usage Today */}
-        <div style={{ background: '#fff', borderRadius: 14, boxShadow: '0 2px 10px rgba(0,0,0,0.07)', padding: '18px 20px' }}>
+        <div className="role-break-card" style={{ background: '#fff', borderRadius: 14, boxShadow: '0 2px 10px rgba(0,0,0,0.07)', padding: '18px 20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
             <span style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>Break Usage (Today)</span>
             <span style={{ fontSize: 12, color: '#9ca3af', background: '#f3f4f6', borderRadius: 99, padding: '3px 10px' }}>{team_size} employees</span>
@@ -200,18 +205,18 @@ export default function TeamBreakDashboard({ managerId } = {}) {
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 18 }}>{def.emoji}</span>
+                    <span style={{ fontSize: 18 }}>{def.icon}</span>
                     <span style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>{def.label}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: def.color }}>{consumed}/{team_size}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--team-break-accent, ' + def.color + ')' }}>{consumed}/{team_size}</span>
                     <span style={{ fontSize: 11, fontWeight: 600, color: isLow ? '#ef4444' : '#10b981' }}>
                       {remaining} left {isLow ? '⚠️' : ''}
                     </span>
                   </div>
                 </div>
                 <div style={{ height: 7, background: '#f3f4f6', borderRadius: 99, overflow: 'hidden', marginBottom: 4 }}>
-                  <div style={{ height: '100%', borderRadius: 99, background: def.color, width: `${pct}%`, transition: 'width 0.5s ease' }} />
+                  <div style={{ height: '100%', borderRadius: 99, background: 'var(--team-break-accent, ' + def.color + ')', width: `${pct}%`, transition: 'width 0.5s ease' }} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: 10, color: '#9ca3af' }}>
@@ -257,7 +262,7 @@ export default function TeamBreakDashboard({ managerId } = {}) {
       <Modal show={!!detailKey} onHide={() => setDetailKey(null)} centered size="md">
         <Modal.Header closeButton style={{ background: '#1e2a3e', border: 'none' }}>
           <Modal.Title style={{ color: '#fff', fontSize: 15, fontWeight: 700 }}>
-            {detailDef?.emoji} {detailDef?.label} — Today's Details
+            {detailDef?.icon} {detailDef?.label} — Today's Details
           </Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ padding: 0 }}>

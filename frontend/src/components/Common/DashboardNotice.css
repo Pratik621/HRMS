@@ -1,0 +1,25 @@
+.dashboard-notice {
+  --notice-accent: #52718c;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  background: #fff;
+  border: 1px solid #e5eaf0;
+  border-left: 3px solid var(--notice-accent);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, .04);
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.dashboard-notice--success { --notice-accent: #168a70; }
+.dashboard-notice--error { --notice-accent: #c53030; }
+.dashboard-notice--warning { --notice-accent: #b45309; }
+.dashboard-notice-icon { color: var(--notice-accent); flex-shrink: 0; margin-top: 2px; }
+.dashboard-notice-content { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.dashboard-notice-content strong { display: block; margin-bottom: 2px; color: #172033; font-weight: 600; }
+.dashboard-notice > button { display: grid; place-items: center; flex-shrink: 0; padding: 5px; border: 0; border-radius: 6px; color: #64748b; background: transparent; }
+.dashboard-notice > button:hover { background: #f1f5f9; }
+.dashboard-notice > button:focus-visible { outline: 2px solid #52718c; outline-offset: 2px; }

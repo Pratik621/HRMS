@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Abril+Fatface&family=Bebas+Neue&family=Righteous&family=Permanent+Marker&family=Pacifico&family=Satisfy&family=Press+Start+2P&family=Orbitron:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
 
 /* ============================================================
    HRMS ENTERPRISE DESIGN SYSTEM
@@ -15,7 +15,7 @@
 :root {
   /* ── Core Palette ── */
   --primary:            #2563EB;
-  --primary-dark:       #1D4ED8;
+  --primary-dark:       #1E40AF;
   --primary-light:      #EFF6FF;
   --primary-muted:      #BFDBFE;
 
@@ -35,16 +35,16 @@
   --orange-light:       #FFF7ED;
 
   /* ── Surfaces ── */
-  --body-bg:            #F8FAFC;
+  --body-bg:            #F5F7FA;
   --card-bg:            #FFFFFF;
-  --sidebar-bg:         #1E293B;
-  --sidebar-hover:      #334155;
+  --sidebar-bg:         #101828;
+  --sidebar-hover:      #1D2939;
   --sidebar-active:     rgba(37,99,235,0.18);
   --sidebar-active-text:#93C5FD;
   --sidebar-text:       #94A3B8;
   --sidebar-text-bright:#E2E8F0;
   --sidebar-border:     rgba(255,255,255,0.06);
-  --navbar-bg:          #FFFFFF;
+  --navbar-bg:          rgba(255,255,255,0.94);
 
   /* ── Typography ── */
   --text-primary:       #0F172A;
@@ -52,12 +52,12 @@
   --text-muted:         #94A3B8;
 
   /* ── Border / Shadow ── */
-  --border:             #E2E8F0;
+  --border:             #E5EAF2;
   --border-focus:       #93C5FD;
   --shadow-xs:          0 1px 2px rgba(15,23,42,0.05);
-  --shadow-sm:          0 1px 4px rgba(15,23,42,0.07), 0 1px 2px rgba(15,23,42,0.04);
-  --shadow-md:          0 4px 16px rgba(15,23,42,0.08), 0 2px 6px rgba(15,23,42,0.05);
-  --shadow-lg:          0 10px 32px rgba(15,23,42,0.10), 0 4px 12px rgba(15,23,42,0.06);
+  --shadow-sm:          0 1px 3px rgba(16,24,40,0.05), 0 4px 12px rgba(16,24,40,0.035);
+  --shadow-md:          0 8px 24px rgba(16,24,40,0.09), 0 2px 6px rgba(16,24,40,0.04);
+  --shadow-lg:          0 18px 44px rgba(16,24,40,0.14), 0 4px 12px rgba(16,24,40,0.06);
 
   /* ── Radius ── */
   --radius-sm:          6px;
@@ -96,13 +96,18 @@
 html, body, #root {
   height: 100%;
   width: 100%;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--body-bg);
   color: var(--text-primary);
   font-size: 14px;
   line-height: 1.5;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Plus Jakarta Sans', 'Manrope', sans-serif;
+  letter-spacing: 0;
 }
 
 /* ── Scrollbar ── */
@@ -855,6 +860,221 @@ html, body, #root {
   .hrms-sidebar, .hrms-navbar, .btn, .no-print { display: none !important; }
   #main-content-wrapper { margin-left: 0 !important; }
   .card { box-shadow: none !important; border: 1px solid #ddd !important; }
+}
+
+/* ── Product shell refresh ──────────────────────────────────────────────── */
+.hrms-sidebar {
+  background: #101828;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 8px 0 24px rgba(16,24,40,0.08);
+}
+
+.hrms-sidebar__logo {
+  height: 72px;
+  padding: 0 18px;
+  border-bottom-color: rgba(255,255,255,0.08);
+}
+
+.hrms-sidebar__logo-mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: #2563EB;
+  box-shadow: none;
+}
+
+.hrms-sidebar__logo-title { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+.hrms-sidebar__nav { padding: 16px 12px; }
+
+.hrms-sidebar__section {
+  color: #667085;
+  padding: 18px 12px 7px;
+  letter-spacing: 1px;
+}
+
+.hrms-nav-item {
+  min-height: 40px;
+  border-radius: 9px;
+  color: #98A2B3 !important;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.hrms-nav-item:hover {
+  background: rgba(255,255,255,0.07);
+  color: #F2F4F7 !important;
+}
+
+.hrms-nav-item.active {
+  background: rgba(59,130,246,0.18);
+  color: #D1E0FF !important;
+  box-shadow: inset 3px 0 0 #60A5FA;
+}
+
+.hrms-nav-item.active .hrms-nav-item__icon { color: #60A5FA; }
+
+#main-content-wrapper > div:last-child {
+  padding: 24px 28px 36px !important;
+  background: var(--body-bg) !important;
+}
+
+.hrms-stat-card,
+.card {
+  border-color: #E7ECF3 !important;
+  box-shadow: 0 2px 10px rgba(16,24,40,0.045) !important;
+}
+
+.hrms-stat-card:hover,
+.card:hover { box-shadow: var(--shadow-md) !important; }
+
+.hrms-page-header { margin-bottom: 28px; }
+.hrms-page-header__title { font-size: 20px; letter-spacing: -0.2px; }
+
+.welcome-banner__controls {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hrms-employee-dashboard {
+  background: var(--body-bg) !important;
+}
+
+.hrms-employee-dashboard .card {
+  border-radius: 14px !important;
+}
+
+.hrms-employee-dashboard .dash-quick-access > div > div,
+.hrms-employee-dashboard .qa-hover-lift {
+  border-color: #E7ECF3 !important;
+  box-shadow: 0 2px 10px rgba(16,24,40,0.045) !important;
+}
+
+.hrms-employee-dashboard .dash-quick-access > div > div:hover,
+.hrms-employee-dashboard .qa-hover-lift:hover {
+  box-shadow: 0 10px 26px rgba(16,24,40,0.09) !important;
+}
+
+.hrms-employee-dashboard .table thead th {
+  background: #F8FAFC !important;
+}
+
+.hrms-employee-dashboard .progress,
+.hrms-employee-dashboard .hrms-progress-track {
+  background: #E4E7EC !important;
+}
+
+.hrms-employee-dashboard .progress-bar,
+.hrms-employee-dashboard .hrms-progress-fill {
+  background: #98A2B3 !important;
+}
+
+.hrms-employee-dashboard .btn-primary,
+.hrms-employee-dashboard .btn-dark,
+.hrms-employee-dashboard .btn-success {
+  background: #101828 !important;
+  border-color: #101828 !important;
+  color: #fff !important;
+}
+
+.hrms-employee-dashboard .btn-outline-primary,
+.hrms-employee-dashboard .btn-outline-success,
+.hrms-employee-dashboard .btn-outline-secondary {
+  background: #fff !important;
+  border-color: #D0D5DD !important;
+  color: #101828 !important;
+}
+
+/* Blanket "every button is a light-gray button" rule — it is a fallback for plain/unstyled
+   buttons, so the app's deliberately-styled custom controls must be excluded here. This
+   selector is (0,4,1) specificity while the Celebrations card's own rules are (0,2,0)/(0,3,0),
+   so without the extra :not() guards this rule overwrites them no matter what they (or even an
+   inline style without !important) say — which rendered the Celebrations "View All" tile as a
+   washed-out pale-gray pill with white text instead of its purple design, and stripped the
+   accent colour off the Birthdays/Anniversaries tab pills. */
+.hrms-employee-dashboard button:not(.btn-danger):not(.btn-outline-danger):not(.hrms-logout-btn):not(.celebrations-view-all):not(.celebration-tab):not(.recent-leave-action) {
+  background: #F2F4F7 !important;
+  border: 1px solid #D0D5DD !important;
+  color: #101828 !important;
+}
+
+.hrms-employee-dashboard button:not(.btn-danger):not(.btn-outline-danger):not(.hrms-logout-btn):not(.celebrations-view-all):not(.celebration-tab):not(.recent-leave-action):hover,
+.hrms-employee-dashboard button:not(.btn-danger):not(.btn-outline-danger):not(.hrms-logout-btn):not(.celebrations-view-all):not(.celebration-tab):not(.recent-leave-action):focus-visible {
+  background: #101828 !important;
+  border-color: #101828 !important;
+  color: #fff !important;
+}
+
+.hrms-employee-dashboard .btn-primary:hover,
+.hrms-employee-dashboard .btn-dark:hover,
+.hrms-employee-dashboard .btn-success:hover,
+.hrms-employee-dashboard .btn-outline-primary:hover,
+.hrms-employee-dashboard .btn-outline-success:hover,
+.hrms-employee-dashboard .btn-outline-secondary:hover {
+  background: #344054 !important;
+  border-color: #344054 !important;
+  color: #fff !important;
+}
+
+.hrms-employee-dashboard .post-social-action,
+.post-social-action {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #667085 !important;
+}
+
+.hrms-employee-dashboard .post-social-action:hover,
+.hrms-employee-dashboard .post-social-action:focus-visible,
+.post-social-action:hover,
+.post-social-action:focus-visible,
+.post-social-action.is-active {
+  background: #F2F4F7 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #101828 !important;
+}
+
+.post-composer-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  width: 100%;
+  margin-bottom: 12px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  white-space: nowrap;
+}
+
+.post-composer-toolbar::-webkit-scrollbar { display: none; }
+.post-composer-toolbar > button {
+  flex: 0 0 auto;
+  margin: 0 !important;
+  border-radius: 8px !important;
+}
+
+.post-composer-toolbar > .post-composer-tab.is-selected {
+  background: #101828 !important;
+  border-color: #101828 !important;
+  color: #fff !important;
+}
+
+
+@media (max-width: 768px) {
+  #main-content-wrapper > div:last-child { padding: 18px 14px 28px !important; }
+  .welcome-banner__controls {
+    position: static;
+    margin-top: 16px;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
 }
 
 /* ── Notice Board Marquee Animations ── */
