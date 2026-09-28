@@ -7,7 +7,7 @@ import { QA, QA_CARD_STYLE, QA_CARD_TITLE_STYLE } from './quickAccessTheme';
 function Tile({ label, value, color }) {
   return (
     <div style={{ flex: '1 1 0', minWidth: 70, textAlign: 'center' }}>
-      <div style={{ fontSize: 18, fontWeight: 800, color }}>{value}</div>
+      <div className="regularization-stat-value" style={{ fontSize: 18, fontWeight: 800, color }}>{value}</div>
       <div style={{ fontSize: 10, color: QA.textMuted, fontWeight: 600 }}>{label}</div>
     </div>
   );

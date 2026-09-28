@@ -1,3 +1,4 @@
+import DashboardNotice from '../Common/DashboardNotice';
 // src/components/Admin/AdminDashboard.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import {
@@ -74,6 +75,9 @@ import TicketBadge from '../Common/TicketBadge';
 import DashboardQuickAccess from '../Common/DashboardQuickAccess';
 import TicketSummaryWidget from '../Common/TicketSummaryWidget';
 import WelcomeBanner from '../Common/WelcomeBanner';
+import '../Employee/EmployeeDashboard.css';
+import './Dashboard.css';
+import '../Common/RoleDashboardCards.css';
 import TeamBreakDashboard from '../Common/TeamBreakDashboard';
 import RegularizationPanel from '../Common/RegularizationPanel';
 import * as XLSX from 'xlsx';
@@ -150,6 +154,7 @@ const AdminDashboard = () => {
   const [filteredLeaveRequests, setFilteredLeaveRequests] = useState([]);
   const [attendanceSearchTerm, setAttendanceSearchTerm] = useState('');
   const [leaveSearchTerm, setLeaveSearchTerm] = useState('');
+  const [exportMessage, setExportMessage] = useState({ type: '', text: '' });
   const [message, setMessage] = useState({ type: '', text: '' });
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [totalEmployees, setTotalEmployees] = useState(0);
@@ -865,8 +870,13 @@ const AdminDashboard = () => {
   };
 
   const handleExport = async () => {
-    if (!exportDateRange.start || !exportDateRange.end) {
-      setMessage({ type: 'warning', text: 'Please select date range for export' });
+    setExportMessage({ type: '', text: '' });
+    if (exportType !== 'employees' && (!exportDateRange.start || !exportDateRange.end)) {
+      setExportMessage({ type: 'warning', text: 'Please select a start and end date for export.' });
+      return;
+    }
+    if (exportType !== 'employees' && exportDateRange.start > exportDateRange.end) {
+      setExportMessage({ type: 'warning', text: 'The end date must be on or after the start date.' });
       return;
     }
     setExporting(true);
@@ -938,10 +948,10 @@ const AdminDashboard = () => {
 
       setMessage({ type: 'success', text: 'Export completed successfully!' });
       setShowExportModal(false);
-      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+
     } catch (error) {
       console.error('Export error:', error);
-      setMessage({ type: 'danger', text: 'Failed to export data' });
+      setExportMessage({ type: 'error', text: 'Failed to export data. Please try again.' });
     } finally {
       setExporting(false);
     }
@@ -1033,7 +1043,7 @@ const AdminDashboard = () => {
     : absentEmployeesToday;
 
   return (
-    <div className="p-2 p-md-3 p-lg-4">
+    <div className="hrms-role-dashboard hrms-admin-dashboard p-2 p-md-3 p-lg-4">
       <style>{ADMIN_DASH_MOBILE_CSS}</style>
       {/* Header */}
       <WelcomeBanner
@@ -1066,22 +1076,9 @@ const AdminDashboard = () => {
         )}
       />
 
-      {['admin', 'sub_admin', 'hr'].includes(user?.role) && subAdminClockMessage.text && (
-        <div style={{
-          fontSize: 12, fontWeight: 500, marginBottom: 16, padding: '8px 14px', borderRadius: 8,
-          color: subAdminClockMessage.type === 'success' ? '#065f46' : '#991b1b',
-          background: subAdminClockMessage.type === 'success' ? '#ecfdf5' : '#fef2f2',
-          border: `1px solid ${subAdminClockMessage.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
-        }}>
-          {subAdminClockMessage.text}
-        </div>
-      )}
+      <DashboardNotice type={subAdminClockMessage.type} text={subAdminClockMessage.text} onClose={() => setSubAdminClockMessage({ type: '', text: '' })} />
 
-      {message.text && (
-        <Alert variant={message.type} onClose={() => setMessage({ type: '', text: '' })} dismissible className="mb-4">
-          {message.text}
-        </Alert>
-      )}
+      <DashboardNotice type={message.type} text={message.text} onClose={() => setMessage({ type: '', text: '' })} />
 
       <DashboardQuickAccess
         employeeId={user?.employeeId}
@@ -1154,8 +1151,8 @@ const AdminDashboard = () => {
       )}
 
       {activeTab === 'anniversaries' && (
-        <Card className="border-0 shadow-sm">
-          <Card.Header className="bg-gradient py-3" style={{ background: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)' }}>
+        <Card className="role-detail-card border-0 shadow-sm">
+          <Card.Header className="role-card-header bg-gradient py-3" style={{ background: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)' }}>
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
               <div>
                 <h5 className="mb-1 d-flex align-items-center">
@@ -1310,7 +1307,7 @@ const AdminDashboard = () => {
       )}
 
       {activeTab === 'birthdays' && (
-        <Card className="border-0 shadow-sm">
+        <Card className="role-detail-card border-0 shadow-sm">
         
           <Card.Body className="p-3">
             <Row className="mb-3 g-2">
@@ -1453,7 +1450,7 @@ const AdminDashboard = () => {
           {/* Quick Stats Cards */}
           <Row className="mb-4 g-2 g-md-3">
             <Col xs={12} sm={6} lg={3}>
-              <Card className="border-0 shadow-sm bg-white h-100">
+              <Card className="role-detail-card role-metric-card border-0 shadow-sm bg-white h-100">
                 <Card.Body>
                   <div className="d-flex justify-content-between align-items-center">
                     <div>
@@ -1467,7 +1464,7 @@ const AdminDashboard = () => {
               </Card>
             </Col>
             <Col xs={12} sm={6} lg={3}>
-              <Card className="border-0 shadow-sm bg-white h-100">
+              <Card className="role-detail-card role-metric-card border-0 shadow-sm bg-white h-100">
                 <Card.Body>
                   <div className="d-flex justify-content-between align-items-center">
                     <div>
@@ -1481,7 +1478,7 @@ const AdminDashboard = () => {
               </Card>
             </Col>
             <Col xs={12} sm={6} lg={3}>
-              <Card className="border-0 shadow-sm bg-white h-100">
+              <Card className="role-detail-card role-metric-card border-0 shadow-sm bg-white h-100">
                 <Card.Body>
                   <div className="d-flex justify-content-between align-items-center">
                     <div>
@@ -1495,7 +1492,7 @@ const AdminDashboard = () => {
               </Card>
             </Col>
             <Col xs={12} sm={6} lg={3}>
-              <Card className="border-0 shadow-sm bg-white h-100">
+              <Card className="role-detail-card role-metric-card border-0 shadow-sm bg-white h-100">
                 <Card.Body>
                   <div className="d-flex justify-content-between align-items-center">
                     <div>
@@ -1509,7 +1506,7 @@ const AdminDashboard = () => {
               </Card>
             </Col>
             <Col xs={12} sm={6} lg={3}>
-              <Card className="border-0 shadow-sm bg-white h-100">
+              <Card className="role-detail-card role-metric-card border-0 shadow-sm bg-white h-100">
                 <Card.Body>
                   <div className="d-flex justify-content-between align-items-center">
                     <div>
@@ -1523,7 +1520,7 @@ const AdminDashboard = () => {
               </Card>
             </Col>
             <Col xs={12} sm={6} lg={3}>
-              <Card className="border-0 shadow-sm bg-white h-100">
+              <Card className="role-detail-card role-metric-card border-0 shadow-sm bg-white h-100">
                 <Card.Body>
                   <div className="d-flex justify-content-between align-items-center">
                     <div>
@@ -1542,22 +1539,22 @@ const AdminDashboard = () => {
           <Row className="mb-4 g-3">
             {/* Attendance Distribution */}
             <Col xs={12} md={6}>
-              <Card className="border-0 h-100" style={{
+              <Card className="role-detail-card admin-attendance-card border-0 h-100" style={{
                 borderRadius: '16px',
                 boxShadow: '0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)',
                 background: '#ffffff',
                 overflow: 'hidden',
               }}>
-                <Card.Header className="bg-white border-0 px-4 pt-4 pb-0" style={{ borderRadius: '16px 16px 0 0' }}>
+                <Card.Header className="role-card-header bg-white border-0 px-4 pt-4 pb-0" style={{ borderRadius: '16px 16px 0 0' }}>
                   <div className="d-flex align-items-center justify-content-between">
                     <div className="d-flex align-items-center gap-2">
                       <div style={{
                         width: 38, height: 38, borderRadius: 10,
-                        background: 'linear-gradient(135deg, rgba(34,197,94,0.15), rgba(22,163,74,0.08))',
+                        background: '#f1f5f9',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 2px 8px rgba(34,197,94,0.2)',
+                        boxShadow: 'none',
                       }}>
-                        <FaUserCheck size={16} color="#22c55e" />
+                        <FaUserCheck size={16} color="#475569" />
                       </div>
                       <div>
                         <div style={{ fontSize: 15, fontWeight: 700, color: '#111827', lineHeight: 1.2 }}>
@@ -1567,10 +1564,10 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                     <div style={{
-                      background: '#f0fdf4', border: '1px solid #bbf7d0',
+                      background: '#f8fafc', border: '1px solid #e5eaf0',
                       borderRadius: 8, padding: '3px 10px',
                     }}>
-                      <span style={{ fontSize: 10.5, color: '#16a34a', fontWeight: 600 }}>
+                      <span style={{ fontSize: 10.5, color: '#475569', fontWeight: 600 }}>
                         {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       </span>
                     </div>
@@ -1581,11 +1578,11 @@ const AdminDashboard = () => {
                   {(() => {
                     const total = stats.present + stats.absent + stats.onLeave + stats.halfDay + stats.late;
                     const segments = [
-                      { label: 'Present',  value: stats.present,  color: '#22C55E', bg: '#f0fdf4', border: '#bbf7d0' },
-                      { label: 'Late',     value: stats.late,      color: '#F97316', bg: '#fff7ed', border: '#fed7aa' },
-                      { label: 'Absent',   value: stats.absent,    color: '#EF4444', bg: '#fef2f2', border: '#fecaca' },
-                      { label: 'On Leave', value: stats.onLeave,   color: '#8B5CF6', bg: '#faf5ff', border: '#e9d5ff' },
-                      { label: 'Half Day', value: stats.halfDay,   color: '#EAB308', bg: '#fefce8', border: '#fef08a' },
+                      { label: 'Present',  value: stats.present,  color: '#365872', bg: '#f8fafc', border: '#e5eaf0' },
+                      { label: 'Late',     value: stats.late,      color: '#8097aa', bg: '#f8fafc', border: '#e5eaf0' },
+                      { label: 'Absent',   value: stats.absent,    color: '#a5b5c3', bg: '#f8fafc', border: '#e5eaf0' },
+                      { label: 'On Leave', value: stats.onLeave,   color: '#5d7385', bg: '#f8fafc', border: '#e5eaf0' },
+                      { label: 'Half Day', value: stats.halfDay,   color: '#c5d0d9', bg: '#f8fafc', border: '#e5eaf0' },
                     ];
                     const pct = (v) => total > 0 ? ((v / total) * 100).toFixed(1) : '0.0';
 
@@ -1760,12 +1757,12 @@ const AdminDashboard = () => {
             </Col>
             {/* Live Attendance Feed — compact card */}
             <Col xs={12} md={6}>
-              <Card className="border-0 h-100" style={{ borderRadius: '14px', boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
-                <Card.Header className="bg-white border-0 pt-3 pb-2 px-3" style={{ borderRadius: '14px 14px 0 0' }}>
+              <Card className="role-detail-card admin-attendance-card border-0 h-100" style={{ borderRadius: '14px', boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
+                <Card.Header className="role-card-header bg-white border-0 pt-3 pb-2 px-3" style={{ borderRadius: '14px 14px 0 0' }}>
                   <div className="d-flex align-items-center justify-content-between gap-2 flex-wrap">
                     <div className="d-flex align-items-center gap-2">
-                      <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(16,185,129,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <FaClock size={14} color="#10b981" />
+                      <div style={{ width: 32, height: 32, borderRadius: 8, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <FaClock size={14} color="#475569" />
                       </div>
                       <div>
                         <div className="fw-bold" style={{ fontSize: 14, color: '#111827' }}>Live Attendance</div>
@@ -1821,7 +1818,7 @@ const AdminDashboard = () => {
                           <div style={{ fontSize: 13 }}>No absent employees 🎉</div>
                         </div>
                       ) : filteredAbsentEmployees.map((emp, i) => {
-                        const ACLRS = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#0ea5e9'];
+                        const ACLRS = ['#64748b'];
                         const clr = ACLRS[((emp.first_name||'').charCodeAt(0)||0) % ACLRS.length];
                         return (
                           <div key={emp.employee_id || i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 14px', borderBottom: '1px solid #f9fafb' }}>
@@ -1868,7 +1865,7 @@ const AdminDashboard = () => {
                           else { statusBg = 'danger'; statusLabel = `Short · ${dur}`; }
                         } else { statusBg = 'info'; statusLabel = 'Working'; }
                       }
-                      const ACLRS = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#0ea5e9'];
+                      const ACLRS = ['#64748b'];
                       const clr = ACLRS[((att.first_name||'').charCodeAt(0)||0) % ACLRS.length];
                       return (
                         <div key={att.id || i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 14px', borderBottom: '1px solid #f9fafb' }}>
@@ -1881,7 +1878,7 @@ const AdminDashboard = () => {
                             </div>
                             <div style={{ fontSize: 12, color: '#9ca3af' }}>
                               {att.department || att.employee_id}
-                              {lateDisplay && <span style={{ color: '#f97316', marginLeft: 6, fontWeight: 600 }}>· Late {lateDisplay}</span>}
+                              {lateDisplay && <span style={{ color: '#475569', marginLeft: 6, fontWeight: 600 }}>· Late {lateDisplay}</span>}
                             </div>
                           </div>
                           <div style={{ textAlign: 'right', flexShrink: 0 }}>
@@ -1897,8 +1894,8 @@ const AdminDashboard = () => {
             </Col>
             {/* Department Distribution — removed */}
             {/* <Col xs={12} md={6}>
-              <Card className="border-0 h-100" style={{ borderRadius: '14px', boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
-                <Card.Header className="bg-white border-0 pt-3 pb-2 px-3" style={{ borderRadius: '14px 14px 0 0' }}>
+              <Card className="role-detail-card border-0 h-100" style={{ borderRadius: '14px', boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
+                <Card.Header className="role-card-header bg-white border-0 pt-3 pb-2 px-3" style={{ borderRadius: '14px 14px 0 0' }}>
                   <div className="d-flex align-items-center gap-2">
                     <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(99,102,241,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <FaBuilding size={15} color="#6366f1" />
@@ -2000,8 +1997,8 @@ const AdminDashboard = () => {
           <TeamBreakDashboard managerId={selectedManagerId} />
 
           {/* Pending Leave Requests */}
-          <Card className="mb-4 border-0 shadow-sm">
-            <Card.Header className="bg-light d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center py-3 gap-2">
+          <Card className="role-detail-card admin-leave-card mb-4 border-0 shadow-sm">
+            <Card.Header className="role-card-header bg-light d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center py-3 gap-2">
               <h5 className="mb-0 text-dark d-flex align-items-center">
                 <FaCalendarAlt className="me-2" />
                 <span>Pending Leave Requests</span>
@@ -2130,8 +2127,8 @@ const AdminDashboard = () => {
           </Card>
 
           {/* Employee Leave Balances */}
-          <Card className="mb-4 border-0 shadow-sm">
-            <Card.Header className="bg-white d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center py-3 gap-2">
+          <Card className="role-detail-card admin-leave-card mb-4 border-0 shadow-sm">
+            <Card.Header className="role-card-header bg-white d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center py-3 gap-2">
               <h5 className="mb-0 d-flex align-items-center">
                 <FaBalanceScale className="me-2 text-dark" />
                 <span>Employee Leave Balances</span>
@@ -2286,6 +2283,7 @@ const AdminDashboard = () => {
         <Modal.Header closeButton><Modal.Title className="h6"><FaFileAlt className="me-2" />Export Reports</Modal.Title></Modal.Header>
         <Modal.Body>
           <Form>
+            <DashboardNotice type={exportMessage.type} text={exportMessage.text} onClose={() => setExportMessage({ type: '', text: '' })} />
             <Form.Group className="mb-3"><Form.Label>Report Type</Form.Label><Form.Select value={exportType} onChange={(e) => setExportType(e.target.value)}><option value="attendance">Attendance Report</option><option value="leave">Leave Report</option><option value="employees">Employees List</option></Form.Select></Form.Group>
             {exportType !== 'employees' && (<><Form.Group className="mb-3"><Form.Label>Start Date</Form.Label><Form.Control type="date" value={exportDateRange.start} onChange={(e) => setExportDateRange({ ...exportDateRange, start: e.target.value })} /></Form.Group><Form.Group className="mb-3"><Form.Label>End Date</Form.Label><Form.Control type="date" value={exportDateRange.end} onChange={(e) => setExportDateRange({ ...exportDateRange, end: e.target.value })} /></Form.Group></>)}
           </Form>

@@ -3,7 +3,7 @@
    Clean Modern / Keka-Inspired Design
    ========================================================= */
 
-.hrms-employee-dashboard {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) {
     /* ---------- Design Tokens ---------- */
     --hrms-primary: #1f4e79;
     --hrms-primary-dark: #173a5c;
@@ -50,7 +50,7 @@
    GLOBAL DASHBOARD SPACING
    ========================================================= */
 
-.hrms-employee-dashboard > .row {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) > .row {
     --bs-gutter-x: 1rem;
     --bs-gutter-y: 1rem;
 }
@@ -60,7 +60,7 @@
    GLOBAL CARDS
    ========================================================= */
 
-.hrms-employee-dashboard .card {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .card {
     background: var(--hrms-surface);
     border: 1px solid var(--hrms-border) !important;
     border-radius: var(--hrms-radius-lg) !important;
@@ -72,7 +72,7 @@
         border-color 0.2s ease;
 }
 
-.hrms-employee-dashboard .card:hover {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .card:hover {
     border-color: #dce3eb !important;
     box-shadow: var(--hrms-shadow-md) !important;
 }
@@ -82,12 +82,12 @@
    CARD HEADER / BODY
    ========================================================= */
 
-.hrms-employee-dashboard .card-header {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .card-header {
     background: transparent !important;
     border-bottom: 1px solid var(--hrms-border-light) !important;
 }
 
-.hrms-employee-dashboard .card-body {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .card-body {
     color: var(--hrms-text);
 }
 
@@ -96,21 +96,21 @@
    TEXT
    ========================================================= */
 
-.hrms-employee-dashboard h1,
-.hrms-employee-dashboard h2,
-.hrms-employee-dashboard h3,
-.hrms-employee-dashboard h4,
-.hrms-employee-dashboard h5,
-.hrms-employee-dashboard h6 {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) h1,
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) h2,
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) h3,
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) h4,
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) h5,
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) h6 {
     color: var(--hrms-text);
     letter-spacing: -0.01em;
 }
 
-.hrms-employee-dashboard p {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) p {
     color: var(--hrms-text-secondary);
 }
 
-.hrms-employee-dashboard .text-muted {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .text-muted {
     color: var(--hrms-text-muted) !important;
 }
 
@@ -128,7 +128,7 @@
     align-items: center;
 }
 
-.hrms-employee-dashboard .card h4 {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .card h4 {
     letter-spacing: -0.02em;
 }
 
@@ -137,13 +137,13 @@
    ICON CIRCLES
    ========================================================= */
 
-.hrms-employee-dashboard .rounded-circle {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .rounded-circle {
     transition:
         transform 0.2s ease,
         background-color 0.2s ease;
 }
 
-.hrms-employee-dashboard .card:hover .rounded-circle {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .card:hover .rounded-circle {
     transform: scale(1.04);
 }
 
@@ -152,7 +152,7 @@
    BUTTONS
    ========================================================= */
 
-.hrms-employee-dashboard .btn {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .btn {
     border-radius: 9px;
     font-weight: 600;
 
@@ -163,15 +163,15 @@
         transform 0.15s ease;
 }
 
-.hrms-employee-dashboard .btn:hover {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .btn:hover {
     transform: translateY(-1px);
 }
 
-.hrms-employee-dashboard .btn:active {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .btn:active {
     transform: translateY(0);
 }
 
-.hrms-employee-dashboard .btn:focus-visible {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .btn:focus-visible {
     box-shadow: 0 0 0 3px rgba(31, 78, 121, 0.15) !important;
 }
 
@@ -180,7 +180,7 @@
    ALERTS / NOTICES
    ========================================================= */
 
-.hrms-employee-dashboard .alert {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .alert {
     border-radius: var(--hrms-radius-md);
     box-shadow: var(--hrms-shadow-sm);
 }
@@ -190,7 +190,7 @@
    BADGES
    ========================================================= */
 
-.hrms-employee-dashboard .badge {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .badge {
     font-weight: 600;
     letter-spacing: 0.01em;
 }
@@ -200,12 +200,12 @@
    TABLES
    ========================================================= */
 
-.hrms-employee-dashboard .table {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .table {
     margin-bottom: 0;
     color: var(--hrms-text);
 }
 
-.hrms-employee-dashboard .table thead th {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .table thead th {
     background: #f8fafc;
     color: #475569;
     font-size: 11px;
@@ -217,18 +217,18 @@
     padding: 12px 14px;
 }
 
-.hrms-employee-dashboard .table tbody td {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .table tbody td {
     padding: 12px 14px;
     vertical-align: middle;
     border-color: var(--hrms-border-light);
     font-size: 13px;
 }
 
-.hrms-employee-dashboard .table tbody tr {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .table tbody tr {
     transition: background-color 0.15s ease;
 }
 
-.hrms-employee-dashboard .table tbody tr:hover {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .table tbody tr:hover {
     background: #f8fafc;
 }
 
@@ -237,7 +237,7 @@
    LIST GROUP
    ========================================================= */
 
-.hrms-employee-dashboard .list-group-item {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .list-group-item {
     border-color: var(--hrms-border-light);
     background: transparent;
 }
@@ -247,13 +247,13 @@
    PROGRESS BARS
    ========================================================= */
 
-.hrms-employee-dashboard .progress {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .progress {
     height: 7px;
     border-radius: 999px;
     background: #e9edf2;
 }
 
-.hrms-employee-dashboard .progress-bar {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .progress-bar {
     border-radius: 999px;
 }
 
@@ -262,7 +262,7 @@
    CHARTS
    ========================================================= */
 
-.hrms-employee-dashboard canvas {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) canvas {
     max-width: 100%;
 }
 
@@ -271,8 +271,8 @@
    FORM CONTROLS
    ========================================================= */
 
-.hrms-employee-dashboard .form-control,
-.hrms-employee-dashboard .form-select {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .form-control,
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .form-select {
     border: 1px solid #dbe2ea;
     border-radius: 9px;
     color: var(--hrms-text);
@@ -282,8 +282,8 @@
         box-shadow 0.2s ease;
 }
 
-.hrms-employee-dashboard .form-control:focus,
-.hrms-employee-dashboard .form-select:focus {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .form-control:focus,
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .form-select:focus {
     border-color: var(--hrms-primary);
 
     box-shadow:
@@ -295,15 +295,15 @@
    QUICK ACTIONS
    ========================================================= */
 
-.hrms-employee-dashboard .quick-action,
-.hrms-employee-dashboard [class*="quick-action"] {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .quick-action,
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) [class*="quick-action"] {
     transition:
         transform 0.2s ease,
         box-shadow 0.2s ease;
 }
 
-.hrms-employee-dashboard .quick-action:hover,
-.hrms-employee-dashboard [class*="quick-action"]:hover {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .quick-action:hover,
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) [class*="quick-action"]:hover {
     transform: translateY(-2px);
 }
 
@@ -312,21 +312,21 @@
    SCROLLBAR
    ========================================================= */
 
-.hrms-employee-dashboard ::-webkit-scrollbar {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) ::-webkit-scrollbar {
     width: 7px;
     height: 7px;
 }
 
-.hrms-employee-dashboard ::-webkit-scrollbar-track {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) ::-webkit-scrollbar-track {
     background: transparent;
 }
 
-.hrms-employee-dashboard ::-webkit-scrollbar-thumb {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) ::-webkit-scrollbar-thumb {
     background: #cbd5e1;
     border-radius: 999px;
 }
 
-.hrms-employee-dashboard ::-webkit-scrollbar-thumb:hover {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) ::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
 }
 
@@ -381,7 +381,7 @@
     color: rgba(255, 255, 255, 0.68);
 }
 
-.hrms-employee-dashboard .welcome-banner-title {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .welcome-banner-title {
     margin: 0;
 
     color: #ffffff !important;
@@ -1169,7 +1169,7 @@
         gap: 15px;
     }
 
-    .hrms-employee-dashboard .welcome-banner-title {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .welcome-banner-title {
         font-size: 22px;
     }
 
@@ -1183,12 +1183,12 @@
 }
 
 @media (max-width: 991.98px) {
-    .hrms-employee-dashboard {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) {
         padding-left: 1rem !important;
         padding-right: 1rem !important;
     }
 
-    .hrms-employee-dashboard .card {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .card {
         border-radius: 14px !important;
     }
 
@@ -1214,29 +1214,29 @@
 }
 
 @media (max-width: 767.98px) {
-    .hrms-employee-dashboard {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) {
         padding-left: 0.75rem !important;
         padding-right: 0.75rem !important;
     }
 
-    .hrms-employee-dashboard > .row {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) > .row {
         --bs-gutter-x: 0.75rem;
         --bs-gutter-y: 0.75rem;
     }
 
-    .hrms-employee-dashboard .card {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .card {
         border-radius: 12px !important;
     }
 
-    .hrms-employee-dashboard .card-body {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .card-body {
         padding: 1rem;
     }
 
-    .hrms-employee-dashboard .table {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .table {
         min-width: 650px;
     }
 
-    .hrms-employee-dashboard .table-responsive {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .table-responsive {
         border-radius: 10px;
     }
 
@@ -1253,7 +1253,7 @@
         align-items: flex-start;
     }
 
-    .hrms-employee-dashboard .welcome-banner-title {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .welcome-banner-title {
         font-size: 21px;
     }
 
@@ -1291,16 +1291,16 @@
 }
 
 @media (max-width: 575.98px) {
-    .hrms-employee-dashboard {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) {
         padding-left: 0.5rem !important;
         padding-right: 0.5rem !important;
     }
 
-    .hrms-employee-dashboard .card {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .card {
         border-radius: 11px !important;
     }
 
-    .hrms-employee-dashboard .card-body {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .card-body {
         padding: 0.875rem;
     }
 }
@@ -1376,9 +1376,9 @@
    ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-    .hrms-employee-dashboard *,
-    .hrms-employee-dashboard *::before,
-    .hrms-employee-dashboard *::after {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) *,
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) *::before,
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) *::after {
         transition: none !important;
         animation: none !important;
     }
@@ -1389,7 +1389,7 @@
    PHASE 4 — KEKA-STYLE POST COMPOSER
    ========================================================= */
 
-.hrms-employee-dashboard .post-composer-card {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-card {
     width: 100%;
     box-sizing: border-box;
 
@@ -1409,7 +1409,7 @@
         border-color 0.2s ease;
 }
 
-.hrms-employee-dashboard .post-composer-card:hover {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-card:hover {
     border-color: #dfe6ee;
 
     box-shadow:
@@ -1422,7 +1422,7 @@
    TOP TOOLBAR
    --------------------------------------------------------- */
 
-.hrms-employee-dashboard .post-composer-toolbar {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-toolbar {
     display: flex;
     align-items: center;
 
@@ -1437,7 +1437,7 @@
     margin-bottom: 14px;
 }
 
-.hrms-employee-dashboard .post-composer-toolbar > button {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-toolbar > button {
     transition:
         background-color 0.18s ease,
         border-color 0.18s ease,
@@ -1445,7 +1445,7 @@
         transform 0.18s ease;
 }
 
-.hrms-employee-dashboard .post-composer-toolbar > button:hover {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-toolbar > button:hover {
     transform: translateY(-1px);
 }
 
@@ -1454,7 +1454,7 @@
    VIEW ALL POSTS
    --------------------------------------------------------- */
 
-.hrms-employee-dashboard .post-composer-toolbar > button:first-child {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-toolbar > button:first-child {
     background: #f5f8fc !important;
     border-color: #dfe6ef !important;
     color: #315ea8 !important;
@@ -1462,7 +1462,7 @@
     min-height: 32px;
 }
 
-.hrms-employee-dashboard .post-composer-toolbar > button:first-child:hover {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-toolbar > button:first-child:hover {
     background: #edf4ff !important;
     border-color: #cddcf0 !important;
 }
@@ -1472,7 +1472,7 @@
    POST / POLL / PRAISE / ANNOUNCEMENT TABS
    --------------------------------------------------------- */
 
-.hrms-employee-dashboard .post-composer-tab {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-tab {
     min-height: 32px;
 
     border: 1px solid transparent !important;
@@ -1484,14 +1484,14 @@
         transform 0.18s ease;
 }
 
-.hrms-employee-dashboard .post-composer-tab:not(.is-selected):hover {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-tab:not(.is-selected):hover {
     background: #eef4fb !important;
     color: #315ea8 !important;
 
     transform: translateY(-1px);
 }
 
-.hrms-employee-dashboard .post-composer-tab.is-selected {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-tab.is-selected {
     background: #1f4e79 !important;
     color: #ffffff !important;
 
@@ -1506,8 +1506,8 @@
    COMPOSER INPUTS
    --------------------------------------------------------- */
 
-.hrms-employee-dashboard .post-composer-toolbar ~ textarea,
-.hrms-employee-dashboard .post-composer-toolbar ~ input {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-toolbar ~ textarea,
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-toolbar ~ input {
     font-family: inherit;
 
     background: #fafbfd !important;
@@ -1522,18 +1522,18 @@
         background-color 0.18s ease;
 }
 
-.hrms-employee-dashboard .post-composer-toolbar ~ textarea {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-toolbar ~ textarea {
     min-height: 76px;
     line-height: 1.5;
 }
 
-.hrms-employee-dashboard .post-composer-toolbar ~ textarea::placeholder,
-.hrms-employee-dashboard .post-composer-toolbar ~ input::placeholder {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-toolbar ~ textarea::placeholder,
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-toolbar ~ input::placeholder {
     color: #98a2b3;
 }
 
-.hrms-employee-dashboard .post-composer-toolbar ~ textarea:focus,
-.hrms-employee-dashboard .post-composer-toolbar ~ input:focus {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-toolbar ~ textarea:focus,
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-toolbar ~ input:focus {
     outline: none;
 
     background: #ffffff !important;
@@ -1548,15 +1548,15 @@
    POST BUTTON
    --------------------------------------------------------- */
 
-.hrms-employee-dashboard .post-composer-card button {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-card button {
     font-family: inherit;
 }
 
-.hrms-employee-dashboard .post-composer-card button:hover:not(:disabled) {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-card button:hover:not(:disabled) {
     filter: brightness(0.98);
 }
 
-.hrms-employee-dashboard .post-composer-card button:disabled {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-card button:disabled {
     cursor: not-allowed;
 }
 
@@ -1565,7 +1565,7 @@
    POST FEED
    --------------------------------------------------------- */
 
-.hrms-employee-dashboard .post-composer-card .post-social-action {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-card .post-social-action {
     background: transparent !important;
 
     border-radius: 7px;
@@ -1575,12 +1575,12 @@
         color 0.16s ease;
 }
 
-.hrms-employee-dashboard .post-composer-card .post-social-action:hover {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-card .post-social-action:hover {
     background: #f3f6fa !important;
     color: #315ea8 !important;
 }
 
-.hrms-employee-dashboard .post-composer-card .post-social-action.is-active {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-card .post-social-action.is-active {
     background: #eef4ff !important;
     color: #315ea8 !important;
 }
@@ -1590,12 +1590,12 @@
    POST AUTHOR AREA
    --------------------------------------------------------- */
 
-.hrms-employee-dashboard .post-composer-card strong {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-card strong {
     color: #273449;
 }
 
-.hrms-employee-dashboard .post-composer-card input:focus,
-.hrms-employee-dashboard .post-composer-card textarea:focus {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-card input:focus,
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-card textarea:focus {
     outline: none;
 }
 
@@ -1604,13 +1604,13 @@
    ANNOUNCEMENT ITEMS
    --------------------------------------------------------- */
 
-.hrms-employee-dashboard .post-composer-card [style*="background: #f9fafb"] {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-card [style*="background: #f9fafb"] {
     transition:
         background-color 0.16s ease,
         border-color 0.16s ease;
 }
 
-.hrms-employee-dashboard .post-composer-card [style*="background: #f9fafb"]:hover {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-card [style*="background: #f9fafb"]:hover {
     background: #f5f8fc !important;
     border-color: #dfe6ee !important;
 }
@@ -1621,35 +1621,35 @@
    --------------------------------------------------------- */
 
 @media (max-width: 700px) {
-    .hrms-employee-dashboard .post-composer-card {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-card {
         padding: 15px;
         border-radius: 15px;
     }
 
-    .hrms-employee-dashboard .post-composer-toolbar {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-toolbar {
         gap: 6px;
     }
 
-    .hrms-employee-dashboard .post-composer-toolbar > button {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-toolbar > button {
         font-size: 11px !important;
         padding: 6px 11px !important;
     }
 }
 
 @media (max-width: 480px) {
-    .hrms-employee-dashboard .post-composer-card {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-card {
         padding: 14px;
     }
 
-    .hrms-employee-dashboard .post-composer-toolbar {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-toolbar {
         align-items: stretch;
     }
 
-    .hrms-employee-dashboard .post-composer-toolbar > button {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-toolbar > button {
         flex: 0 0 auto;
     }
 
-    .hrms-employee-dashboard .post-composer-toolbar > button:first-child {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .post-composer-toolbar > button:first-child {
         width: 100%;
         justify-content: center;
     }
@@ -1660,7 +1660,7 @@
    PHASE 5 — KEKA-STYLE CELEBRATIONS CARD
    ========================================================= */
 
-.hrms-employee-dashboard .celebrations-card {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-card {
     width: 100%;
     box-sizing: border-box;
 
@@ -1680,7 +1680,7 @@
         border-color 0.2s ease;
 }
 
-.hrms-employee-dashboard .celebrations-card:hover {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-card:hover {
     border-color: #dce4ed !important;
 
     box-shadow:
@@ -1693,7 +1693,7 @@
    Header
    ------------------------- */
 
-.hrms-employee-dashboard .celebrations-header {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1701,7 +1701,7 @@
     margin-bottom: 14px;
 }
 
-.hrms-employee-dashboard .celebrations-title {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-title {
     display: flex;
     align-items: center;
 
@@ -1715,7 +1715,7 @@
     letter-spacing: -0.15px;
 }
 
-.hrms-employee-dashboard .celebrations-title-icon {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-title-icon {
     width: 30px;
     height: 30px;
 
@@ -1735,7 +1735,7 @@
    Celebration tabs
    ------------------------- */
 
-.hrms-employee-dashboard .celebrations-tabs {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-tabs {
     display: flex;
     align-items: center;
 
@@ -1748,7 +1748,7 @@
     padding-bottom: 2px;
 }
 
-.hrms-employee-dashboard .celebration-tab {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebration-tab {
     min-height: 34px;
 
     display: inline-flex !important;
@@ -1777,7 +1777,7 @@
         box-shadow 0.18s ease;
 }
 
-.hrms-employee-dashboard .celebration-tab:hover {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebration-tab:hover {
     background: #f6f8fb !important;
     border-color: #cfd8e3 !important;
     color: #334155 !important;
@@ -1785,7 +1785,7 @@
     transform: translateY(-1px);
 }
 
-.hrms-employee-dashboard .celebration-tab.is-active {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebration-tab.is-active {
     color: #ffffff !important;
     border-color: transparent !important;
 
@@ -1793,24 +1793,24 @@
         0 3px 9px rgba(15, 23, 42, 0.12);
 }
 
-.hrms-employee-dashboard .celebrations-tabs .celebration-tab.is-active,
-.hrms-employee-dashboard .celebrations-tabs .celebration-tab.is-active:hover {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-tabs .celebration-tab.is-active,
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-tabs .celebration-tab.is-active:hover {
     background: #1F2937 !important;
     color: #FFFFFF !important;
     border-color: #1F2937 !important;
 }
 
-.hrms-employee-dashboard .celebrations-tabs .celebration-tab {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-tabs .celebration-tab {
     background: #FFFFFF;
     color: #6B7280;
     border: 1px solid #E5E7EB;
 }
 
-.hrms-employee-dashboard .celebrations-tabs .celebration-tab:hover {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-tabs .celebration-tab:hover {
     background: #F9FAFB;
     color: #1F2937;
 }
-.hrms-employee-dashboard .celebration-tab span {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebration-tab span {
     transition: transform 0.18s ease;
 }
 
@@ -1819,11 +1819,11 @@
    Today section
    ------------------------- */
 
-.hrms-employee-dashboard .celebrations-card .qa-fade-in {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-card .qa-fade-in {
     animation-duration: 0.25s;
 }
 
-.hrms-employee-dashboard .celebrations-hero {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-hero {
     min-height: 150px;
 
     box-sizing: border-box;
@@ -1838,7 +1838,7 @@
         inset 0 0 0 1px rgba(255, 255, 255, 0.25);
 }
 
-.hrms-employee-dashboard .celebrations-hero:hover {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-hero:hover {
     transform: translateY(-1px);
 
     transition:
@@ -1850,7 +1850,7 @@
    Upcoming employee cards
    ------------------------- */
 
-.hrms-employee-dashboard .celebration-person-card {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebration-person-card {
     border: 1px solid #edf0f4 !important;
 
     background: #fafbfd !important;
@@ -1862,7 +1862,7 @@
         background-color 0.18s ease;
 }
 
-.hrms-employee-dashboard .celebration-person-card:hover {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebration-person-card:hover {
     transform: translateY(-2px);
 
     background: #ffffff !important;
@@ -1872,7 +1872,7 @@
         0 5px 14px rgba(15, 23, 42, 0.07);
 }
 
-.hrms-employee-dashboard .celebration-person-card > img {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebration-person-card > img {
     display: block;
 }
 
@@ -1881,7 +1881,7 @@
    Horizontal upcoming row
    ------------------------- */
 
-.hrms-employee-dashboard .celebrations-upcoming-scroll {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-upcoming-scroll {
     display: flex;
     align-items: stretch;
     justify-content: flex-start;
@@ -1903,20 +1903,20 @@
     scroll-snap-type: x proximity;
 }
 
-.hrms-employee-dashboard .celebrations-upcoming-scroll > * {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-upcoming-scroll > * {
     scroll-snap-align: start;
 }
 
-.hrms-employee-dashboard .celebrations-upcoming-scroll::-webkit-scrollbar {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-upcoming-scroll::-webkit-scrollbar {
     height: 5px;
 }
 
-.hrms-employee-dashboard .celebrations-upcoming-scroll::-webkit-scrollbar-track {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-upcoming-scroll::-webkit-scrollbar-track {
     background: #f1f3f6;
     border-radius: 10px;
 }
 
-.hrms-employee-dashboard .celebrations-upcoming-scroll::-webkit-scrollbar-thumb {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-upcoming-scroll::-webkit-scrollbar-thumb {
     background: #cbd5e1;
     border-radius: 10px;
 }
@@ -1937,7 +1937,7 @@
 */
 
 /* View All - Neutral Enterprise Style */
-.hrms-employee-dashboard .celebrations-view-all {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-view-all {
     width: 132px;
     flex: 0 0 132px;
     box-sizing: border-box;
@@ -1968,7 +1968,7 @@
 }
 
 /* View All hover */
-.hrms-employee-dashboard .celebrations-view-all:hover {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-view-all:hover {
     background: #F3F4F6 !important;
     border-color: #C7CDD4 !important;
     color: #111827 !important;
@@ -1978,55 +1978,55 @@
 }
 
 /* Keep View All children neutral */
-.hrms-employee-dashboard .celebrations-view-all > div:first-child {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-view-all > div:first-child {
     background: #F1F3F5 !important;
     color: #374151 !important;
 }
 
-.hrms-employee-dashboard .celebrations-view-all svg {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-view-all svg {
     color: #374151 !important;
     fill: #374151 !important;
 }
 
-.hrms-employee-dashboard .celebrations-view-all > div:nth-child(2) {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-view-all > div:nth-child(2) {
     color: #111827 !important;
 }
 
-.hrms-employee-dashboard .celebrations-view-all > div:nth-child(3) {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-view-all > div:nth-child(3) {
     color: #6B7280 !important;
 }
 
 /* Hover should remain neutral */
-.hrms-employee-dashboard .celebrations-view-all:hover > div:first-child {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-view-all:hover > div:first-child {
     background: #E5E7EB !important;
 }
 
-.hrms-employee-dashboard .celebrations-view-all:hover svg {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-view-all:hover svg {
     color: #1F2937 !important;
     fill: #1F2937 !important;
 }
 
-.hrms-employee-dashboard .celebrations-view-all:hover > div:nth-child(2) {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-view-all:hover > div:nth-child(2) {
     color: #111827 !important;
 }
 
-.hrms-employee-dashboard .celebrations-view-all:hover > div:nth-child(3) {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-view-all:hover > div:nth-child(3) {
     color: #6B7280 !important;
 }
 
 /* Active */
-.hrms-employee-dashboard .celebrations-view-all:active {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-view-all:active {
     transform: translateY(0) !important;
     opacity: 1 !important;
 }
 
 /* Focus */
-.hrms-employee-dashboard .celebrations-view-all:focus {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-view-all:focus {
     outline: none !important;
     opacity: 1 !important;
 }
 
-.hrms-employee-dashboard .celebrations-view-all:focus-visible {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-view-all:focus-visible {
     outline: 3px solid rgba(31, 41, 55, 0.18) !important;
     outline-offset: 2px;
 }
@@ -2036,7 +2036,7 @@
    with disabled-like opacity, keep it visible.
 */
 
-.hrms-employee-dashboard .celebrations-view-all:disabled {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-view-all:disabled {
     opacity: 1 !important;
     filter: none !important;
     visibility: visible !important;
@@ -2053,7 +2053,7 @@
    Empty state
    ------------------------- */
 
-.hrms-employee-dashboard .celebrations-empty {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-empty {
     border: 1px solid rgba(15, 23, 42, 0.04);
 
     min-height: 100px;
@@ -2070,7 +2070,7 @@
    Footer message
    ------------------------- */
 
-.hrms-employee-dashboard .celebrations-footer {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-footer {
     border: 1px solid rgba(15, 23, 42, 0.035);
 
     line-height: 1.45;
@@ -2081,11 +2081,11 @@
    Celebration buttons
    ------------------------- */
 
-.hrms-employee-dashboard .celebrations-card button {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-card button {
     font-family: inherit;
 }
 
-.hrms-employee-dashboard .celebrations-card button:focus-visible {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-card button:focus-visible {
     outline: 3px solid rgba(31, 78, 121, 0.15);
     outline-offset: 2px;
 }
@@ -2096,66 +2096,66 @@
    ------------------------- */
 
 @media (max-width: 900px) {
-    .hrms-employee-dashboard .celebrations-card {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-card {
         padding: 16px !important;
     }
 
-    .hrms-employee-dashboard .celebrations-hero {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-hero {
         grid-template-columns: 1fr 100px !important;
         gap: 12px !important;
     }
 }
 
 @media (max-width: 650px) {
-    .hrms-employee-dashboard .celebrations-card {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-card {
         border-radius: 14px !important;
         padding: 14px !important;
     }
 
-    .hrms-employee-dashboard .celebrations-tabs {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-tabs {
         gap: 6px;
     }
 
-    .hrms-employee-dashboard .celebration-tab {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebration-tab {
         padding: 6px 10px !important;
         font-size: 11px !important;
     }
 
-    .hrms-employee-dashboard .celebrations-hero {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-hero {
         grid-template-columns: 1fr !important;
         min-height: 0;
     }
 
-    .hrms-employee-dashboard .celebrations-hero > div:last-child {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-hero > div:last-child {
         display: none !important;
     }
 
-    .hrms-employee-dashboard .celebrations-view-all {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-view-all {
         width: 132px;
         flex-basis: 132px;
     }
 }
 
 @media (max-width: 480px) {
-    .hrms-employee-dashboard .celebrations-card {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-card {
         padding: 12px !important;
     }
 
-    .hrms-employee-dashboard .celebrations-title {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-title {
         font-size: 15px;
     }
 
-    .hrms-employee-dashboard .celebrations-title-icon {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-title-icon {
         width: 28px;
         height: 28px;
     }
 
-    .hrms-employee-dashboard .celebration-tab {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebration-tab {
         flex: 1 1 auto;
         justify-content: center;
     }
 
-    .hrms-employee-dashboard .celebrations-hero {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .celebrations-hero {
         padding: 14px !important;
         border-radius: 13px !important;
     }
@@ -2166,7 +2166,7 @@
    PHASE 6 — BREAK TYPE SELECTOR
    ========================================================= */
 
-.hrms-employee-dashboard .break-start-btn {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .break-start-btn {
     background: #f4a46b;
     color: #ffffff;
 
@@ -2178,7 +2178,7 @@
         0 2px 6px rgba(249, 115, 22, 0.12);
 }
 
-.hrms-employee-dashboard .break-start-btn:hover:not(:disabled) {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .break-start-btn:hover:not(:disabled) {
     background: #ea8f50;
 
     transform: translateY(-1px);
@@ -2187,7 +2187,7 @@
         0 4px 10px rgba(249, 115, 22, 0.18);
 }
 
-.hrms-employee-dashboard .break-start-btn:disabled {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .break-start-btn:disabled {
     cursor: not-allowed;
 }
 
@@ -2196,7 +2196,7 @@
    BREAK TYPE MODAL
    ========================================================= */
 
-.hrms-employee-dashboard .break-type-modal-overlay {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .break-type-modal-overlay {
     position: fixed;
 
     inset: 0;
@@ -2215,7 +2215,7 @@
     padding: 20px;
 }
 
-.hrms-employee-dashboard .break-type-modal {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .break-type-modal {
     background: #ffffff;
 
     width: 100%;
@@ -2247,7 +2247,7 @@
 
 /* Modal heading */
 
-.hrms-employee-dashboard .break-type-modal > div:first-child {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .break-type-modal > div:first-child {
     padding: 16px 18px 12px;
 
     font-size: 11px;
@@ -2264,7 +2264,7 @@
 
 /* Break option */
 
-.hrms-employee-dashboard .break-type-row {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .break-type-row {
     display: flex;
     align-items: center;
 
@@ -2288,14 +2288,14 @@
         padding-left 0.18s ease;
 }
 
-.hrms-employee-dashboard .break-type-row:hover:not(:disabled) {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .break-type-row:hover:not(:disabled) {
     background: var(--hrms-primary-light);
 
     padding-left: 22px;
 }
 
-.hrms-employee-dashboard .break-type-row:disabled,
-.hrms-employee-dashboard .break-type-row.is-used {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .break-type-row:disabled,
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .break-type-row.is-used {
     background: #fafafa;
     cursor: not-allowed;
 }
@@ -2303,7 +2303,7 @@
 
 /* Emoji */
 
-.hrms-employee-dashboard .break-type-row > span:first-child {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .break-type-row > span:first-child {
     width: 34px;
     height: 34px;
 
@@ -2323,7 +2323,7 @@
 
 /* Label */
 
-.hrms-employee-dashboard .break-option-label {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .break-option-label {
     font-size: 14px;
     font-weight: 600;
 
@@ -2333,18 +2333,18 @@
         color 0.18s ease;
 }
 
-.hrms-employee-dashboard .break-type-row:hover:not(:disabled) .break-option-label {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .break-type-row:hover:not(:disabled) .break-option-label {
     color: var(--hrms-primary);
 }
 
-.hrms-employee-dashboard .break-type-row.is-used .break-option-label {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .break-type-row.is-used .break-option-label {
     color: #9ca3af;
 }
 
 
 /* Duration */
 
-.hrms-employee-dashboard .break-option-duration {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .break-option-duration {
     margin-top: 2px;
 
     font-size: 11px;
@@ -2352,14 +2352,14 @@
     color: var(--hrms-text-muted);
 }
 
-.hrms-employee-dashboard .break-type-row:hover:not(:disabled) .break-option-duration {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .break-type-row:hover:not(:disabled) .break-option-duration {
     color: var(--hrms-text-secondary);
 }
 
 
 /* USE text */
 
-.hrms-employee-dashboard .break-type-row > span:last-child {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .break-type-row > span:last-child {
     margin-left: auto;
 
     flex-shrink: 0;
@@ -2375,7 +2375,7 @@
 
 /* Cancel */
 
-.hrms-employee-dashboard .break-type-modal-cancel {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .break-type-modal-cancel {
     width: 100%;
 
     padding: 12px 0;
@@ -2397,7 +2397,7 @@
         color 0.18s ease;
 }
 
-.hrms-employee-dashboard .break-type-modal-cancel:hover {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .break-type-modal-cancel:hover {
     background: #f1f5f9;
     color: var(--hrms-text);
 }
@@ -2411,24 +2411,24 @@
 }
 
 /* Employee Overview + Performance Ratings */
-.hrms-employee-dashboard .employee-overview-performance-layout {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .employee-overview-performance-layout {
     grid-template-columns: 40% 60%;
 }
 
 /* Tablet / mobile */
 @media (max-width: 767.98px) {
-    .hrms-employee-dashboard .employee-overview-performance-layout {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .employee-overview-performance-layout {
         grid-template-columns: 1fr !important;
     }
 
-    .hrms-employee-dashboard .employee-overview-performance-layout > div:first-child {
+    :is(.hrms-employee-dashboard, .hrms-role-dashboard) .employee-overview-performance-layout > div:first-child {
         border-right: none !important;
         border-bottom: 1px solid #E5E7EB;
     }
 }
 /* Weekly / Monthly Attendance toggle */
 
-.hrms-employee-dashboard .attendance-view-toggle {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .attendance-view-toggle {
     display: inline-flex;
     align-items: center;
     gap: 3px;
@@ -2438,7 +2438,7 @@
     background: #F3F4F6;
 }
 
-.hrms-employee-dashboard .attendance-view-toggle button {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .attendance-view-toggle button {
     appearance: none;
     -webkit-appearance: none;
     border: 0 !important;
@@ -2454,24 +2454,24 @@
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.hrms-employee-dashboard .attendance-view-toggle button:hover {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .attendance-view-toggle button:hover {
     background: #E5E7EB !important;
     color: #374151 !important;
 }
 
-.hrms-employee-dashboard .attendance-view-toggle button.is-active {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .attendance-view-toggle button.is-active {
     background: #1F2937 !important;
     color: #FFFFFF !important;
 }
 
-.hrms-employee-dashboard .attendance-view-toggle button.is-active:hover,
-.hrms-employee-dashboard .attendance-view-toggle button.is-active:focus,
-.hrms-employee-dashboard .attendance-view-toggle button.is-active:active {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .attendance-view-toggle button.is-active:hover,
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .attendance-view-toggle button.is-active:focus,
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .attendance-view-toggle button.is-active:active {
     background: #111827 !important;
     color: #FFFFFF !important;
 }
 
-.hrms-employee-dashboard .attendance-view-toggle button:focus {
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .attendance-view-toggle button:focus {
     outline: none !important;
     box-shadow: none !important;
 }

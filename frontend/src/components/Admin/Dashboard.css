@@ -1,0 +1,113 @@
+/* Role-specific layout on top of the shared Employee dashboard theme. */
+.hrms-admin-dashboard .admin-leave-card .badge {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #e5eaf0;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-weight: 600;
+}
+
+.hrms-admin-dashboard .admin-leave-card .btn {
+  background: #fff !important;
+  color: #475569 !important;
+  border-color: #d0d5dd !important;
+  box-shadow: none;
+}
+
+.hrms-admin-dashboard .admin-leave-card .btn:hover,
+.hrms-admin-dashboard .admin-leave-card .btn:focus-visible,
+.hrms-admin-dashboard .admin-leave-card .btn-primary {
+  background: #1f2937 !important;
+  border-color: #1f2937 !important;
+  color: #fff !important;
+}
+
+.hrms-admin-dashboard .admin-leave-card .btn-link {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: #475569 !important;
+  text-underline-offset: 3px;
+}
+
+.hrms-admin-dashboard .admin-leave-card .btn-link:hover,
+.hrms-admin-dashboard .admin-leave-card .btn-link:focus-visible {
+  color: #172033 !important;
+  background: #f1f5f9 !important;
+}
+
+.hrms-admin-dashboard .admin-leave-card .table {
+  --bs-table-striped-bg: #f8fafc;
+  --bs-table-hover-bg: #f1f5f9;
+}
+
+.hrms-admin-dashboard .admin-leave-card .text-primary,
+.hrms-admin-dashboard .admin-leave-card .text-danger {
+  color: #475569 !important;
+}
+
+.hrms-admin-dashboard .admin-leave-card .card-header > .d-flex {
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+
+.hrms-admin-dashboard .admin-leave-card .input-group {
+  max-width: 100%;
+}
+
+.hrms-admin-dashboard .admin-attendance-card .badge {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #e5eaf0;
+  padding: 4px 8px;
+  font-weight: 600;
+}
+
+.hrms-admin-dashboard .admin-attendance-card .btn-group .btn-success,
+.hrms-admin-dashboard .admin-attendance-card .btn-group .btn-danger {
+  background: #1f2937 !important;
+  border-color: #1f2937 !important;
+  color: #fff !important;
+}
+
+.hrms-admin-dashboard .admin-attendance-card .btn-group .btn-outline-secondary {
+  background: #fff !important;
+  color: #64748b !important;
+  border-color: #d0d5dd !important;
+}
+
+.hrms-admin-dashboard .admin-dash-tabnav .btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hrms-admin-dashboard .admin-dash-tabnav .btn {
+  flex: 0 1 auto;
+  margin: 0;
+  padding: 7px 13px;
+  min-height: 34px;
+  border: 1px solid #dfe5ec;
+  border-radius: 9px !important;
+  background: #fff;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.hrms-admin-dashboard .admin-dash-tabnav .btn:hover {
+  background: #f6f8fb;
+  border-color: #cfd8e3;
+  color: #334155;
+}
+
+.hrms-admin-dashboard .admin-dash-tabnav .btn:not(.btn-outline-secondary) {
+  background: #1f2937 !important;
+  border-color: #1f2937 !important;
+  color: #fff !important;
+  box-shadow: 0 3px 9px rgba(15, 23, 42, 0.12);
+}
+
+.hrms-admin-dashboard .card-body > .d-flex.justify-content-between {
+  width: 100%;
+}

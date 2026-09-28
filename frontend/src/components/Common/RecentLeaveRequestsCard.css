@@ -1,0 +1,64 @@
+.recent-leave-requests-card {
+  width: 100%;
+  min-width: 0;
+}
+
+.recent-leave-requests-card > .card-header {
+  padding: 16px 20px !important;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.recent-leave-requests-card > .card-header h6 {
+  display: flex;
+  align-items: center;
+  color: #172033;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.recent-leave-requests-card > .card-header svg { color: #64748b; }
+
+/* The dashboard's metric-card flex rule must not shrink this table body. */
+.recent-leave-requests-card > .card-body {
+  display: block !important;
+  width: 100%;
+}
+
+.recent-leave-requests-card .table-responsive { width: 100%; }
+.recent-leave-requests-card .table { --bs-table-hover-bg: #f8fafc; }
+.recent-leave-requests-card .table th { white-space: nowrap; }
+.recent-leave-requests-card .recent-leave-type { color: #334155; font-weight: 600; }
+
+.recent-leave-requests-card .badge {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #e5eaf0;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.recent-leave-requests-card .recent-leave-action {
+  padding: 6px 10px !important;
+  background: #fff !important;
+  border: 1px solid #d0d5dd !important;
+  border-radius: 8px;
+  color: #475569 !important;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.recent-leave-requests-card .recent-leave-apply,
+.recent-leave-requests-card .recent-leave-action:hover {
+  background: #1f2937 !important;
+  border-color: #1f2937 !important;
+  color: #fff !important;
+}
+
+.recent-leave-requests-card .recent-leave-action:hover svg { color: inherit; }
+.recent-leave-requests-card .recent-leave-action:focus-visible { outline: 2px solid #52718c; outline-offset: 3px; }
+
+@media (max-width: 575.98px) {
+  .recent-leave-requests-card > .card-header { padding: 14px !important; }
+}

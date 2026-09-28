@@ -1,0 +1,114 @@
+/* Custom Manager cards use the same surfaces as Employee's Bootstrap cards. */
+.manager-distribution-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.hrms-manager-dashboard .distribution-chart {
+  padding: 24px;
+}
+
+.hrms-manager-dashboard .distribution-summary {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--hrms-border-light);
+  color: #64748b;
+  font-size: 12px;
+}
+
+.hrms-manager-dashboard .distribution-summary > strong {
+  font-size: 32px;
+  font-weight: 750;
+  letter-spacing: -1px;
+  color: #172033;
+  line-height: 1.2;
+}
+
+.hrms-manager-dashboard .distribution-summary-note {
+  margin-left: auto;
+  font-size: 11px;
+}
+
+.hrms-manager-dashboard .distribution-rows {
+  list-style: none;
+  padding: 0 4px 0 0;
+  margin: 24px 0 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.hrms-manager-dashboard .distribution-rows li + li {
+  margin-top: 24px;
+}
+
+.hrms-manager-dashboard .distribution-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 10px;
+  color: #475569;
+  font-size: 13px;
+}
+
+.hrms-manager-dashboard .distribution-label > span:first-child {
+  overflow-wrap: anywhere;
+}
+
+.hrms-manager-dashboard .distribution-label > span:last-child {
+  display: flex;
+  align-items: baseline;
+  flex-shrink: 0;
+  gap: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hrms-manager-dashboard .distribution-label strong { color: #172033; }
+.hrms-manager-dashboard .distribution-label small { color: #64748b; min-width: 44px; text-align: right; }
+.hrms-manager-dashboard .distribution-track { height: 10px; background: #edf1f5; border-radius: 4px; overflow: hidden; }
+.hrms-manager-dashboard .distribution-fill { height: 100%; background: #52718c; border-radius: 4px; }
+.hrms-manager-dashboard .distribution-empty { min-height: 270px; display: grid; place-items: center; padding: 24px; color: #64748b; font-size: 13px; }
+
+.hrms-manager-dashboard .manager-stat-card,
+.hrms-manager-dashboard .manager-section-card {
+  min-width: 0;
+  background: var(--hrms-surface) !important;
+  border: 1px solid var(--hrms-border);
+  border-radius: var(--hrms-radius-lg) !important;
+  box-shadow: var(--hrms-shadow-sm) !important;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.hrms-manager-dashboard .manager-stat-card:hover,
+.hrms-manager-dashboard .manager-section-card:hover {
+  border-color: #dce3eb;
+  box-shadow: var(--hrms-shadow-md) !important;
+}
+
+.hrms-manager-dashboard .manager-stat-card {
+  min-height: 112px;
+}
+
+.hrms-manager-dashboard .manager-card-header {
+  border-bottom-color: var(--hrms-border-light) !important;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.hrms-manager-dashboard button:focus-visible {
+  outline: 2px solid var(--hrms-primary);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hrms-manager-dashboard .manager-stat-card,
+  .hrms-manager-dashboard .manager-section-card {
+    transition: none;
+    transform: none !important;
+  }
+}

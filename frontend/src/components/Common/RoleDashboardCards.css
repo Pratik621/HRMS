@@ -1,0 +1,163 @@
+/* Dashboard-only treatment for cards that do not exist on Employee's page. */
+.hrms-role-dashboard .regularization-stat-value {
+  color: #334155 !important;
+}
+
+.hrms-role-dashboard .role-ticket-card,
+.hrms-role-dashboard .role-break-card,
+.hrms-role-dashboard .role-quick-action {
+  min-width: 0;
+  background: var(--hrms-surface) !important;
+  border: 1px solid var(--hrms-border) !important;
+  border-radius: var(--hrms-radius-lg) !important;
+  box-shadow: var(--hrms-shadow-sm) !important;
+  transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.hrms-role-dashboard .role-ticket-card:hover,
+.hrms-role-dashboard .role-break-card:hover,
+.hrms-role-dashboard .role-quick-action:hover {
+  border-color: #dce3eb !important;
+  box-shadow: var(--hrms-shadow-md) !important;
+}
+
+.hrms-role-dashboard .role-card-header {
+  padding: 18px 20px !important;
+  border-bottom: 1px solid var(--hrms-border-light) !important;
+  background: transparent !important;
+}
+
+.hrms-role-dashboard .role-card-header h5 {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.hrms-role-dashboard .role-heading-icon,
+.hrms-role-dashboard .role-quick-action > div:first-child {
+  background: #f3f4f6 !important;
+  color: #374151 !important;
+  box-shadow: none !important;
+  border-radius: 11px !important;
+}
+
+.hrms-role-dashboard .role-heading-icon svg,
+.hrms-role-dashboard .role-quick-action > div:first-child span {
+  color: #374151 !important;
+}
+
+.hrms-role-dashboard .role-card-action {
+  background: #fff !important;
+  color: var(--hrms-text-secondary) !important;
+  border: 1px solid var(--hrms-border) !important;
+  border-radius: 9px !important;
+  min-height: 34px;
+}
+
+.hrms-role-dashboard .role-card-action:hover {
+  background: var(--hrms-primary-light) !important;
+  border-color: #cfd8e3 !important;
+}
+
+.hrms-role-dashboard .role-person-row {
+  padding: 12px 20px !important;
+  border-bottom-color: var(--hrms-border-light) !important;
+  flex-wrap: wrap;
+  transition: background-color .15s ease;
+}
+
+.hrms-role-dashboard .role-person-row:hover {
+  background: #f8fafc;
+}
+
+.hrms-role-dashboard .role-metric-card .card-body {
+  min-height: 112px;
+  padding: 20px;
+}
+
+.hrms-role-dashboard .role-metric-card h6 {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--hrms-text-secondary) !important;
+}
+
+.hrms-role-dashboard .role-metric-card h4 {
+  font-size: 26px;
+  letter-spacing: -.02em;
+}
+
+.hrms-role-dashboard .role-break-card > div:first-child {
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--hrms-border-light);
+}
+
+.hrms-role-dashboard .role-ticket-card > div:first-child > span {
+  font-size: 15px !important;
+  color: var(--hrms-text) !important;
+}
+
+.hrms-role-dashboard .role-ticket-card > div:first-child > svg {
+  color: #374151 !important;
+}
+
+.hrms-role-dashboard .role-quick-action > div:last-child {
+  color: var(--hrms-primary) !important;
+}
+
+.hrms-role-dashboard .role-quick-action:focus-visible,
+.hrms-role-dashboard .role-card-action:focus-visible,
+.hrms-role-dashboard .role-ticket-card button:focus-visible {
+  outline: 2px solid var(--hrms-primary);
+  outline-offset: -3px;
+}
+
+@media (max-width: 575.98px) {
+  .hrms-role-dashboard .role-card-header {
+    padding: 16px !important;
+  }
+
+  .hrms-role-dashboard .role-person-row {
+    padding: 12px 16px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hrms-role-dashboard .role-quick-action,
+  .hrms-role-dashboard .role-break-card,
+  .hrms-role-dashboard .role-ticket-card {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+.hrms-role-dashboard {
+  --team-break-avatar: #64748b;
+  --team-break-accent: #52718c;
+  --team-break-tint: #f1f5f9;
+}
+
+/* Neutral KPI values and hover surfaces; labels retain each ticket's meaning. */
+.hrms-role-dashboard .role-ticket-card button,
+.hrms-role-dashboard .role-ticket-card button:hover {
+  background: #fff !important;
+}
+
+.hrms-role-dashboard .role-ticket-card button:hover {
+  background: #f1f5f9 !important;
+}
+
+.hrms-role-dashboard .role-ticket-card button > div:first-child {
+  color: #334155 !important;
+}
+
+.hrms-role-dashboard .attendance-insights-card .hrms-progress-fill {
+  background: #52718c !important;
+}
+
+.hrms-role-dashboard .attendance-insights-card {
+  border: 1px solid var(--hrms-border) !important;
+  border-radius: var(--hrms-radius-lg) !important;
+  box-shadow: var(--hrms-shadow-sm) !important;
+}
+

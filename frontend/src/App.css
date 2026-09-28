@@ -997,14 +997,14 @@ h1, h2, h3, h4, h5, h6 {
    inline style without !important) say — which rendered the Celebrations "View All" tile as a
    washed-out pale-gray pill with white text instead of its purple design, and stripped the
    accent colour off the Birthdays/Anniversaries tab pills. */
-.hrms-employee-dashboard button:not(.btn-danger):not(.btn-outline-danger):not(.hrms-logout-btn):not(.celebrations-view-all):not(.celebration-tab) {
+.hrms-employee-dashboard button:not(.btn-danger):not(.btn-outline-danger):not(.hrms-logout-btn):not(.celebrations-view-all):not(.celebration-tab):not(.recent-leave-action) {
   background: #F2F4F7 !important;
   border: 1px solid #D0D5DD !important;
   color: #101828 !important;
 }
 
-.hrms-employee-dashboard button:not(.btn-danger):not(.btn-outline-danger):not(.hrms-logout-btn):not(.celebrations-view-all):not(.celebration-tab):hover,
-.hrms-employee-dashboard button:not(.btn-danger):not(.btn-outline-danger):not(.hrms-logout-btn):not(.celebrations-view-all):not(.celebration-tab):focus-visible {
+.hrms-employee-dashboard button:not(.btn-danger):not(.btn-outline-danger):not(.hrms-logout-btn):not(.celebrations-view-all):not(.celebration-tab):not(.recent-leave-action):hover,
+.hrms-employee-dashboard button:not(.btn-danger):not(.btn-outline-danger):not(.hrms-logout-btn):not(.celebrations-view-all):not(.celebration-tab):not(.recent-leave-action):focus-visible {
   background: #101828 !important;
   border-color: #101828 !important;
   color: #fff !important;
