@@ -1,7 +1,8 @@
+import { dashboardGet } from '../../utils/dashboardGet';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Ticket } from 'lucide-react';
-import axios from '../../config/axios';
+
 import API_ENDPOINTS from '../../config/api';
 
 // Clickable ticket-count badge for dashboard headers — navigates to /tickets.
@@ -13,7 +14,7 @@ export default function TicketBadge({ variant = 'dark' }) {
         let cancelled = false;
         const fetchCount = async () => {
             try {
-                const res = await axios.get(API_ENDPOINTS.TICKET_COUNT);
+                const res = await dashboardGet(API_ENDPOINTS.TICKET_COUNT);
                 if (!cancelled && res.data?.success) setCount(res.data.total || 0);
             } catch {
                 // silent — badge just shows 0 if the count can't be fetched

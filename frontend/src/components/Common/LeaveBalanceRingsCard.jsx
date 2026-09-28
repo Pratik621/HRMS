@@ -27,16 +27,19 @@ function Ring({ value, max, color, label, size = 64 }) {
   );
 }
 
-export default function LeaveBalanceRingsCard({ employeeId }) {
-  const [balance, setBalance] = useState(null);
+export default function LeaveBalanceRingsCard({ employeeId, suppliedBalance, suppliedLoading = false }) {
+  const hasSuppliedBalance = suppliedBalance !== undefined;
+  const [fetchedBalance, setBalance] = useState(null);
+  const balance = hasSuppliedBalance ? suppliedBalance : fetchedBalance;
   const [usage, setUsage] = useState(null);
   const [loading, setLoading] = useState(!!employeeId);
 
   useEffect(() => {
     if (!employeeId) return;
+    setLoading(true);
     let cancelled = false;
     Promise.all([
-      axios.get(API_ENDPOINTS.LEAVE_BALANCE(employeeId)).catch(() => null),
+      hasSuppliedBalance ? Promise.resolve(null) : axios.get(API_ENDPOINTS.LEAVE_BALANCE(employeeId)).catch(() => null),
       axios.get(API_ENDPOINTS.LEAVE_USAGE_BY_TYPE(employeeId)).catch(() => null),
     ]).then(([balRes, usageRes]) => {
       if (cancelled) return;
@@ -44,14 +47,14 @@ export default function LeaveBalanceRingsCard({ employeeId }) {
       if (usageRes?.data?.success) setUsage(usageRes.data.usage);
     }).finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [employeeId]);
+  }, [employeeId, hasSuppliedBalance]);
 
   const usageEntries = usage ? Object.entries(usage).filter(([, days]) => days > 0) : [];
 
   return (
     <div style={QA_CARD_STYLE}>
       <div style={QA_CARD_TITLE_STYLE}>Leave Balances</div>
-      {loading ? (
+      {loading || suppliedLoading ? (
         <div style={{ fontSize: 12, color: QA.textMuted }}>Loading…</div>
       ) : !balance ? (
         <div style={{ fontSize: 12, color: QA.textMuted }}>Leave balance unavailable</div>

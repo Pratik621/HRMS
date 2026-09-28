@@ -404,7 +404,7 @@ const EmployeeDashboard = () => {
     loadDashboardData({ silent: !!cached });
     fetchAllRatings();
     checkPendingTicketConfirmations();
-  }, [user]);
+  }, [user?.employeeId]);
 
   const checkPendingTicketConfirmations = async () => {
     try {
@@ -606,7 +606,7 @@ const EmployeeDashboard = () => {
     }
   };
 
-  const loadDashboardData = async ({ silent = false } = {}) => {
+  const loadDashboardData = async ({ silent = false, refreshEvents = false } = {}) => {
     if (!silent) setLoading(true);
     setError('');
 
@@ -618,7 +618,7 @@ const EmployeeDashboard = () => {
         fetchLeaveRequests(),
         fetchTodayAttendance(),
         fetchAttendanceHistory(),
-        fetchTodayEvents(),
+        refreshEvents ? fetchTodayEvents() : Promise.resolve(),
         fetchMyDeductions(),
       ]);
       loadUpcomingHolidays();
@@ -632,8 +632,8 @@ const EmployeeDashboard = () => {
 
   const refreshData = async () => {
     setRefreshing(true);
-    await loadDashboardData();
-    await fetchEmployeeRatings();
+    await loadDashboardData({ refreshEvents: true });
+    await fetchAllRatings();
     setRefreshing(false);
     showNotification('Dashboard refreshed!', 'success');
   };
@@ -1047,6 +1047,8 @@ const EmployeeDashboard = () => {
 
       <DashboardQuickAccess
         employeeId={employee?.employee_id}
+        leaveBalance={leaveBalance}
+        leaveBalanceLoading={loading}
         onLeaveScope="department"
         department={employee?.department}
         attendance={attendance}

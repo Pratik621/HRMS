@@ -321,7 +321,7 @@ const AdminDashboard = () => {
     if (['admin', 'sub_admin', 'hr'].includes(user?.role) && user?.employeeId) {
       fetchSubAdminAttendance();
     }
-  }, [user]);
+  }, [user?.employeeId, user?.role]);
 
   const fetchSubAdminAttendance = async () => {
     try {

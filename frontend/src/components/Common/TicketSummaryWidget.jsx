@@ -1,8 +1,9 @@
+import { dashboardGet } from '../../utils/dashboardGet';
 import DashboardNotice from './DashboardNotice';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaTicketAlt } from 'react-icons/fa';
-import axios from '../../config/axios';
+
 import API_ENDPOINTS from '../../config/api';
 
 // Small ticket KPI card for Admin/Manager dashboards. Reuses GET /api/tickets/count
@@ -29,7 +30,7 @@ export default function TicketSummaryWidget({ managerId } = {}) {
         const url = managerId && managerId !== 'ALL'
           ? `${API_ENDPOINTS.TICKET_COUNT}?manager_id=${managerId}`
           : API_ENDPOINTS.TICKET_COUNT;
-        const res = await axios.get(url);
+        const res = await dashboardGet(url);
         if (!cancelled && res.data?.success) setCounts(res.data);
       } catch { if (!cancelled) setLoadError('Unable to load ticket overview. Refresh the dashboard to retry.'); }
     };

@@ -1,3 +1,4 @@
+import { dashboardGet } from '../../utils/dashboardGet';
 import React, { useState, useEffect } from 'react';
 import { FaEdit, FaChartBar, FaAward, FaBullhorn, FaHeart, FaRegHeart, FaCommentDots, FaTimes } from 'react-icons/fa';
 import axios from '../../config/axios';
@@ -23,7 +24,7 @@ function AnnouncementsList() {
 
   useEffect(() => {
     let cancelled = false;
-    axios.get(API_ENDPOINTS.ANNOUNCEMENTS)
+    dashboardGet(API_ENDPOINTS.ANNOUNCEMENTS)
       .then(res => { if (!cancelled) setItems(res.data?.announcements || []); })
       .catch(() => { })
       .finally(() => { if (!cancelled) setLoading(false); });

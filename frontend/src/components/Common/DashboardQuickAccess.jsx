@@ -127,6 +127,8 @@ const QUICK_ACCESS_CSS = `
 
 export default function DashboardQuickAccess({
   employeeId,
+  leaveBalance,
+  leaveBalanceLoading,
   onLeaveScope = 'department',
   department,
   attendance,
@@ -190,6 +192,8 @@ export default function DashboardQuickAccess({
 
           <div className="dash-quick-access__lower-card">
             <LeaveBalanceRingsCard
+              suppliedBalance={leaveBalance}
+              suppliedLoading={leaveBalanceLoading}
               employeeId={employeeId}
             />
           </div>
