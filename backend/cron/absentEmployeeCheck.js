@@ -69,7 +69,6 @@ const ensureBirthdayLeave = async (employee, todayStr) => {
     const nowIso = new Date().toISOString();
     const leavePayload = {
         employee_id: employee.employee_id,
-        employee_name: `${employee.first_name} ${employee.last_name}`,
         leave_type: 'Birthday',
         leave_duration: 'Full Day',
         start_date: todayStr,
@@ -85,15 +84,7 @@ const ensureBirthdayLeave = async (employee, todayStr) => {
         updated_at: nowIso
     };
 
-    let { data: created, error } = await supabase.from('leaves').insert([leavePayload]).select().maybeSingle();
-    if (error && /employee_name|does not exist/i.test(error.message || '')) {
-        // The live `leaves` table has never had an employee_name column — this exact
-        // same fallback already exists in leaveController.applyLeave for the same reason,
-        // this cron just never had it, which meant every automatic Birthday leave insert
-        // was silently failing (logged, never surfaced) since the feature was written.
-        const { employee_name: _removed, ...payloadWithout } = leavePayload;
-        ({ data: created, error } = await supabase.from('leaves').insert([payloadWithout]).select().maybeSingle());
-    }
+    const { data: created, error } = await supabase.from('leaves').insert([leavePayload]).select().maybeSingle();
 
     if (error) {
         console.error(`❌ Error auto-creating Birthday leave for ${employee.employee_id}:`, error.message);
@@ -237,7 +228,6 @@ const markAbsentEmployeesAsLeave = async () => {
                             .from('leaves')
                             .insert([{
                                 employee_id: employee.employee_id,
-                                employee_name: `${employee.first_name} ${employee.last_name}`,
                                 leave_type: 'Unpaid',
                                 leave_duration: 'Full Day',
                                 start_date: today,

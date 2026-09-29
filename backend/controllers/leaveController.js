@@ -490,7 +490,6 @@ exports.applyLeave = async (req, res) => {
             .from('leaves')
             .insert([{
                 employee_id,
-                employee_name: `${employee.first_name} ${employee.last_name}`,
                 leave_type, leave_duration,
                 half_day_type: half_day_type || null,
                 start_date,
@@ -505,31 +504,8 @@ exports.applyLeave = async (req, res) => {
             }])
             .select();
 
-        let insertedLeave;
-        if (leaveError) {
-            // If employee_name column doesn't exist, retry without it
-            if (leaveError.message && leaveError.message.includes('employee_name')) {
-                const { data: leaveData2, error: leaveError2 } = await supabase
-                    .from('leaves')
-                    .insert([{
-                        employee_id, leave_type, leave_duration,
-                        half_day_type: half_day_type || null,
-                        start_date, end_date: end_date || start_date,
-                        reason, days_count: days_count || 1,
-                        reporting_manager: reporting_manager.trim(),
-                        ...statusFields,
-                        applied_date: nowUTC.toISOString().split('T')[0],
-                        created_at: createdAtIST, updated_at: createdAtIST
-                    }])
-                    .select();
-                if (leaveError2) throw leaveError2;
-                insertedLeave = leaveData2[0];
-            } else {
-                throw leaveError;
-            }
-        } else {
-            insertedLeave = leaveData[0];
-        }
+        if (leaveError) throw leaveError;
+        const insertedLeave = leaveData[0];
 
         if (isBirthday) {
             await syncAttendanceForApprovedLeave(insertedLeave);
