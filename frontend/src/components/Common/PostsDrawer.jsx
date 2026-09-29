@@ -658,13 +658,13 @@ export default function PostsDrawer({ show, onClose }) {
           </div>
 
           <div style={{ background: '#fff', margin: '0 14px 14px', borderRadius: 16, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-            <div style={{ display: 'flex', gap: 14 }}>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {TABS.map(t => (
-                <button key={t.key} onClick={() => setFilterTab(t.key)}
+                <button key={t.key} className="posts-filter-pill" aria-pressed={filterTab === t.key} onClick={() => setFilterTab(t.key)}
                   style={{
-                    background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0',
-                    fontSize: 12, fontWeight: 700, color: filterTab === t.key ? QA.primary : QA.textMuted,
-                    borderBottom: filterTab === t.key ? `2px solid ${QA.primary}` : '2px solid transparent',
+                    background: filterTab === t.key ? '#101828' : '#f3f4f6',
+                    border: 'none', borderRadius: 20, cursor: 'pointer', padding: '6px 12px',
+                    fontSize: 11, fontWeight: 700, color: filterTab === t.key ? '#fff' : QA.textDark,
                   }}>
                   {t.label}
                 </button>

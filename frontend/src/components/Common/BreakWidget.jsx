@@ -651,7 +651,7 @@ export default function BreakWidget({ isClockedIn = false, isClockedOut = false,
             ? Math.floor((Date.now() - new Date(activeBreak.break_start).getTime()) / 1000)
             : 0;
         return (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div className="break-controls" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 {unlimitedBreaks ? (
                     <SimpleBreakControl
                         activeBreak={activeBreak}
@@ -715,7 +715,7 @@ export default function BreakWidget({ isClockedIn = false, isClockedOut = false,
     // ── full mode ─────────────────────────────────────────────────────────────
     const activeType = BREAK_TYPES.find(t => t.key === activeBreak?.break_type);
     return (
-        <div style={{ marginBottom: 16 }}>
+        <div className="break-controls" style={{ marginBottom: 16 }}>
             <div style={{ background: '#fff', borderRadius: 14, boxShadow: '0 2px 10px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #f3f4f6', flexWrap: 'wrap', gap: 10 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
