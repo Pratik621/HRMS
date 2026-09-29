@@ -997,17 +997,36 @@ h1, h2, h3, h4, h5, h6 {
    inline style without !important) say — which rendered the Celebrations "View All" tile as a
    washed-out pale-gray pill with white text instead of its purple design, and stripped the
    accent colour off the Birthdays/Anniversaries tab pills. */
-.hrms-employee-dashboard button:not(.btn-danger):not(.btn-outline-danger):not(.hrms-logout-btn):not(.celebrations-view-all):not(.celebration-tab):not(.recent-leave-action) {
+.hrms-employee-dashboard button:not(.btn-danger):not(.btn-outline-danger):not(.hrms-logout-btn):not(.celebrations-view-all):not(.celebration-tab):not(.recent-leave-action):not(.posts-filter-pill):not(.break-controls button) {
   background: #F2F4F7 !important;
   border: 1px solid #D0D5DD !important;
   color: #101828 !important;
 }
 
-.hrms-employee-dashboard button:not(.btn-danger):not(.btn-outline-danger):not(.hrms-logout-btn):not(.celebrations-view-all):not(.celebration-tab):not(.recent-leave-action):hover,
-.hrms-employee-dashboard button:not(.btn-danger):not(.btn-outline-danger):not(.hrms-logout-btn):not(.celebrations-view-all):not(.celebration-tab):not(.recent-leave-action):focus-visible {
+.hrms-employee-dashboard button:not(.btn-danger):not(.btn-outline-danger):not(.hrms-logout-btn):not(.celebrations-view-all):not(.celebration-tab):not(.recent-leave-action):not(.posts-filter-pill):not(.break-controls button):hover,
+.hrms-employee-dashboard button:not(.btn-danger):not(.btn-outline-danger):not(.hrms-logout-btn):not(.celebrations-view-all):not(.celebration-tab):not(.recent-leave-action):not(.posts-filter-pill):not(.break-controls button):focus-visible {
   background: #101828 !important;
   border-color: #101828 !important;
   color: #fff !important;
+}
+
+/* Keep break controls close to their resting light-gray appearance. */
+.hrms-employee-dashboard .break-controls button {
+  background: #F2F4F7 !important;
+  border: 1px solid #D0D5DD !important;
+  color: #101828 !important;
+}
+
+:is(.hrms-employee-dashboard, .hrms-role-dashboard) .break-controls button:not(:disabled):is(:hover, :focus-visible) {
+  background: #E9EDF2 !important;
+  border-color: #C5CCD6 !important;
+  color: #101828 !important;
+  transform: none;
+}
+
+.qa-posts-drawer .posts-filter-pill:focus-visible {
+  outline: 2px solid #2563EB;
+  outline-offset: 2px;
 }
 
 .hrms-employee-dashboard .btn-primary:hover,
