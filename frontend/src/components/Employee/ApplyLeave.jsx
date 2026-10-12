@@ -1,3 +1,4 @@
+import { calculateLeaveDays } from '../../utils/leaveDays';
 // src/components/Employee/ApplyLeave.jsx
 import React, { useState, useEffect } from 'react';
 import {
@@ -303,16 +304,6 @@ const ApplyLeave = () => {
       return;
     }
 
-    if (formData.leave_duration === 'Half Day') {
-      setCalculatedDays(0.5);
-      return;
-    }
-
-    if (!formData.end_date) {
-      setCalculatedDays(1);
-      return;
-    }
-
     const start = new Date(formData.start_date);
     const end = new Date(formData.end_date);
 
@@ -325,10 +316,9 @@ const ApplyLeave = () => {
       return;
     }
 
-    const diffTime = Math.abs(end - start);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-
-    setCalculatedDays(diffDays);
+    setCalculatedDays(calculateLeaveDays(
+      formData.start_date, formData.end_date || formData.start_date, formData.leave_duration
+    ));
     setErrors(prev => ({ ...prev, end_date: '' }));
   };
 
@@ -379,6 +369,10 @@ const ApplyLeave = () => {
 
     if (formData.start_date && formData.end_date && formData.start_date > formData.end_date) {
       newErrors.end_date = 'End date cannot be before start date';
+    }
+
+    if (formData.start_date && calculatedDays === 0) {
+      newErrors.start_date = 'Select at least one working day. Saturdays and Sundays are excluded.';
     }
 
     if (!formData.reason) {
@@ -973,7 +967,7 @@ const ApplyLeave = () => {
                   <div className="d-flex align-items-start">
                     <FaClock className="me-2 mt-1 flex-shrink-0" />
                     <div>
-                      <span>This request is for <strong>{calculatedDays} day{calculatedDays > 1 ? 's' : ''}</strong></span>
+                      <span>This request is for <strong>{calculatedDays} day{calculatedDays > 1 ? 's' : ''}</strong> (excluding Saturdays and Sundays)</span>
                       {formData.leave_type === 'Comp-Off' ? (
                         <>
                           <br />

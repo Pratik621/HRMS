@@ -79,6 +79,7 @@ async function syncAttendanceForApprovedLeave(leave) {
     if (!attendanceType) return;
 
     for (const date of dateRange(leave.start_date, leave.end_date)) {
+        if ([0, 6].includes(new Date(date + 'T00:00:00Z').getUTCDay())) continue;
         try {
             await upsertAttendanceRow(leave.employee_id, date, attendanceType);
         } catch (err) {

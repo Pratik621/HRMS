@@ -3,6 +3,7 @@ const { sendLeaveStatusEmail, sendLeaveAppliedEmail } = require('../services/ema
 const { HR_ROLES } = require('../config/roleGroups');
 const { getTeamEmployeeIdsByEmployeeId } = require('../utils/employeeLookup');
 const {
+    calculateLeaveDays,
     PAID_LEAVE_ELIGIBILITY_MONTHS,
     MONTHLY_ACCRUAL_RATE,
     getTotalMonthsFromJoining,
@@ -376,7 +377,7 @@ exports.applyLeave = async (req, res) => {
     try {
         const {
             employee_id, leave_type, leave_duration, half_day_type,
-            start_date, end_date, reason, days_count, reporting_manager
+            start_date, end_date, reason, reporting_manager
         } = req.body;
 
         if (!employee_id || !leave_type || !start_date || !reason) {
@@ -390,6 +391,14 @@ exports.applyLeave = async (req, res) => {
         const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
         if (!DATE_RE.test(start_date) || (end_date && !DATE_RE.test(end_date))) {
             return res.status(400).json({ success: false, message: 'Invalid date format for leave request' });
+        }
+
+        if (end_date && start_date > end_date) {
+            return res.status(400).json({ success: false, message: 'End date cannot be before start date' });
+        }
+        const days_count = calculateLeaveDays(start_date, end_date || start_date, leave_duration);
+        if (days_count === 0) {
+            return res.status(400).json({ success: false, message: 'Select at least one working day. Saturdays and Sundays are excluded.' });
         }
 
         if (!reporting_manager || !reporting_manager.trim()) {

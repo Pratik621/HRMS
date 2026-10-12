@@ -271,3 +271,26 @@ for (const failure of [false, true]) {
         assert.equal(h.responses.length, 0);
     });
 }
+
+
+test('application calculates weekdays on the server instead of trusting supplied days', async () => {
+    const h = harness('controllers/leaveController.js', [
+        response('employees', employee), response('leaves', [makeLeave('Unpaid')]), response('employees'),
+    ]);
+    const res = makeRes();
+    await h.api.applyLeave({ body: { employee_id: employee.employee_id, leave_type: 'Unpaid',
+        leave_duration: 'Full Day', start_date: '2026-10-09', end_date: '2026-10-12',
+        reason: 'Personal leave request', reporting_manager: 'Test Manager', days_count: 4 } }, res);
+    assert.equal(res.body.success, true);
+    assert.equal(h.inserts.find(x => x.table === 'leaves').rows[0].days_count, 2);
+});
+
+test('weekend-only leave is rejected before querying the database', async () => {
+    const h = harness('controllers/leaveController.js', []);
+    const res = makeRes();
+    await h.api.applyLeave({ body: { employee_id: employee.employee_id, leave_type: 'Unpaid',
+        start_date: '2026-10-10', end_date: '2026-10-11', reason: 'Personal leave request',
+        reporting_manager: 'Test Manager', days_count: 2 } }, res);
+    assert.equal(res.statusCode, 400);
+    assert.equal(h.inserts.length, 0);
+});
