@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Badge, Button, Card, Col, Container, Form, Row, Spinner, Table } from 'react-bootstrap';
 import { FaCalendarAlt, FaMoneyBill, FaReceipt, FaSearch, FaUserShield } from 'react-icons/fa';
@@ -152,7 +153,7 @@ export default function EmployeeDeductions({ embedded = false }) {
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <Table hover className="mb-0 align-middle" style={{ minWidth: 760 }}>
+              <PaginatedTable as={Table} hover className="mb-0 align-middle" style={{ minWidth: 760 }}>
                 <thead className="bg-light">
                   <tr>
                     <th className="ps-4">Month</th>
@@ -171,7 +172,7 @@ export default function EmployeeDeductions({ embedded = false }) {
                     </tr>
                   ))}
                 </tbody>
-              </Table>
+              </PaginatedTable>
             </div>
           )}
         </Card.Body>

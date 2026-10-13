@@ -185,7 +185,7 @@ test('unrelated manager cannot approve a leave', async () => {
 
 // Expected behavior assertions documenting independently reproduced existing defects.
 // TODO failures stay visible without treating them as regressions from employee_name removal.
-test('employee cannot cancel another employee leave', { todo: 'Existing ownership check is missing in updateLeaveStatus' }, async () => {
+test('employee cannot cancel another employee leave', async () => {
     const h = harness('controllers/leaveController.js', [response('leaves', makeLeave('Unpaid')),
         response('leaves', [{ ...makeLeave('Unpaid'), status: 'cancelled' }]), response('employees')]);
     const res = makeRes();
@@ -194,7 +194,7 @@ test('employee cannot cancel another employee leave', { todo: 'Existing ownershi
     assert.equal(h.updates.length, 0);
 });
 
-test('repeated approval must not deduct Comp-Off twice', { todo: 'Existing status transition has no already-approved guard' }, async () => {
+test('repeated approval must not deduct Comp-Off twice', async () => {
     const leave = makeLeave('Comp-Off', 'approved');
     const h = harness('controllers/leaveController.js', [response('leaves', leave), response('leaves', [leave]),
         response('employees', { comp_off_balance: 2 }), response('employees'), response('employees')]);
@@ -202,7 +202,7 @@ test('repeated approval must not deduct Comp-Off twice', { todo: 'Existing statu
     assert.equal(h.updates.filter(x => x.table === 'employees').length, 0);
 });
 
-test('attendance write failure must not report complete approval success', { todo: 'Existing attendance service catches errors without propagating failure' }, async () => {
+test('attendance write failure must not report complete approval success', async () => {
     const leave = makeLeave('Birthday');
     const h = harness('controllers/leaveController.js', [response('leaves', leave), response('leaves', [{ ...leave, status: 'approved' }]),
         response('attendance'), response('attendance', null, { message: 'Database unavailable' }), response('employees')], true);

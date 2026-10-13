@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 // src/components/Employee/TeamRating.jsx
 import React, { useState, useEffect } from 'react';
 import {
@@ -255,7 +256,7 @@ const TeamRating = () => {
         </Card.Header>
         <Card.Body className="p-0">
           <div className="table-responsive">
-            <Table hover className="mb-0">
+            <PaginatedTable as={Table} hover className="mb-0">
               <thead className="bg-light">
                 <tr className="small">
                   <th className="fw-normal">#</th>
@@ -311,7 +312,7 @@ const TeamRating = () => {
                   </tr>
                 )}
               </tbody>
-            </Table>
+            </PaginatedTable>
           </div>
         </Card.Body>
       </Card>

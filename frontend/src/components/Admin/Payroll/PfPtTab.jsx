@@ -1,5 +1,6 @@
+import PaginatedTable from '../../Common/PaginatedTable';
 // src/components/Admin/Payroll/PfPtTab.jsx
-// PF / PT / Professional Tax management — bulk-select + apply, or edit per row.
+// PF / Professional Tax management — bulk-select + apply, or edit per row.
 // Persists via the existing generic PUT /api/employees/:id (same pattern used for
 // isFlexibleShift) — no new backend endpoint.
 import React, { useState, useRef } from 'react';
@@ -23,7 +24,7 @@ const primaryBtn = {
   cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
 };
 
-const isConfigured = (rec) => rec.pf_amount != null && rec.pt_amount != null && rec.professional_tax_amount != null;
+const isConfigured = (rec) => rec.pf_amount != null && rec.professional_tax_amount != null;
 
 const PfPtTab = ({ records, refetch }) => {
   const { showNotification } = useNotification();
@@ -34,7 +35,6 @@ const PfPtTab = ({ records, refetch }) => {
   const [saving, setSaving] = useState({});
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [bulkPf, setBulkPf] = useState('');
-  const [bulkPt, setBulkPt] = useState('');
   const [bulkTax, setBulkTax] = useState('');
   const [statusFilter, setStatusFilter] = useState('all'); // all | added | remaining
   const [search, setSearch] = useState('');
@@ -62,19 +62,16 @@ const PfPtTab = ({ records, refetch }) => {
     const e = edits[rec.employee_id] || {};
     return {
       pf:  e.pf_amount  !== undefined ? e.pf_amount  : (rec.pf_amount  != null ? String(rec.pf_amount)  : ''),
-      pt:  e.pt_amount  !== undefined ? e.pt_amount  : (rec.pt_amount  != null ? String(rec.pt_amount)  : ''),
       tax: e.professional_tax_amount !== undefined ? e.professional_tax_amount : (rec.professional_tax_amount != null ? String(rec.professional_tax_amount) : ''),
     };
   };
 
   const validateRow = (row) => {
     const pfNum = row.pf === '' ? null : Number(row.pf);
-    const ptNum = row.pt === '' ? null : Number(row.pt);
     const taxNum = row.tax === '' ? null : Number(row.tax);
     const invalid = (pfNum !== null && (isNaN(pfNum) || pfNum < 0))
-      || (ptNum !== null && (isNaN(ptNum) || ptNum < 0))
       || (taxNum !== null && (isNaN(taxNum) || taxNum < 0));
-    return { pfNum, ptNum, taxNum, invalid };
+    return { pfNum, taxNum, invalid };
   };
 
   const handleChange = (employeeId, field, value) => {
@@ -91,7 +88,7 @@ const PfPtTab = ({ records, refetch }) => {
     return n;
   });
   // Excluded employees are still shown (dimmed) for visibility but excluded from "select all" —
-  // there's nothing to bulk-apply PF/PT to (or exclude again) for someone already excluded.
+  // there's nothing to bulk-apply PF / Professional Tax to (or exclude again) for someone already excluded.
   const selectableRecords = visibleRecords.filter(r => !r.exclude_from_payroll);
   const allSelected = selectableRecords.length > 0 && selectableRecords.every(r => selectedIds.has(r.employee_id));
   const toggleSelectAll = () => setSelectedIds(prev => {
@@ -124,11 +121,11 @@ const PfPtTab = ({ records, refetch }) => {
 
   const applyBulk = () => {
     if (selectedIds.size === 0) { showNotification('Select at least one employee first', 'warning'); return; }
-    if (bulkPf === '' && bulkPt === '' && bulkTax === '') { showNotification('Enter at least one amount to apply', 'warning'); return; }
-    const vals = { pf_amount: bulkPf, pt_amount: bulkPt, professional_tax_amount: bulkTax };
+    if (bulkPf === '' && bulkTax === '') { showNotification('Enter at least one amount to apply', 'warning'); return; }
+    const vals = { pf_amount: bulkPf, professional_tax_amount: bulkTax };
     for (const v of Object.values(vals)) {
       if (v !== '' && (isNaN(Number(v)) || Number(v) < 0)) {
-        showNotification('PF, PT and Professional Tax must be 0 or a positive amount', 'danger');
+        showNotification('PF and Professional Tax must be 0 or a positive amount', 'danger');
         return;
       }
     }
@@ -137,29 +134,41 @@ const PfPtTab = ({ records, refetch }) => {
       selectedIds.forEach(id => {
         next[id] = { ...(next[id] || {}) };
         if (bulkPf !== '') next[id].pf_amount = bulkPf;
-        if (bulkPt !== '') next[id].pt_amount = bulkPt;
         if (bulkTax !== '') next[id].professional_tax_amount = bulkTax;
       });
       return next;
     });
     setDirty(prev => { const n = { ...prev }; selectedIds.forEach(id => { n[id] = true; }); return n; });
     setSaved(prev => { const n = { ...prev }; selectedIds.forEach(id => { delete n[id]; }); return n; });
-    showNotification(`Staged PF/PT/Professional Tax for ${selectedIds.size} employee(s) — click "Save All" to persist`, 'success');
+    showNotification(`Staged PF / Professional Tax for ${selectedIds.size} employee(s) — click "Save All" to persist`, 'success');
+  };
+
+  const handleClear = (employeeId) => {
+    if (saving[employeeId]) return;
+    clearTimeout(debounceRef.current[employeeId]);
+    setEdits(prev => { const next = { ...prev }; delete next[employeeId]; return next; });
+    setDirty(prev => { const next = { ...prev }; delete next[employeeId]; return next; });
+    setSaved(prev => { const next = { ...prev }; delete next[employeeId]; return next; });
+  };
+  const handleClearAll = () => {
+    Object.keys(dirty).forEach(handleClear);
   };
 
   const handleSave = async (rec) => {
     const row = getRow(rec);
-    const { pfNum, ptNum, taxNum, invalid } = validateRow(row);
-    if (invalid) { showNotification('PF, PT and Professional Tax cannot be negative', 'danger'); return; }
+    const { pfNum, taxNum, invalid } = validateRow(row);
+    if (invalid) { showNotification('PF and Professional Tax cannot be negative', 'danger'); return; }
 
     setSaving(prev => ({ ...prev, [rec.employee_id]: true }));
     try {
       await axios.put(API_ENDPOINTS.EMPLOYEE_BY_ID(rec.id), {
-        pf_amount: pfNum, pt_amount: ptNum, professional_tax_amount: taxNum,
+        pf_amount: pfNum, professional_tax_amount: taxNum,
       });
       setSaved(prev => ({ ...prev, [rec.employee_id]: true }));
+      setEdits(prev => { const next = { ...prev }; delete next[rec.employee_id]; return next; });
+      refetch();
       setDirty(prev => { const n = { ...prev }; delete n[rec.employee_id]; return n; });
-      showNotification(`PF/PT updated for ${rec.first_name} ${rec.last_name}`, 'success');
+      showNotification(`PF / Professional Tax updated for ${rec.first_name} ${rec.last_name}`, 'success');
     } catch (err) {
       showNotification(err.response?.data?.message || `Failed to save ${rec.first_name}`, 'danger');
     } finally {
@@ -175,7 +184,7 @@ const PfPtTab = ({ records, refetch }) => {
       const rec = records.find(r => r.employee_id === id);
       if (rec) { await handleSave(rec); ok++; }
     }
-    showNotification(`PF/PT/Professional Tax updated successfully for ${ok} employee(s).`, 'success');
+    showNotification(`PF / Professional Tax updated successfully for ${ok} employee(s).`, 'success');
     refetch();
   };
 
@@ -197,9 +206,9 @@ const PfPtTab = ({ records, refetch }) => {
       {/* Status cards */}
       <div className="d-flex flex-wrap gap-2">
         {[
-          { label: 'PF/PT Added', value: addedCount, active: statusFilter === 'added', color: '#16a34a', key: 'added' },
+          { label: 'PF / Professional Tax Added', value: addedCount, active: statusFilter === 'added', color: '#16a34a', key: 'added' },
           { label: 'Remaining to Add', value: remainingCount, active: statusFilter === 'remaining', color: '#d97706', key: 'remaining' },
-          { label: 'All', value: records.length, active: statusFilter === 'all', color: '#6366f1', key: 'all' },
+          { label: 'All', value: records.length, active: statusFilter === 'all', color: "#1f4e79", key: 'all' },
         ].map(c => (
           <button
             key={c.key}
@@ -222,7 +231,6 @@ const PfPtTab = ({ records, refetch }) => {
         </span>
         {[
           ['PF (₹)', bulkPf, setBulkPf, '1800'],
-          ['PT (₹)', bulkPt, setBulkPt, '0'],
           ['Professional Tax (₹)', bulkTax, setBulkTax, '0'],
         ].map(([label, val, setter, ph]) => (
           <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -237,7 +245,7 @@ const PfPtTab = ({ records, refetch }) => {
         <button
           onClick={applyBulk}
           disabled={selectedIds.size === 0}
-          style={{ ...primaryBtn, background: selectedIds.size > 0 ? '#6366f1' : '#e2e8f0', color: selectedIds.size > 0 ? '#fff' : '#94a3b8', cursor: selectedIds.size === 0 ? 'not-allowed' : 'pointer' }}
+          style={{ ...primaryBtn, background: selectedIds.size > 0 ? "#1f4e79" : '#e2e8f0', color: selectedIds.size > 0 ? '#fff' : '#94a3b8', cursor: selectedIds.size === 0 ? 'not-allowed' : 'pointer' }}
         >
           Apply to {selectedIds.size || 0} selected
         </button>
@@ -256,8 +264,12 @@ const PfPtTab = ({ records, refetch }) => {
         >
           <FaSave size={11} /> Save All {dirtyCount > 0 ? `(${dirtyCount})` : ''}
         </button>
+        <button type="button" onClick={handleClearAll} disabled={dirtyCount === 0 || Object.values(saving).some(Boolean)}
+          title="Discard all unsaved payroll edits" style={{ padding: '7px 14px', fontSize: 12, borderRadius: 8, border: '1px solid #cbd5e1', background: '#fff', color: '#475569', opacity: dirtyCount === 0 ? 0.5 : 1 }}>
+          Clear All
+        </button>
         <span style={{ fontSize: 11, color: '#94a3b8', width: '100%' }}>
-          Blank = use default (₹1800 PF / ₹0 PT / ₹0 Professional Tax). Explicit 0 is a valid, saved value.
+          Blank = use default (₹1800 PF / ₹0 Professional Tax). Explicit 0 is a valid, saved value.
         </span>
       </div>
 
@@ -267,7 +279,7 @@ const PfPtTab = ({ records, refetch }) => {
           <div style={{ textAlign: 'center', padding: 40, color: '#94a3b8', fontSize: 13 }}>No employees match this filter.</div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+            <PaginatedTable style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
                 <tr style={{ background: '#1e3a5f', color: '#fff' }}>
                   <th style={{ padding: '11px 12px', textAlign: 'center', width: 36 }}>
@@ -280,7 +292,7 @@ const PfPtTab = ({ records, refetch }) => {
                       style={{ cursor: selectableRecords.length ? 'pointer' : 'not-allowed' }}
                     />
                   </th>
-                  {['Employee', 'Code', 'Department', 'Monthly Salary', 'PF (₹)', 'PT (₹)', 'Professional Tax (₹)', 'Status', 'Action'].map(h => (
+                  {['Employee', 'Code', 'Department', 'Monthly Salary', 'PF (₹)', 'Professional Tax (₹)', 'Status', 'Action'].map(h => (
                     <th key={h} style={{ padding: '11px 12px', fontWeight: 600, textAlign: 'left', fontSize: 11, letterSpacing: 0.3 }}>{h}</th>
                   ))}
                 </tr>
@@ -312,12 +324,12 @@ const PfPtTab = ({ records, refetch }) => {
                       <td style={{ padding: '10px 12px', color: '#64748b', fontFamily: 'monospace', fontSize: 11 }}>{rec.employee_id}</td>
                       <td style={{ padding: '10px 12px' }}>{rec.department}</td>
                       <td style={{ padding: '10px 12px', fontWeight: 700, color: '#1e3a5f' }}>{fmt(rec.monthly_salary)}</td>
-                      {['pf', 'pt', 'tax'].map((f, fi) => (
+                      {['pf', 'tax'].map((f, fi) => (
                         <td key={f} style={{ padding: '8px 10px' }}>
                           <input
                             type="number" min="0" step="1" placeholder={fi === 0 ? '1800' : '0'}
                             value={row[f]}
-                            onChange={e => handleChange(rec.employee_id, f === 'pf' ? 'pf_amount' : f === 'pt' ? 'pt_amount' : 'professional_tax_amount', e.target.value)}
+                            onChange={e => handleChange(rec.employee_id, f === 'pf' ? 'pf_amount' : 'professional_tax_amount', e.target.value)}
                             style={inputStyle(invalid, isDirty)}
                             onFocus={e => e.target.select()}
                           />
@@ -335,6 +347,7 @@ const PfPtTab = ({ records, refetch }) => {
                         )}
                       </td>
                       <td style={{ padding: '8px 10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <button
                           onClick={() => handleSave(rec)}
                           disabled={isSaving || invalid || (!isDirty && isSaved)}
@@ -349,12 +362,18 @@ const PfPtTab = ({ records, refetch }) => {
                           {isSaving ? <Spinner size="sm" animation="border" style={{ width: 10, height: 10 }} /> : <FaSave size={10} />}
                           {isSaving ? '…' : 'Save'}
                         </button>
+                        <button type="button" onClick={() => handleClear(rec.employee_id)} disabled={isSaving || !isDirty}
+                          title="Discard unsaved changes and restore saved values" aria-label={'Clear edits for ' + rec.employee_id}
+                          style={{ padding: '5px 10px', fontSize: 11, borderRadius: 7, border: '1px solid #cbd5e1', background: '#fff', color: '#475569', cursor: isSaving || !isDirty ? 'not-allowed' : 'pointer', opacity: isSaving || !isDirty ? 0.5 : 1 }}>
+                          Clear
+                        </button>
+                      </div>
                       </td>
                     </tr>
                   );
                 })}
               </tbody>
-            </table>
+            </PaginatedTable>
           </div>
         )}
       </div>

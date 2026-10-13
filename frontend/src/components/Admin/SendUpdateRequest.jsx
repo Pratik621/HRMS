@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 // src/components/Admin/SendUpdateRequest.jsx
 import React, { useState, useEffect, useMemo } from 'react';
 import {
@@ -273,7 +274,7 @@ const SendUpdateRequest = () => {
                   </div>
                 ) : (
                   <div className="table-responsive" style={{ maxHeight: '380px', overflowY: 'auto' }}>
-                    <Table hover size="sm" className="mb-0">
+                    <PaginatedTable as={Table} hover size="sm" className="mb-0">
                       <thead className="bg-light sticky-top" style={{ top: 0, zIndex: 10 }}>
                         <tr className="small">
                           <th style={{ width: '36px' }} className="text-center">
@@ -320,7 +321,7 @@ const SendUpdateRequest = () => {
                           );
                         })}
                       </tbody>
-                    </Table>
+                    </PaginatedTable>
                   </div>
                 )}
                 <div className="mt-1 small text-muted">

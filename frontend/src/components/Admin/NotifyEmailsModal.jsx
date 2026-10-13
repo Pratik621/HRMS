@@ -138,7 +138,7 @@ const NotifyEmailsModal = ({ show, onClose }) => {
                                     style={{
                                         display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px',
                                         borderBottom: '1px solid #f3f4f6', cursor: 'pointer',
-                                        background: selectedIds.has(emp.employee_id) ? '#eef2ff' : '#fff',
+                                        background: selectedIds.has(emp.employee_id) ? "#eef4fb" : '#fff',
                                     }}
                                 >
                                     <Form.Check

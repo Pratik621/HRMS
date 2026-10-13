@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 // src/components/Admin/Announcements.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -328,7 +329,7 @@ const Announcements = ({ embedded = false }) => {
                 </div>
               ) : (
                 <div className="table-responsive" style={{ maxHeight: '520px', overflowY: 'auto' }}>
-                  <Table hover size="sm" className="mb-0">
+                  <PaginatedTable as={Table} hover size="sm" className="mb-0">
                     <thead className="bg-light sticky-top" style={{ top: 0, zIndex: 10 }}>
                       <tr className="small">
                         <th className="fw-normal">#</th>
@@ -381,7 +382,7 @@ const Announcements = ({ embedded = false }) => {
                         );
                       })}
                     </tbody>
-                  </Table>
+                  </PaginatedTable>
                 </div>
               )}
             </Card.Body>

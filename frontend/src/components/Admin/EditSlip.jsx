@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 // src/components/Admin/EditSlip.jsx
 // Manual salary-slip preparation tool — Admin only.
 // Unlike the centralized Payroll module (SalarySlipManager.jsx / PayrollCenter), this page
@@ -427,8 +428,8 @@ const EditSlip = () => {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 9, background: '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FaFileInvoiceDollar size={15} color="#6366f1" />
+            <div style={{ width: 34, height: 34, borderRadius: 9, background: "#eef4fb", display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <FaFileInvoiceDollar size={15} color="#1f4e79" />
             </div>
             <h5 style={{ margin: 0, fontWeight: 800, color: '#111827' }}>Manual Salary Slip Generator</h5>
           </div>
@@ -468,7 +469,7 @@ const EditSlip = () => {
                   <div style={{ fontWeight: 700, fontSize: 13, color: '#1e293b' }}>{e.first_name} {e.last_name}</div>
                   <div style={{ fontSize: 11, color: '#94a3b8' }}>{e.department || '—'} · {e.designation || e.position || '—'}</div>
                 </div>
-                <div style={{ fontSize: 11, fontFamily: 'monospace', color: '#6366f1', fontWeight: 700 }}>{e.employee_id}</div>
+                <div style={{ fontSize: 11, fontFamily: 'monospace', color: "#1f4e79", fontWeight: 700 }}>{e.employee_id}</div>
               </div>
             ))}
           </div>
@@ -637,7 +638,7 @@ const EditSlip = () => {
           <div style={{ textAlign: 'center', padding: 32, color: '#94a3b8', fontSize: 13 }}>No drafts saved yet.</div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+            <PaginatedTable style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
                   {['Employee', 'Employee ID', 'Salary Month', 'Last Updated', 'Status', 'Actions'].map(h => (
@@ -653,19 +654,19 @@ const EditSlip = () => {
                     <td style={{ padding: '10px 12px' }}>{MONTHS[Number(d.salaryMonth.split('-')[1]) - 1]} {d.salaryMonth.split('-')[0]}</td>
                     <td style={{ padding: '10px 12px', color: '#64748b', whiteSpace: 'nowrap' }}>{fmtWhen(d.lastUpdated)}</td>
                     <td style={{ padding: '10px 12px' }}>
-                      <span style={{ background: '#eef2ff', color: '#6366f1', borderRadius: 10, padding: '2px 9px', fontSize: 10, fontWeight: 700 }}>Draft</span>
+                      <span style={{ background: "#eef4fb", color: "#1f4e79", borderRadius: 10, padding: '2px 9px', fontSize: 10, fontWeight: 700 }}>Draft</span>
                     </td>
                     <td style={{ padding: '10px 12px' }}>
                       <div style={{ display: 'flex', gap: 4 }}>
                         <button onClick={() => openDraftFromList(d)} title="Edit" style={smallBtnStyle('#0ea5e9', '#f0f9ff')}><FaEdit size={9} /></button>
-                        <button onClick={() => generateFromList(d)} title="Generate" style={smallBtnStyle('#1e3a5f', '#eef2ff')}><FaEye size={9} /></button>
+                        <button onClick={() => generateFromList(d)} title="Generate" style={smallBtnStyle('#1e3a5f', "#eef4fb")}><FaEye size={9} /></button>
                         <button onClick={() => deleteDraftFromList(d)} title="Delete" style={smallBtnStyle('#dc2626', '#fef2f2')}><FaTrash size={9} /></button>
                       </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </PaginatedTable>
           </div>
         )}
       </div>

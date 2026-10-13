@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 // src/components/Admin/LeaveReports.jsx
 import React, { useState, useEffect } from 'react';
 import {
@@ -400,7 +401,7 @@ const LeaveReports = () => {
             className="table-responsive"
             style={{ maxHeight: "400px", overflowY: "auto" }}
           >
-            <Table hover className="mb-0" style={{ tableLayout: 'fixed' }}>
+            <PaginatedTable as={Table} hover className="mb-0" style={{ tableLayout: 'fixed' }}>
 
               {/* Header - with fixed column widths and nowrap text */}
               <thead className="bg-light sticky-top" style={{ top: 0, zIndex: 10 }}>
@@ -567,7 +568,7 @@ const LeaveReports = () => {
                   </tr>
                 )}
               </tbody>
-            </Table>
+            </PaginatedTable>
           </div>
 
           {/* Summary Footer */}

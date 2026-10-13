@@ -42,7 +42,7 @@ const authFetch = (url, opts = {}) =>
 
 // ── Avatar ────────────────────────────────────────────────────────────────────
 const Avatar = ({ name, size = 42 }) => {
-    const colors = ['#6366f1', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899'];
+    const colors = ["#1f4e79", '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899'];
     const initials = (name || '?')[0].toUpperCase();
     const color = colors[(name || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % colors.length];
     return (
@@ -119,8 +119,8 @@ const isoDate = (v) => (v ? String(v).split('T')[0] : '');
 const Section = ({ icon: Icon, title, children }) => (
     <div style={{ marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 7, background: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Icon size={14} color="#4338ca" />
+            <div style={{ width: 28, height: 28, borderRadius: 7, background: "#dce3eb", display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon size={14} color="#173a5c" />
             </div>
             <span style={{ fontSize: 13, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.6 }}>{title}</span>
         </div>
@@ -348,9 +348,9 @@ export default function OfferLinksManager() {
                 <div style={{ padding: '0 8px', borderBottom: '1px solid #e5e7eb', display: 'flex', gap: 2, overflowX: 'auto', flexShrink: 0, background: '#fff' }}>
                     {tabs.map(t => (
                         <button key={t.key} onClick={() => setFilter(t.key)}
-                            style={{ padding: '8px 10px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 12, fontWeight: filter === t.key ? 700 : 500, color: filter === t.key ? '#6366f1' : '#6b7280', borderBottom: filter === t.key ? '2px solid #6366f1' : '2px solid transparent', whiteSpace: 'nowrap' }}>
+                            style={{ padding: '8px 10px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 12, fontWeight: filter === t.key ? 700 : 500, color: filter === t.key ? "#1f4e79" : '#6b7280', borderBottom: filter === t.key ? '2px solid #6366f1' : '2px solid transparent', whiteSpace: 'nowrap' }}>
                             {t.label}
-                            {t.count > 0 && <span style={{ background: filter === t.key ? '#e0e7ff' : '#f3f4f6', color: filter === t.key ? '#4338ca' : '#6b7280', borderRadius: 10, padding: '1px 5px', fontSize: 10, marginLeft: 4 }}>{t.count}</span>}
+                            {t.count > 0 && <span style={{ background: filter === t.key ? "#dce3eb" : '#f3f4f6', color: filter === t.key ? "#173a5c" : '#6b7280', borderRadius: 10, padding: '1px 5px', fontSize: 10, marginLeft: 4 }}>{t.count}</span>}
                         </button>
                     ))}
                 </div>
@@ -380,7 +380,7 @@ export default function OfferLinksManager() {
                         const busy = actioning === l.id;
                         return (
                             <div key={l.id} onClick={() => selectLink(l)}
-                                style={{ padding: '12px 14px', borderBottom: '1px solid #f3f4f6', cursor: 'pointer', background: isSelected ? '#eef2ff' : '#fff', borderLeft: isSelected ? '3px solid #6366f1' : '3px solid transparent', transition: 'background 0.1s' }}>
+                                style={{ padding: '12px 14px', borderBottom: '1px solid #f3f4f6', cursor: 'pointer', background: isSelected ? "#eef4fb" : '#fff', borderLeft: isSelected ? '3px solid #6366f1' : '3px solid transparent', transition: 'background 0.1s' }}>
 
                                 {/* Row 1 */}
                                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
@@ -444,7 +444,7 @@ export default function OfferLinksManager() {
                                             <UserPlus size={11} /> Approve
                                         </button>
                                     )}
-                                    {isSelected && <ChevronRight size={14} color="#6366f1" style={{ marginLeft: 'auto' }} />}
+                                    {isSelected && <ChevronRight size={14} color="#1f4e79" style={{ marginLeft: 'auto' }} />}
                                 </div>
                             </div>
                         );
@@ -622,7 +622,7 @@ export default function OfferLinksManager() {
                                             </>
                                         ) : (
                                             <button onClick={startEdit}
-                                                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid #c7d2fe', borderRadius: 8, background: '#eef2ff', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#4338ca' }}>
+                                                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid #c7d2fe', borderRadius: 8, background: "#eef4fb", cursor: 'pointer', fontSize: 13, fontWeight: 600, color: "#173a5c" }}>
                                                 <Pencil size={13} /> Edit
                                             </button>
                                         )}
@@ -661,7 +661,7 @@ export default function OfferLinksManager() {
                                             <div>
                                                 <span style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: 600, display: 'block' }}>LinkedIn Profile</span>
                                                 {subData.linkedin_url ? (
-                                                    <a href={subData.linkedin_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: '#2563eb', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                                    <a href={subData.linkedin_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: "#1f4e79", fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                                                         <ExternalLink size={13} /> View Profile
                                                     </a>
                                                 ) : (
@@ -714,8 +714,8 @@ export default function OfferLinksManager() {
                                     {/* Documents */}
                                     <div style={{ marginBottom: 20 }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                                            <div style={{ width: 28, height: 28, borderRadius: 7, background: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                <FileText size={14} color="#4338ca" />
+                                            <div style={{ width: 28, height: 28, borderRadius: 7, background: "#dce3eb", display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <FileText size={14} color="#173a5c" />
                                             </div>
                                             <span style={{ fontSize: 13, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.6 }}>Documents</span>
                                         </div>

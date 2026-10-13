@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 // src/components/Admin/AdminRatings.jsx
 import React, { useState, useEffect } from 'react';
 import {
@@ -665,7 +666,7 @@ const AdminRatings = ({ initialMonth, initialYear }) => {
                         </Row>
                     </div>
                     <div className="table-responsive" style={{ maxHeight: '400px', overflow: 'auto' }}>
-                        <Table hover className="mb-0" size="sm">
+                        <PaginatedTable as={Table} hover className="mb-0" size="sm">
                             <thead className="bg-light sticky-top">
                                 <tr className="small">
                                     <th className="fw-normal">#</th>
@@ -732,7 +733,7 @@ const AdminRatings = ({ initialMonth, initialYear }) => {
                                     </tr>
                                 )}
                             </tbody>
-                        </Table>
+                        </PaginatedTable>
                     </div>
                 </Card.Body>
             </Card>
@@ -756,7 +757,7 @@ const AdminRatings = ({ initialMonth, initialYear }) => {
                 </Card.Header>
                 <Card.Body className="p-0">
                     <div className="table-responsive" style={{ maxHeight: '400px', overflow: 'auto' }}>
-                        <Table hover className="mb-0" size="sm">
+                        <PaginatedTable as={Table} hover className="mb-0" size="sm">
                             <thead className="bg-light sticky-top">
                                 <tr className="small">
                                     <th className="fw-normal">#</th>
@@ -821,7 +822,7 @@ const AdminRatings = ({ initialMonth, initialYear }) => {
                                     </tr>
                                 )}
                             </tbody>
-                        </Table>
+                        </PaginatedTable>
                     </div>
                 </Card.Body>
             </Card>

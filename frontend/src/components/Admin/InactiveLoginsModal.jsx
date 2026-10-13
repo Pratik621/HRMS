@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 // src/components/Admin/InactiveLoginsModal.jsx
 // Admin tool: lists active employees who haven't logged in for 3+ days (or never have),
 // with a one-click Deactivate action per row. Relies on employees.last_login_at, which is
@@ -98,7 +99,7 @@ const InactiveLoginsModal = ({ show, onClose, employees, onSuccess }) => {
         </InputGroup>
 
         <div style={{ maxHeight: 420, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 8 }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <PaginatedTable style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead style={{ position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1 }}>
               <tr>
                 <th style={{ padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb', color: '#6b7280', fontSize: 11, textTransform: 'uppercase' }}>Name</th>
@@ -131,7 +132,7 @@ const InactiveLoginsModal = ({ show, onClose, employees, onSuccess }) => {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </PaginatedTable>
         </div>
       </Modal.Body>
       <Modal.Footer>

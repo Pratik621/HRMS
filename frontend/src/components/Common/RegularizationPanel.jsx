@@ -1,3 +1,4 @@
+import PaginatedTable from './PaginatedTable';
 // src/components/Common/RegularizationPanel.jsx
 // Single consolidated regularization review UI — replaces the three previously
 // duplicated implementations (Admin/RegularizationRequests.jsx, the inline
@@ -491,7 +492,7 @@ export default function RegularizationPanel({ embedded = false, onRequestCountCh
         <Card className="border-0 shadow-sm" style={{ borderRadius: 16, overflow: 'hidden' }}>
           <Card.Body className="p-0">
             <div className="table-responsive">
-              <Table hover className="mb-0" style={{ minWidth: 980 }}>
+              <PaginatedTable as={Table} hover className="mb-0" style={{ minWidth: 980 }}>
                 <thead className="bg-light">
                   <tr className="small">
                     <th className="fw-normal" style={{ width: 36 }}>
@@ -578,7 +579,7 @@ export default function RegularizationPanel({ embedded = false, onRequestCountCh
                     );
                   })}
                 </tbody>
-              </Table>
+              </PaginatedTable>
             </div>
           </Card.Body>
         </Card>

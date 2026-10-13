@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 // Admin Salary Slip Manager — embedded in EmployeeProfileView payroll tab
 import React, { useState, useEffect, useCallback } from 'react';
 import { Row, Col, Spinner, Modal, Button } from 'react-bootstrap';
@@ -184,7 +185,7 @@ const SalarySlipManager = ({ employee, refreshKey }) => {
   if (loading && slips.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: 48 }}>
-        <Spinner animation="border" size="sm" style={{ color: '#6366f1' }} />
+        <Spinner animation="border" size="sm" style={{ color: "#1f4e79" }} />
         <div style={{ marginTop: 12, fontSize: 13, color: '#94a3b8' }}>Loading salary data…</div>
       </div>
     );
@@ -199,11 +200,11 @@ const SalarySlipManager = ({ employee, refreshKey }) => {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid #f1f5f9' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 30, height: 30, borderRadius: 8, background: '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FaMoneyBillWave size={13} color="#6366f1" />
+            <div style={{ width: 30, height: 30, borderRadius: 8, background: "#eef4fb", display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <FaMoneyBillWave size={13} color="#1f4e79" />
             </div>
             <span style={{ fontWeight: 700, fontSize: 14, color: '#111827' }}>Salary Slips</span>
-            <span style={{ background: '#eef2ff', color: '#6366f1', borderRadius: 10, padding: '1px 9px', fontSize: 11, fontWeight: 700 }}>
+            <span style={{ background: "#eef4fb", color: "#1f4e79", borderRadius: 10, padding: '1px 9px', fontSize: 11, fontWeight: 700 }}>
               {slips.length} Generated
             </span>
           </div>
@@ -368,7 +369,7 @@ const SalarySlipManager = ({ employee, refreshKey }) => {
                             onClick={() => handleDownload(slip)}
                             disabled={isDownloading}
                             title="Download PDF"
-                            style={{ ...btnStyle('#6366f1', '#eef2ff'), opacity: isDownloading ? 0.7 : 1, cursor: isDownloading ? 'wait' : 'pointer' }}
+                            style={{ ...btnStyle("#1f4e79", "#eef4fb"), opacity: isDownloading ? 0.7 : 1, cursor: isDownloading ? 'wait' : 'pointer' }}
                           >
                             {isDownloading ? <Spinner size="sm" style={{ width: 9, height: 9 }} animation="border" /> : <FaDownload size={9} />}
                             PDF
@@ -430,7 +431,7 @@ const SalarySlipManager = ({ employee, refreshKey }) => {
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+            <PaginatedTable style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
                   {['Month', 'Year', 'Pay Cycle', 'Monthly Salary', 'Earned', 'OT', 'Deductions', 'Net Salary', 'Status', 'Actions'].map(h => (
@@ -455,7 +456,7 @@ const SalarySlipManager = ({ employee, refreshKey }) => {
                       <td style={{ padding: '10px 12px', color: '#64748b' }}>{s.year}</td>
                       <td style={{ padding: '10px 12px', color: '#64748b', fontSize: 11, whiteSpace: 'nowrap' }}>{cycleLabel}</td>
                       <td style={{ padding: '10px 12px', color: '#475569' }}>{fmt(a.monthlySalary)}</td>
-                      <td style={{ padding: '10px 12px', color: '#6366f1', fontWeight: 600 }}>{fmt(a.basicSalary)}</td>
+                      <td style={{ padding: '10px 12px', color: "#1f4e79", fontWeight: 600 }}>{fmt(a.basicSalary)}</td>
                       <td style={{ padding: '10px 12px', color: '#16a34a' }}>{a.overtimeAmount > 0 ? fmt(a.overtimeAmount) : '—'}</td>
                       <td style={{ padding: '10px 12px', color: '#dc2626' }}>{fmt(a.deduction)}</td>
                       <td style={{ padding: '10px 12px', fontWeight: 800, color: '#1e3a5f', fontSize: 13 }}>{fmt(a.netSalary)}</td>
@@ -479,7 +480,7 @@ const SalarySlipManager = ({ employee, refreshKey }) => {
                           <button
                             onClick={() => handleDownload(s)}
                             disabled={isDown}
-                            style={{ ...btnStyle('#6366f1', '#eef2ff'), opacity: isDown ? 0.7 : 1, cursor: isDown ? 'wait' : 'pointer' }}
+                            style={{ ...btnStyle("#1f4e79", "#eef4fb"), opacity: isDown ? 0.7 : 1, cursor: isDown ? 'wait' : 'pointer' }}
                           >
                             {isDown ? <Spinner size="sm" style={{ width: 9, height: 9 }} animation="border" /> : <FaFilePdf size={9} />}
                             PDF
@@ -499,7 +500,7 @@ const SalarySlipManager = ({ employee, refreshKey }) => {
                   );
                 })}
               </tbody>
-            </table>
+            </PaginatedTable>
           </div>
         )}
       </div>

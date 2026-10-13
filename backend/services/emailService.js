@@ -191,7 +191,7 @@ const sendPasswordResetOtpEmail = async (employee, otp, expiryMinutes) => {
 // once on the submission-success screen; this is not the employee's real password.
 // `offerLetter` is optional — { pdfBase64, filename } — passed only when the onboarding
 // flow (backend/routes/onboardingRoutes.js) successfully generated a complete offer letter
-// for this employee. Every existing call site omits it, so behavior there is unchanged.
+// for this employee, in both automatic and manual onboarding approval.
 const sendEmployeeCredentialsEmail = async (employee, credentials, offerLetter) => {
     const { to, name } = resolveRecipient(employee);
     const { employeeId, tempPassword } = credentials || {};
@@ -217,7 +217,7 @@ const sendEmployeeCredentialsEmail = async (employee, credentials, offerLetter) 
         to,
         subject,
         html,
-        text: `Hi ${name}, your HRMS account is ready.\n\nEmployee ID: ${employeeId}\nEmail: ${to}\nTemporary Password: ${tempPassword}\n\nPlease log in and change your password as soon as possible: ${frontendUrl}/login`,
+        text: `Hi ${name}, your HRMS account is ready.\n\nEmployee ID: ${employeeId}\nEmail: ${to}\nTemporary Password: ${tempPassword}\n\nPlease log in and change your password as soon as possible: ${frontendUrl}/login${hasOfferLetter ? '\n\nYour offer/appointment letter is attached. Please review it and contact HR with any questions.' : ''}`,
         attachments: hasOfferLetter ? [{ filename: offerLetter.filename, content: offerLetter.pdfBase64 }] : undefined,
     });
 };

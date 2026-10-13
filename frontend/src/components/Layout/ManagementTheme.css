@@ -1,0 +1,36 @@
+/* Same palette and control dimensions used by EmployeeDashboard/Payroll. */
+.hrms-management-theme {
+  --hrms-primary: #1f4e79; --hrms-primary-dark: #173a5c; --hrms-primary-light: #eef4fb;
+  --hrms-text: #172033; --hrms-border: #e5eaf0; --hrms-surface: #fff;
+  --bs-primary-rgb: 31,78,121;
+  --primary: #1f4e79; --primary-dark: #173a5c; --primary-light: #eef4fb;
+  color: #172033; background: #f5f7fa; min-width: 0; font-size: 13px;
+}
+.hrms-management-theme :is(h1,h2,h3,h4,h5,h6) { letter-spacing: -.02em; font-weight: 700; }
+.hrms-management-theme h1 { font-size: clamp(22px, 2.4vw, 28px); }
+.hrms-management-theme :is(.card,.hrms-table-frame) { border: 1px solid #e5eaf0 !important; border-radius: 14px !important; box-shadow: 0 2px 8px rgba(15,23,42,.03) !important; background: #fff; }
+.hrms-management-theme .card-header { background: #fff !important; color: #172033 !important; padding: 18px 20px; border-bottom: 1px solid #e5eaf0; }
+.hrms-management-theme .card-body { padding: 20px; }
+.hrms-management-theme .btn { border-radius: 8px; font-size: 12px; font-weight: 600; }
+.hrms-management-theme :is(.btn-primary,.btn-success) { --bs-btn-bg:#1f4e79; --bs-btn-border-color:#1f4e79; --bs-btn-hover-bg:#173a5c; --bs-btn-hover-border-color:#173a5c; --bs-btn-active-bg:#173a5c; background:#1f4e79; border-color:#1f4e79; color:#fff; }
+.hrms-management-theme .btn-outline-primary { color:#1f4e79; border-color:#d0d5dd; }
+.hrms-management-theme .btn-outline-primary:hover { background:#eef4fb; color:#173a5c; }
+.hrms-management-theme :is(.form-control,.form-select,input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select,textarea) { border-color:#dce3eb; border-radius:8px; font-size:13px; }
+.hrms-management-theme :is(input,select,textarea):focus-visible { outline:2px solid #52718c; outline-offset:2px; box-shadow:0 0 0 3px rgba(31,78,121,.08); }
+.hrms-management-theme button:focus-visible { outline:2px solid #52718c; outline-offset:3px; }
+.hrms-management-theme .hrms-table-frame { overflow:hidden; }
+.hrms-management-theme .hrms-table-scroll thead { background:#f8fafc !important; color:#64748b !important; }
+.hrms-management-theme .hrms-table-scroll thead :is(tr,th) { background:#f8fafc !important; color:#64748b !important; font-size:11px; font-weight:600; letter-spacing:.4px; white-space:nowrap; }
+.hrms-management-theme .hrms-table-scroll td { border-color:#eef2f6; vertical-align:middle; }
+.hrms-management-theme .hrms-table-pagination { color:#64748b; border-color:#e5eaf0; }
+.hrms-management-theme .hrms-table-pagination button:not(:disabled):hover { background:#eef4fb; border-color:#52718c; }
+.hrms-management-theme :is(.nav-tabs,.nav-pills) .nav-link { font-size:13px; font-weight:600; color:#64748b; border-radius:8px; }
+.hrms-management-theme .nav-pills .nav-link.active { background:#1f4e79; color:#fff; }
+.hrms-management-theme .nav-tabs .nav-link.active { color:#1f4e79; border-bottom-color:#1f4e79; }
+.hrms-management-session .modal-header { background:#f8fafc !important; color:#172033 !important; border-bottom:1px solid #e5eaf0; }
+.hrms-management-session .modal-content { border:1px solid #e5eaf0; border-radius:14px; box-shadow:0 18px 44px rgba(16,24,40,.14); }
+.hrms-management-session .modal-footer .btn-primary { background:#1f4e79; border-color:#1f4e79; }
+@media (max-width:767px) { .hrms-management-theme { padding:16px !important; } .hrms-management-theme .card-body { padding:16px; } }
+@media print { .hrms-management-theme { padding:0 !important; background:#fff; } }
+
+.hrms-management-theme .card-header :is(h1,h2,h3,h4,h5,h6,.text-white) { color:#172033 !important; }

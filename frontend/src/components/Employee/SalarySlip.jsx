@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 import React, { useState, useEffect } from 'react';
 import {
   Row,
@@ -176,7 +177,7 @@ const SalarySlip = ({ embedded = false }) => {
     let month = joiningInfo.month;
 
     // A month's cycle (26th of the prior month → 25th of this one) only becomes
-    // self-serviceable once we're 2 days clear of its own end — i.e. from the 27th of
+    // self-serviceable once we're one day after its own end — i.e. from the 27th of
     // that same month onward (same rule as isMonthEligible below). This naturally stops
     // at the last fully-completed cycle and excludes the current in-progress one, without
     // hardcoding "previous calendar month" — e.g. on the 27th+ of a month, that month's
@@ -279,7 +280,7 @@ const SalarySlip = ({ embedded = false }) => {
     if (y === today.getFullYear() && m > today.getMonth() + 1) return false;
 
     // Cycle for selected month ends on 25th of that month.
-    // Allow generation only 2 days after cycle end date (i.e., from 27th of that month).
+    // Allow generation only after cycle end date (i.e., from 27th of that month).
     const cycleEndDate = new Date(y, m - 1, 25); // 25th of selected month
     const allowFrom = new Date(y, m - 1, 27);    // 27th of selected month
     if (today < allowFrom) return false;
@@ -844,7 +845,7 @@ const SalarySlip = ({ embedded = false }) => {
                           const today = new Date();
                     const allowFrom = new Date(y, m - 1, 27);
                           if (today < allowFrom) {
-                            return `Salary slip for ${new Date(y, m-1).toLocaleString('en-IN',{month:'long'})} ${y} will be available from 27 ${new Date(y, m-1).toLocaleString('en-IN',{month:'long'})} ${y} (2 days after cycle end).`;
+                            return `Salary slip for ${new Date(y, m-1).toLocaleString('en-IN',{month:'long'})} ${y} will be available from 27 ${new Date(y, m-1).toLocaleString('en-IN',{month:'long'})} ${y} (after cycle end).`;
                           }
                           return 'Cannot generate: Before joining date or future month.';
                         })()}
@@ -932,7 +933,7 @@ const SalarySlip = ({ embedded = false }) => {
             <Card.Body className="p-0">
               {/* Table with Vertical Scroll */}
               <div className="table-responsive" style={{ maxHeight: '480px', overflowY: 'auto' }}>
-                <Table hover className="salary-statements-table mb-0">
+                <PaginatedTable as={Table} hover className="salary-statements-table mb-0">
                   <thead><tr><th>Pay period</th><th className="text-end">Basic salary</th><th className="text-end">Deductions</th><th className="text-end">Net pay</th><th className="text-end">Statement</th></tr></thead>
                   <tbody>
                     {displaySlips.length ? displaySlips.map(slip => {
@@ -949,7 +950,7 @@ const SalarySlip = ({ embedded = false }) => {
                       </tr>;
                     }) : <tr><td colSpan={5}><div className="salary-empty-state"><FaFilePdf size={30} /><h3>No salary statements yet</h3><p>Select an eligible pay period to generate your first statement.</p></div></td></tr>}
                   </tbody>
-                </Table>
+                </PaginatedTable>
 
                 {allSalarySlips.length > 5 && (
                   <div className="text-center mt-2 mb-2">

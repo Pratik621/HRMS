@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 import DashboardNotice from '../Common/DashboardNotice';
 // src/components/Admin/AdminDashboard.jsx
 import React, { useState, useEffect, useRef } from 'react';
@@ -1047,6 +1048,7 @@ const AdminDashboard = () => {
       <style>{ADMIN_DASH_MOBILE_CSS}</style>
       {/* Header */}
       <WelcomeBanner
+        portalLabel={user?.role === 'hr' ? 'HR Portal' : 'Admin Portal'}
         name={user?.employeeId}
         roleLabel={['sub_admin', 'hr'].includes(user?.role) ? (user?.role === 'hr' ? 'HR Dashboard' : 'Manager Dashboard') : 'Admin Dashboard'}
         onRefresh={() => { fetchDashboardData(); setLeaveBalancesLoaded(false); setEmployeeLeaveBalances([]); }}
@@ -1152,7 +1154,7 @@ const AdminDashboard = () => {
 
       {activeTab === 'anniversaries' && (
         <Card className="role-detail-card border-0 shadow-sm">
-          <Card.Header className="role-card-header bg-gradient py-3" style={{ background: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)' }}>
+          <Card.Header className="role-card-header bg-gradient py-3" style={{ background: "#ffd700" }}>
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
               <div>
                 <h5 className="mb-1 d-flex align-items-center">
@@ -1232,7 +1234,7 @@ const AdminDashboard = () => {
               return (
                 <>
                   <div className="table-responsive">
-                    <Table striped hover className="mb-0 align-middle">
+                    <PaginatedTable as={Table} striped hover className="mb-0 align-middle">
                       <thead className="bg-light sticky-top">
                         <tr className="small">
                           <th className="fw-normal text-center" style={{ width: '5%' }}>#</th>
@@ -1282,7 +1284,7 @@ const AdminDashboard = () => {
                           </tr>
                         )}
                       </tbody>
-                    </Table>
+                    </PaginatedTable>
                   </div>
                   {annTotalPages > 1 && (
                     <div className="d-flex justify-content-between align-items-center mt-3">
@@ -1374,7 +1376,7 @@ const AdminDashboard = () => {
               return (
                 <>
                   <div className="table-responsive">
-                    <Table striped hover className="mb-0 align-middle">
+                    <PaginatedTable as={Table} striped hover className="mb-0 align-middle">
                       <thead className="bg-light sticky-top">
                         <tr className="small">
                           <th className="fw-normal text-center" style={{ width: '5%' }}>#</th>
@@ -1421,7 +1423,7 @@ const AdminDashboard = () => {
                           </tr>
                         )}
                       </tbody>
-                    </Table>
+                    </PaginatedTable>
                   </div>
                   {bdTotalPages > 1 && (
                     <div className="d-flex justify-content-between align-items-center mt-3">
@@ -1735,7 +1737,7 @@ const AdminDashboard = () => {
                         <div style={{
                           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                           padding: '10px 16px',
-                          background: 'linear-gradient(135deg, #f8fafc, #f1f5f9)',
+                          background: "#eef4fb",
                           borderRadius: 10,
                           border: '1px solid #e2e8f0',
                         }}>
@@ -2037,7 +2039,7 @@ const AdminDashboard = () => {
             </Card.Header>
             <Card.Body className="p-0">
               <div className="table-responsive" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                <Table striped size="sm" className="mb-0">
+                <PaginatedTable as={Table} striped size="sm" className="mb-0">
                   <thead className="bg-light sticky-top">
                     <tr className="small">
                       <th className="fw-normal text-center">#</th>
@@ -2106,7 +2108,7 @@ const AdminDashboard = () => {
                       </tr>
                     )}
                   </tbody>
-                </Table>
+                </PaginatedTable>
               </div>
               {filteredLeaveRequests.length > 10 && (
                 <div className="p-3 text-center border-top">
@@ -2195,7 +2197,7 @@ const AdminDashboard = () => {
                     </div>
 
                     <div className="table-responsive">
-                      <Table striped hover size="sm" className="mb-0">
+                      <PaginatedTable as={Table} striped hover size="sm" className="mb-0">
                         <thead className="bg-light sticky-top" style={{ top: 0, zIndex: 10 }}>
                           <tr className="small">
                             <th className="fw-normal text-center">#</th>
@@ -2241,7 +2243,7 @@ const AdminDashboard = () => {
                             <tr><td colSpan="8" className="text-center py-4"><p className="text-muted mb-0 small">No employees found matching your search</p></td></tr>
                           )}
                         </tbody>
-                      </Table>
+                      </PaginatedTable>
                     </div>
 
                     {leaveBalanceTotalPages > 1 && (

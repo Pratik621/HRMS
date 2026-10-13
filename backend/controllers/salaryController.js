@@ -5,7 +5,7 @@ const { pickBetterAttendanceRow } = require('./attendanceController')._shared;
 const { getCycleDates, parseLocalDate, LATE_FREE_COUNT } = require('../config/payrollCycle');
 const CompanyHolidayService = require('../services/companyHolidayService');
 
-const FIXED_WORKING_DAYS = 22;
+const { dateOnly, countWeekdays, calculateProratedPay } = require('../services/payrollMath');
 // Helper function to get month name
 function getMonthName(monthNumber) {
     const months = ['January', 'February', 'March', 'April', 'May', 'June',
@@ -14,26 +14,7 @@ function getMonthName(monthNumber) {
 }
 
 // Calculate working days in cycle (Monday to Friday only)
-const calculateWorkingDaysInCycle = (startDate, endDate, joiningDate = null) => {
-    let workingDays = 0;
-    const start    = parseLocalDate(startDate.toISOString().split('T')[0]);
-    const end      = parseLocalDate(endDate.toISOString().split('T')[0]);
-    const joinDate = joiningDate
-        ? parseLocalDate(joiningDate.toISOString().split('T')[0])
-        : null;
-
-    const currentDate = new Date(start);
-    while (currentDate <= end) {
-        const dayOfWeek = currentDate.getDay();
-        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-            if (!joinDate || currentDate >= joinDate) {
-                workingDays++;
-            }
-        }
-        currentDate.setDate(currentDate.getDate() + 1);
-    }
-    return workingDays;
-};
+const calculateWorkingDaysInCycle = countWeekdays;
 
 // Count company holidays (weekdays only) in cycle. `extraHolidays` is a Map of
 // dateStr -> name for HR/Admin-declared holidays (company_holidays table, see
@@ -75,9 +56,9 @@ const countHolidaysInCycle = (startDateStr, endDateStr, extraHolidays = new Map(
 const calculateDaysEmployedInCycle = (startDate, endDate, joiningDate) => {
     if (!joiningDate) return null;
 
-    const joinDate   = parseLocalDate(joiningDate.toISOString().split('T')[0]);
-    const cycleStart = parseLocalDate(startDate.toISOString().split('T')[0]);
-    const cycleEnd   = parseLocalDate(endDate.toISOString().split('T')[0]);
+    const joinDate   = dateOnly(joiningDate);
+    const cycleStart = dateOnly(startDate);
+    const cycleEnd   = dateOnly(endDate);
 
     if (joinDate > cycleEnd) return 0;
     if (joinDate <= cycleStart) return null;
@@ -160,7 +141,7 @@ const getApprovedLeaves = async (employeeId, startDateStr, endDateStr) => {
 const calculateAttendanceSummary = (attendanceRecords, leaves, startDateStr, endDateStr, joiningDate = null, extraHolidays = new Map()) => {
     const startDate = parseLocalDate(startDateStr);
     const endDate   = parseLocalDate(endDateStr);
-    const joinDate  = joiningDate ? parseLocalDate(joiningDate.toISOString().split('T')[0]) : null;
+    const joinDate  = joiningDate ? dateOnly(joiningDate) : null;
 
     // A cycle can be (and, per real usage here, regularly is) summarized before it has
     // finished — e.g. an admin generating/previewing a slip mid-month. Days after today
@@ -231,11 +212,22 @@ const calculateAttendanceSummary = (attendanceRecords, leaves, startDateStr, end
         const attendance = attendanceMap[dateStr];
         const leave      = leaveMap[dateStr];
 
-        if (leave) {
+        if (isDateHoliday(dateStr) || extraHolidays.has(dateStr) || attendance?.is_holiday) {
+            paidLeaveDays++;
+        } else if (leave) {
             if (leave.type === 'Unpaid') {
                 unpaidLeaveDays += leave.duration === 'Half Day' ? 0.5 : 1;
             } else {
                 paidLeaveDays += leave.duration === 'Half Day' ? 0.5 : 1;
+            }
+            if (leave.duration === 'Half Day') {
+                // The other half still needs attendance; a leave covers only half the day.
+                const status = (attendance?.status || '').toLowerCase();
+                if (attendance?.is_regularized || status === 'present' || status === 'half_day') {
+                    presentDays += 0.5;
+                } else {
+                    absentDays += 0.5;
+                }
             }
         } else if (attendance) {
             // Use DB status field directly — it's already correctly set by clockOut
@@ -373,7 +365,7 @@ exports.generateSalarySlip = async (req, res) => {
             }
 
             // Cycle for the requested month ends on the 25th; only allow generating it from
-            // the 27th onward (2 days clear of cycle end), so the in-progress current cycle
+            // the 27th onward (after cycle end), so the in-progress current cycle
             // is never self-serviceable — matches the frontend's isMonthEligible rule exactly.
             const allowFrom = new Date(reqYear, reqMonth - 1, 27);
             if (today < allowFrom) {
@@ -410,14 +402,9 @@ exports.generateSalarySlip = async (req, res) => {
         const monthlySalary = parseFloat(employee.in_hand_salary || employee.gross_salary || employee.salary || 0);
         const joiningDate   = employee.joining_date ? new Date(employee.joining_date) : null;
 
-        // ── 1. Actual working days in cycle (Mon–Fri only, 26th to 25th) ──
-        // Must pass joiningDate for a mid-cycle joiner — otherwise the denominator is the
-        // full cycle's weekday count even though the employee was only eligible to work a
-        // fraction of it, which understates per-day salary and can leave a fully-present
-        // new joiner short of the full monthly cap they should hit at 100% attendance.
-        const totalWorkingDays = calculateWorkingDaysInCycle(cycle.startDate, cycle.endDate, joiningDate);
-
-        // ── 2. Per-day salary based on actual cycle working days ──
+        // Full-cycle weekdays determine the rate; joining only limits eligible days.
+        const totalWorkingDays = calculateWorkingDaysInCycle(cycle.startDate, cycle.endDate);
+        const eligibleWorkingDays = calculateWorkingDaysInCycle(cycle.startDate, cycle.endDate, joiningDate);
         const perDaySalary = totalWorkingDays > 0 ? monthlySalary / totalWorkingDays : 0;
 
         // ── 3. Attendance & leave data ──
@@ -442,7 +429,7 @@ exports.generateSalarySlip = async (req, res) => {
         // calculateAttendanceSummary themselves.
         const dbHolidaysForCycle = await CompanyHolidayService.getHolidaysInRange(cycle.startDateStr, cycle.endDateStr);
         const extraHolidaysMap = new Map(dbHolidaysForCycle.map(h => [h.holiday_date, h.name]));
-        const { holidayDays, holidayNames } = countHolidaysInCycle(cycle.startDateStr, holidayCountEndDateStr, extraHolidaysMap);
+        const { holidayDays, holidayNames } = countHolidaysInCycle(joiningDate && joiningDate > cycle.startDate ? employee.joining_date.slice(0, 10) : cycle.startDateStr, holidayCountEndDateStr, extraHolidaysMap);
 
         // ── 5. Calculate attendance summary ──
         const summary = calculateAttendanceSummary(
@@ -451,22 +438,13 @@ exports.generateSalarySlip = async (req, res) => {
             joiningDate, extraHolidaysMap
         );
 
-        // ── 6. Salary calculation ──
-        // Paid days = present + paid leave + company holidays (holidays always paid)
-        const totalPaidDays = summary.presentDays + summary.paidLeaveDays + holidayDays;
-        const basicSalary = parseFloat(Math.min(totalPaidDays * perDaySalary, monthlySalary).toFixed(2));
-
-        // Absent/unpaid deduction — always applied against the full monthly salary
-        const deductibleDays  = summary.absentDays + summary.unpaidLeaveDays;
-        const unpaidDeduction = parseFloat((deductibleDays * perDaySalary).toFixed(2));
-
-        // When holidays inflate totalPaidDays to >= totalWorkingDays, basicSalary hits
-        // the monthly cap and absent days are NOT already excluded from it.
-        // In that case we must explicitly subtract the absent deduction.
-        // When no holidays, basicSalary < monthlySalary and absent days were never
-        // added to totalPaidDays, so they are already excluded — no double-deduction.
-        const absentAlreadyExcluded = totalPaidDays < totalWorkingDays;
-        const effectiveUnpaidDeduction = absentAlreadyExcluded ? 0 : unpaidDeduction;
+        // Holidays are credited once in paidLeaveDays. Future days are not earned.
+        const totalPaidDays = Math.min(eligibleWorkingDays, summary.presentDays + summary.paidLeaveDays);
+        const deductibleDays = summary.absentDays + summary.unpaidLeaveDays + summary.halfDays * 0.5;
+        const pay = calculateProratedPay(monthlySalary, totalWorkingDays,
+            Math.min(eligibleWorkingDays, totalPaidDays + deductibleDays), deductibleDays);
+        const basicSalary = pay.basicSalary;
+        const effectiveUnpaidDeduction = pay.unpaidDeduction;
 
         // OT: if a prior slip exists, use its overtime_amount exactly (including 0 to respect admin override).
         // For first-time generation (no existing slip), derive OT from attendance records.
@@ -483,8 +461,8 @@ exports.generateSalarySlip = async (req, res) => {
         const isPFApplicable = parseInt(year) > 2026 || (parseInt(year) === 2026 && parseInt(month) >= 5);
         const pfAmount = isPFApplicable ? (employee.pf_amount != null ? parseInt(employee.pf_amount) : 1800) : 0;
         // PT no longer auto-defaults to ₹200 — admin must explicitly set it (PF/PT tab); unset = 0.
-        const ptAmount = isPFApplicable ? (employee.pt_amount != null ? parseInt(employee.pt_amount) : 0) : 0;
-        // Professional Tax is a distinct deduction from PT — no prior hardcoded value, so null = 0.
+        const ptAmount = 0;
+        // Professional Tax is the single tax deduction; legacy pt_amount is not charged.
         const professionalTaxAmount = isPFApplicable ? (employee.professional_tax_amount != null ? parseInt(employee.professional_tax_amount) : 0) : 0;
         const dtDeduction = basicSalary > 0 ? (isPFApplicable ? pfAmount + ptAmount + professionalTaxAmount : 200) : 0;
 
@@ -508,11 +486,7 @@ exports.generateSalarySlip = async (req, res) => {
             absent_days:        summary.absentDays,
             paid_leave_days:    summary.paidLeaveDays,
             unpaid_leave_days:  summary.unpaidLeaveDays,
-            // Store the amount actually subtracted from net_salary (effectiveUnpaidDeduction),
-            // not the raw deductibleDays × perDaySalary figure — the two diverge whenever
-            // absent days are already excluded from basic_salary (the common case), and the
-            // PDF/employee salary-slip views display this column as if it were money actually
-            // taken out, so it must always agree with net_salary or the numbers won't add up.
+            // Loss of pay is subtracted once from the eligible prorated salary.
             unpaid_deduction:   effectiveUnpaidDeduction,
             basic_salary:       basicSalary,
             overtime_hours:     overtimeHours,
@@ -1008,7 +982,65 @@ const calcAdjustment = (monthlySalary, salaryEarned, totalWorkingDays, shiftHour
 };
 
 // POST /api/salary/adjustment — save salary earned OR overtime for one employee + month
+// Payroll edits affect the selected salary slip, not source attendance records.
+async function savePayrollOverrides(req, res) {
+    try {
+        if (!['admin', 'sub_admin', 'hr'].includes(req.user?.role)) return res.status(403).json({ success: false, message: 'HR/admin access required' });
+        const b = req.body;
+        const fields = ['present_days', 'absent_days', 'half_days', 'pf_amount', 'professional_tax_amount', 'salary_earned', 'deduction', 'final_payable'];
+        if (!b.employee_id || !Number.isInteger(Number(b.month)) || Number(b.month) < 1 || Number(b.month) > 12 || !Number.isInteger(Number(b.year)) || Number(b.year) < 2000) return res.status(400).json({ success: false, message: 'Valid employee, month and year required' });
+        for (const field of fields) {
+            if (b[field] === '' || b[field] == null || !Number.isFinite(Number(b[field])) || Number(b[field]) < 0) return res.status(400).json({ success: false, message: field + ' must be a non-negative number' });
+        }
+        const employee = await getEmployeeDetails(b.employee_id);
+        const cycle = getCycleDates(Number(b.month), Number(b.year));
+        const wd = countWeekdays(cycle.startDate, cycle.endDate);
+        const eligible = countWeekdays(cycle.startDate, cycle.endDate, employee.joining_date);
+        const present = Number(b.present_days), absent = Number(b.absent_days), half = Number(b.half_days);
+        if (!Number.isInteger(half) || present + absent + half * 0.5 > eligible || present < half * 0.5) return res.status(400).json({ success: false, message: 'Day counts exceed eligible weekdays. Present includes half-day credits; Half Day must be a whole count.' });
+        const { data: slips, error: readError } = await supabase.from('salary_slips').select('*').eq('employee_id', b.employee_id).eq('month', Number(b.month)).eq('year', Number(b.year)).order('generated_date', { ascending: false }).limit(1);
+        if (readError) throw readError;
+        const old = slips?.[0];
+        if (old?.is_paid) return res.status(409).json({ success: false, message: 'A paid salary slip cannot be edited' });
+        const monthly = Number(employee.in_hand_salary || employee.gross_salary || employee.salary || 0);
+        const pf = Number(b.pf_amount), tax = Number(b.professional_tax_amount);
+        const fixed = Number(b.year) > 2026 || (Number(b.year) === 2026 && Number(b.month) >= 5) ? pf + tax : 200;
+        const deduction = Number(b.deduction);
+        const custom = Number(await getDeductionTotal(b.employee_id, b.month, b.year));
+        const net = Number(b.final_payable);
+        // Final Payable is authoritative; reconcile earnings so the printed totals agree.
+        const earned = Number((net + fixed + deduction + custom).toFixed(2));
+        const overtime = Math.max(0, earned - monthly);
+        const shift = Number(b.shift_hours || 8);
+        if (!Number.isFinite(shift) || shift <= 0 || shift > 24) return res.status(400).json({ success: false, message: 'Shift hours must be between 0 and 24' });
+        const payload = {
+            employee_id: b.employee_id, month: Number(b.month), year: Number(b.year),
+            cycle_start_date: cycle.startDateStr, cycle_end_date: cycle.endDateStr,
+            monthly_salary: monthly, total_working_days: wd, per_day_salary: wd ? Number((monthly / wd).toFixed(2)) : 0,
+            present_days: present, absent_days: absent, half_days: half,
+            paid_leave_days: old?.paid_leave_days ?? 0, unpaid_leave_days: old?.unpaid_leave_days ?? 0,
+            basic_salary: Number((earned - overtime).toFixed(2)), overtime_amount: Number(overtime.toFixed(2)),
+            overtime_hours: monthly && wd ? Number((overtime / (monthly / wd / shift)).toFixed(2)) : 0,
+            unpaid_deduction: deduction, dt: fixed, custom_deduction: custom, net_salary: net,
+            is_paid: false, generated_date: new Date().toISOString(),
+        };
+        const { error: employeeError } = await supabase.from('employees').update({ pf_amount: pf, professional_tax_amount: tax }).eq('employee_id', b.employee_id);
+        if (employeeError) throw employeeError;
+        const extended = { ...payload, salary_earned: earned, earned_difference: earned - monthly,
+            adj_deduction_amount: deduction, adj_overtime_amount: overtime, adj_overtime_hours: payload.overtime_hours,
+            final_payable_salary: net, shift_hours: shift };
+        const save = values => (old ? supabase.from('salary_slips').update(values).eq('id', old.id) : supabase.from('salary_slips').insert([values])).select().single();
+        let { data, error } = await save(extended);
+        if (error && /does not exist|schema cache/i.test(error.message || '')) ({ data, error } = await save(payload));
+        if (error) throw error;
+        return res.json({ success: true, salarySlip: data, message: 'Payroll changes saved' });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Failed to save payroll changes', error: error.message });
+    }
+}
+
 exports.saveSalaryAdjustment = async (req, res) => {
+    if (req.body.payroll_edit === true) return savePayrollOverrides(req, res);
     try {
         const { employee_id, month, year, salary_earned, shift_hours, overtime_amount } = req.body;
 
@@ -1028,7 +1060,7 @@ exports.saveSalaryAdjustment = async (req, res) => {
             const monthlySalary = parseFloat(employee.in_hand_salary || employee.gross_salary || employee.salary || 0);
             const isPFApplicableOT = parseInt(year) > 2026 || (parseInt(year) === 2026 && parseInt(month) >= 5);
             const pfAmountOT = isPFApplicableOT ? (employee.pf_amount != null ? parseInt(employee.pf_amount) : 1800) : 0;
-            const ptAmountOT = isPFApplicableOT ? (employee.pt_amount != null ? parseInt(employee.pt_amount) : 0) : 0;
+            const ptAmountOT = 0;
             const professionalTaxAmountOT = isPFApplicableOT ? (employee.professional_tax_amount != null ? parseInt(employee.professional_tax_amount) : 0) : 0;
             const dt = monthlySalary > 0 ? (isPFApplicableOT ? pfAmountOT + ptAmountOT + professionalTaxAmountOT : 200) : 0;
 
@@ -1136,9 +1168,8 @@ exports.saveSalaryAdjustment = async (req, res) => {
             .maybeSingle();
 
         const cycle = getCycleDates(parseInt(month), parseInt(year));
-        const joiningDateAdj = employee.joining_date ? new Date(employee.joining_date) : null;
-        const totalWorkingDays = existingSlip?.total_working_days
-            || calculateWorkingDaysInCycle(cycle.startDate, cycle.endDate, joiningDateAdj);
+                const totalWorkingDays = existingSlip?.total_working_days
+            || calculateWorkingDaysInCycle(cycle.startDate, cycle.endDate);
 
         const earnedValue = salary_earned !== undefined && salary_earned !== ''
             ? parseFloat(salary_earned)
@@ -1154,7 +1185,7 @@ exports.saveSalaryAdjustment = async (req, res) => {
 
         const isPFApplicableAdj = parseInt(year) > 2026 || (parseInt(year) === 2026 && parseInt(month) >= 5);
         const pfAmountAdj = isPFApplicableAdj ? (employee.pf_amount != null ? parseInt(employee.pf_amount) : 1800) : 0;
-        const ptAmountAdj = isPFApplicableAdj ? (employee.pt_amount != null ? parseInt(employee.pt_amount) : 0) : 0;
+        const ptAmountAdj = 0;
         const professionalTaxAmountAdj = isPFApplicableAdj ? (employee.professional_tax_amount != null ? parseInt(employee.professional_tax_amount) : 0) : 0;
         const fixedDeductions = monthlySalary > 0 ? (isPFApplicableAdj ? pfAmountAdj + ptAmountAdj + professionalTaxAmountAdj : 200) : 0;
 
@@ -1219,7 +1250,7 @@ exports.saveSalaryAdjustment = async (req, res) => {
             resultSlip = data;
         } else {
             // No attendance-based slip yet — create a stub with adjustment only
-            const totalWD = calculateWorkingDaysInCycle(cycle.startDate, cycle.endDate, joiningDateAdj);
+            const totalWD = calculateWorkingDaysInCycle(cycle.startDate, cycle.endDate);
             const impliedPresentDays = Math.max(0, totalWD - impliedAbsentDays);
             const { data, error } = await supabase
                 .from('salary_slips')
@@ -1363,17 +1394,25 @@ exports.getBulkPayroll = async (req, res) => {
             // slip yet must get their own joining-date-aware count here, otherwise Payroll
             // Preview shows an inflated "Total Working Days" for them (the full cycle instead
             // of just the days since they joined) before a slip has ever been generated.
-            const empJoiningDate  = emp.joining_date ? new Date(emp.joining_date) : null;
-            const totalWorkingDays = slip?.total_working_days
-                || (empJoiningDate && empJoiningDate > cycle.startDate
-                    ? calculateWorkingDaysInCycle(cycle.startDate, cycle.endDate, empJoiningDate)
-                    : defaultWD);
+            const totalWorkingDays = slip?.total_working_days ?? defaultWD;
             const shiftHours      = slip?.shift_hours || parseShiftHours(emp.shift_timing) || 8;
             const attendance      = attendanceByEmployee[emp.employee_id];
             const deductionItems  = deductionsByEmployee[emp.employee_id] || [];
             const liveCustomDeduction = parseFloat(
                 deductionItems.reduce((sum, d) => sum + parseFloat(d.amount || 0), 0).toFixed(2)
             );
+            const eligibleDays = calculateWorkingDaysInCycle(cycle.startDate, cycle.endDate,
+                emp.joining_date ? dateOnly(emp.joining_date) : null);
+            const liveLossDays = attendance ? attendance.absentDays + attendance.unpaidLeaveDays + attendance.halfDays * 0.5 : 0;
+            const livePaidDays = attendance ? attendance.presentDays + attendance.paidLeaveDays : 0;
+            const livePay = calculateProratedPay(monthlySalary, defaultWD,
+                Math.min(eligibleDays, livePaidDays + liveLossDays), liveLossDays);
+            const fixedApplicable = Number(year) > 2026 || (Number(year) === 2026 && Number(month) >= 5);
+            const liveFixed = livePay.basicSalary > 0 ? (fixedApplicable
+                ? Number(emp.pf_amount ?? 1800) + Number(emp.professional_tax_amount ?? 0)
+                : 200) : 0;
+            const liveNet = Number(Math.max(0, livePay.basicSalary - livePay.unpaidDeduction
+                + Number(attendance?.totalOvertimeAmount ?? 0) - liveFixed - liveCustomDeduction).toFixed(2));
 
             let adj;
             if (slip?.salary_earned != null) {
@@ -1387,16 +1426,17 @@ exports.getBulkPayroll = async (req, res) => {
                 // than the salary slip PDF for the same employee/month.
                 if (slip?.net_salary != null) {
                     adj.final_payable_salary = parseFloat(slip.net_salary);
+                    adj.adj_deduction_amount = Number(slip.unpaid_deduction ?? 0);
                 }
             } else {
                 // No manual adjustment yet — show defaults
                 adj = {
-                    salary_earned:        monthlySalary,
-                    earned_difference:    0,
+                    salary_earned:        slip ? Number(slip.basic_salary ?? monthlySalary) : livePay.basicSalary,
+                    earned_difference:    slip ? Number(slip.basic_salary ?? 0) + Number(slip.overtime_amount ?? 0) - monthlySalary : livePay.basicSalary - monthlySalary,
                     adj_overtime_amount:  0,
                     adj_overtime_hours:   0,
-                    adj_deduction_amount: 0,
-                    final_payable_salary: slip ? parseFloat(slip.net_salary || monthlySalary) : monthlySalary,
+                    adj_deduction_amount: Number(slip?.unpaid_deduction ?? livePay.unpaidDeduction),
+                    final_payable_salary: slip ? parseFloat(slip.net_salary ?? monthlySalary) : (attendance ? liveNet : null),
                 };
             }
 
@@ -1411,6 +1451,7 @@ exports.getBulkPayroll = async (req, res) => {
                 monthly_salary:     monthlySalary,
                 shift_hours:        shiftHours,
                 total_working_days: totalWorkingDays,
+                eligible_working_days: eligibleDays,
                 has_slip:           !!slip,
                 slip_id:            slip?.id   || null,
                 net_salary:         slip?.net_salary != null ? parseFloat(slip.net_salary) : null,
@@ -1432,9 +1473,9 @@ exports.getBulkPayroll = async (req, res) => {
                 pt_amount:                emp.pt_amount != null ? parseFloat(emp.pt_amount) : null,
                 professional_tax_amount:  emp.professional_tax_amount != null ? parseFloat(emp.professional_tax_amount) : null,
                 exclude_from_payroll:     Boolean(emp.exclude_from_payroll),
-                present_days:       attendance ? attendance.presentDays : null,
-                half_days:          attendance ? attendance.halfDays : null,
-                absent_days:        attendance ? attendance.absentDays : null,
+                present_days:       slip?.present_days ?? (attendance ? attendance.presentDays : null),
+                half_days:          slip?.half_days ?? (attendance ? attendance.halfDays : null),
+                absent_days:        slip?.absent_days ?? (attendance ? attendance.absentDays : null),
                 paid_leave_days:    attendance ? attendance.paidLeaveDays : null,
                 unpaid_leave_days:  attendance ? attendance.unpaidLeaveDays : null,
                 ...adj,

@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 // src/components/Employee/ManagerShiftUpdate.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, Form, Button, Alert, Spinner, Badge, Table } from 'react-bootstrap';
@@ -316,7 +317,7 @@ const ManagerShiftUpdate = ({ embedded = false }) => {
             </Card.Header>
             <Card.Body className="p-0">
               <div className="table-responsive">
-                <Table hover size="sm" className="mb-0 align-middle">
+                <PaginatedTable as={Table} hover size="sm" className="mb-0 align-middle">
                   <thead className="bg-light">
                     <tr className="small">
                       <th className="text-center" style={{ width: 40 }}>
@@ -369,7 +370,7 @@ const ManagerShiftUpdate = ({ embedded = false }) => {
                       );
                     })}
                   </tbody>
-                </Table>
+                </PaginatedTable>
               </div>
 
               {selectedIds.size > 0 && shiftVal && fromDate && toDate && (

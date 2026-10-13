@@ -12,6 +12,7 @@ const { createOnboardingTickets } = require('../utils/onboardingTickets');
 const emailService = require('../services/emailService');
 const { sendOnboardingEmails } = require('../utils/onboardingEmails');
 const { generateAndStoreOfferLetter } = require('../services/offerLetterService');
+const { getCompanyInfo } = require('../config/companyInfo');
 const { DEFAULT_CONTRACT_POLICY } = require('../utils/contractPolicy');
 const { generateNextEmployeeId } = require('../utils/employeeId');
 
@@ -152,6 +153,7 @@ const createEmployeeAccountFromSubmission = async (offer, sub) => {
                 department: offer.department,
                 employmentType: offer.employment_type,
                 dateOfJoining: emp.joining_date,
+                workLocation: emp.work_location || getCompanyInfo(emp).defaultWorkLocation,
                 reportingManager: offer.reporting_manager,
                 annualCTC: offer.salary != null ? Math.round(Number(offer.salary) * 12) : null,
                 monthlyGross: offer.salary != null ? Number(offer.salary) : null,

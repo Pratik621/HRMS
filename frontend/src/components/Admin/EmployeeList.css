@@ -1,0 +1,38 @@
+.emp-mgmt-page { height:auto !important; min-height:calc(100dvh - 116px); max-width:1440px; margin:0 auto; overflow:visible !important; background:#f5f7fa !important; gap:18px; }
+.emp-mgmt-header { border:0 !important; padding:0 !important; background:transparent !important; align-items:flex-start !important; }
+.emp-mgmt-header h5 { font-size:26px !important; font-weight:700 !important; letter-spacing:-.6px; }
+.emp-mgmt-header p { font-size:13px !important; margin-top:6px !important; line-height:1.5; }
+.emp-mgmt-header-actions { max-width:780px; justify-content:flex-end; gap:8px; }
+.emp-mgmt-header-actions button { border-radius:8px !important; min-height:36px; font-weight:600 !important; }
+.emp-mgmt-header-actions button:not(.emp-add-primary) { background:#fff !important; color:#475569 !important; border:1px solid #dce3eb !important; }
+.emp-mgmt-header-actions button.emp-add-primary { background:#1f4e79 !important; color:#fff !important; }
+.emp-directory-summary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+.emp-summary-card { padding:18px 20px; border:1px solid #e5eaf0; border-radius:12px; background:#fff; display:flex; flex-direction:column; gap:8px; }
+.emp-summary-card > span { font-size:12px; font-weight:600; color:#64748b; }
+.emp-summary-card strong { font-size:28px; font-weight:700; color:#172033; line-height:1.1; }
+.emp-summary-card small { font-size:11px; color:#7a8494; }
+.emp-view-tabs { background:transparent !important; gap:20px; }
+.emp-view-tabs button { padding:12px 0 !important; border-bottom-width:3px !important; }
+.emp-split-pane { flex:none !important; height:min(70vh,760px); min-height:500px; border:1px solid #e5eaf0; border-radius:14px; background:#fff; box-shadow:0 2px 8px rgba(15,23,42,.03); }
+.emp-left-panel { width:340px !important; border-color:#e5eaf0 !important; }
+.emp-directory-list { padding:8px; overscroll-behavior:contain; scrollbar-width:thin; }
+.emp-directory-item { width:100%; border:1px solid transparent; border-radius:8px; text-align:left; padding:13px 10px !important; margin-bottom:4px; gap:12px !important; }
+.emp-directory-item[aria-pressed=true] { background:#eef4fb !important; border:1px solid #d4e2ef !important; }
+.emp-directory-item > div:first-child { width:40px !important; height:40px !important; font-size:12px !important; }
+.emp-directory-item > div:nth-child(2) > div:first-child { font-size:13px !important; font-weight:600 !important; }
+.emp-directory-item > div:nth-child(2) > div:last-child { font-size:11px !important; color:#64748b !important; margin-top:4px; }
+.emp-directory-item:focus-visible { outline:2px solid #52718c; outline-offset:-2px; }
+.emp-directory-pagination { flex-shrink:0; padding:12px; border-top:1px solid #e5eaf0; background:#fff; font-size:11px; color:#64748b; display:flex; flex-direction:column; gap:10px; }
+.emp-directory-pagination > div { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.emp-directory-pagination :is(button,select) { background:#fff; border:1px solid #dce3eb; border-radius:6px; padding:5px 8px; color:#475569; font-size:11px; }
+.emp-directory-pagination button:disabled { opacity:.4; cursor:not-allowed; }
+.emp-directory-empty { background:#fff !important; }
+.emp-directory-empty > div:first-child { width:64px !important; height:64px !important; border-radius:16px !important; background:#eef4fb !important; box-shadow:none !important; }
+.emp-directory-empty > div:first-child svg { color:#1f4e79; width:26px; }
+.emp-directory-empty > div:last-child { display:none !important; }
+.emp-right-panel { background:#f8fafc; }
+@media(max-width:1100px) { .emp-mgmt-header-actions { justify-content:flex-start; max-width:100%; } .emp-left-panel { width:310px !important; } }
+@media(max-width:900px) { .emp-left-panel { width:100% !important; } .emp-split-pane { height:65vh; min-height:460px; } .emp-directory-summary { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:640px) { .emp-mgmt-header h5 { font-size:24px !important; } .emp-mgmt-header p { display:block !important; } .emp-summary-card { padding:14px; } .emp-summary-card strong { font-size:24px; } .emp-summary-card small { display:none; } .emp-mgmt-header-actions { gap:6px; } }
+
+.emp-mgmt-header-actions select { border-radius:8px !important; min-height:36px; }

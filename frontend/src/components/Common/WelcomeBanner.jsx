@@ -28,6 +28,7 @@ const greeting = (hour) =>
 
 export default function WelcomeBanner({
   name,
+  portalLabel = 'Employee Portal',
   employeeMeta = null,
   onRefresh,
   onExport,
@@ -59,7 +60,7 @@ export default function WelcomeBanner({
         {/* LEFT SIDE */}
         <div className="welcome-banner-info">
           <div className="welcome-banner-label">
-            Employee Portal
+            {portalLabel}
           </div>
 
           <h3 className="welcome-banner-title">

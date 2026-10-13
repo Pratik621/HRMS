@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 // src/components/Employee/ManagerLeaveRequests.jsx
 import React, { useState, useEffect } from 'react';
 import {
@@ -286,7 +287,7 @@ const ManagerLeaveRequests = ({ embedded = false }) => {
       <Card className="border-0 shadow-sm">
         <Card.Body className="p-0">
           <div className="table-responsive" style={{ maxHeight: '450px', overflowY: 'auto' }}>
-            <Table hover size="sm" className="mb-0">
+            <PaginatedTable as={Table} hover size="sm" className="mb-0">
               <thead className="bg-light sticky-top" style={{ top: 0, zIndex: 10 }}>
                 <tr className="small">
                   <th className="fw-normal text-center">#</th>
@@ -351,7 +352,7 @@ const ManagerLeaveRequests = ({ embedded = false }) => {
                   </tr>
                 )}
               </tbody>
-            </Table>
+            </PaginatedTable>
           </div>
         </Card.Body>
       </Card>

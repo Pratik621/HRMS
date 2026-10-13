@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 // src/components/Employee/TeamAttendanceReport.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import {
@@ -646,7 +647,7 @@ const TeamAttendanceReport = () => {
                         style={{ maxHeight: 560, overflow: 'auto' }}
                         onScroll={handleDailyTableScroll}
                     >
-                        <Table className="mb-0">
+                        <PaginatedTable as={Table} paginate={false} className="mb-0">
                             <thead className="sticky-top" style={{ top: 0, zIndex: 10 }}>
                                 <tr>
                                     <th style={{ ...DA_TH_STYLE, textAlign: 'center', width: 60 }}>Sr No</th>
@@ -788,7 +789,7 @@ const TeamAttendanceReport = () => {
                                     </tr>
                                 )}
                             </tbody>
-                        </Table>
+                        </PaginatedTable>
                     </div>
                     <div className="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 px-3 py-3" style={{ borderTop: `1px solid ${DA.border}` }}>
                         <small style={{ color: DA.secondary }}>
@@ -820,7 +821,7 @@ const TeamAttendanceReport = () => {
                 </Card.Header>
                 <Card.Body className="p-0">
                         <div className="table-responsive" style={{ maxHeight: '500px', overflow: 'auto' }}>
-                            <Table className="mb-0" size="sm" bordered>
+                            <PaginatedTable as={Table} paginate={false} className="mb-0" size="sm" bordered>
                                 <thead className="bg-light sticky-top">
                                     <tr className="small text-center">
                                         <th className="fw-normal" style={{ position: 'sticky', left: 0, backgroundColor: '#f8f9fa', zIndex: 20, minWidth: '120px' }}>Employee</th>
@@ -889,7 +890,7 @@ const TeamAttendanceReport = () => {
                                         );
                                     })}
                                 </tbody>
-                            </Table>
+                            </PaginatedTable>
                         </div>
                 </Card.Body>
             </Card>

@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 // components/Admin/AdminUpdateApprovals.jsx
 import React, { useState, useEffect } from 'react';
 import axios from '../../config/axios'; // Import configured axios instance
@@ -203,7 +204,7 @@ const AdminUpdateApprovals = () => {
             {/* Changes Comparison - Responsive */}
             <h6 className="fw-bold mb-3">Changes Requested</h6>
             <div className="table-responsive">
-              <table className="table table-bordered small">
+              <PaginatedTable className="table table-bordered small">
                 <thead className="table-light">
                   <tr>
                     <th style={{ width: '25%' }} className="text-nowrap">Field</th>
@@ -232,7 +233,7 @@ const AdminUpdateApprovals = () => {
                     );
                   })}
                 </tbody>
-              </table>
+              </PaginatedTable>
             </div>
 
             {/* Action Buttons - Responsive */}
@@ -292,7 +293,7 @@ const AdminUpdateApprovals = () => {
               </div>
             ) : (
               <div className="table-responsive">
-                <table className="table table-hover mb-0">
+                <PaginatedTable className="table table-hover mb-0">
                   <thead className="table-light">
                     <tr>
                       <th className="text-nowrap">Employee</th>
@@ -342,7 +343,7 @@ const AdminUpdateApprovals = () => {
                       );
                     })}
                   </tbody>
-                </table>
+                </PaginatedTable>
               </div>
             )}
           </div>

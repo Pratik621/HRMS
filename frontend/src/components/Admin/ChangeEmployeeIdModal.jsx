@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 // src/components/Admin/ChangeEmployeeIdModal.jsx
 // Admin-only tool: rename one or more employees' auto-generated Employee ID. The actual
 // rename cascades across every table that stores employee_id (see
@@ -123,7 +124,7 @@ const ChangeEmployeeIdModal = ({ show, onClose, employees, onSuccess }) => {
         </InputGroup>
 
         <div style={{ maxHeight: 420, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 8 }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <PaginatedTable style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead style={{ position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1 }}>
               <tr>
                 <th style={{ padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb', color: '#6b7280', fontSize: 11, textTransform: 'uppercase' }}>Name</th>
@@ -149,7 +150,7 @@ const ChangeEmployeeIdModal = ({ show, onClose, employees, onSuccess }) => {
                         onChange={e => handleChange(emp.employee_id, e.target.value)}
                         style={{
                           fontFamily: 'monospace',
-                          borderColor: result ? (result.success ? '#16a34a' : '#ef4444') : (changed ? '#6366f1' : undefined),
+                          borderColor: result ? (result.success ? '#16a34a' : '#ef4444') : (changed ? "#1f4e79" : undefined),
                           background: result ? (result.success ? '#f0fdf4' : '#fef2f2') : undefined,
                         }}
                       />
@@ -164,7 +165,7 @@ const ChangeEmployeeIdModal = ({ show, onClose, employees, onSuccess }) => {
                 );
               })}
             </tbody>
-          </table>
+          </PaginatedTable>
         </div>
       </Modal.Body>
       <Modal.Footer>
