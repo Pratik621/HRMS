@@ -1,0 +1,47 @@
+
+.hc-card { background:#fff; border:1px solid #e5eaf0; border-radius:14px; box-shadow:0 2px 8px rgba(15,23,42,.03); color:#172033; }
+.hc-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; padding:20px; border-bottom:1px solid #e5eaf0; }
+.hc-title-wrap { display:flex; align-items:center; gap:12px; }
+.hc-icon-circle { display:flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:10px; background:#f1f5f9; color:#64748b; flex-shrink:0; }
+.hc-title { font-size:15px; font-weight:700; margin:0 0 5px; }
+.hc-subtitle { font-size:12px; color:#64748b; margin:0; line-height:1.6; }
+.hc-count { padding:6px 10px; border:1px solid #e5eaf0; border-radius:6px; background:#f8fafc; color:#475569; font-size:11px; font-weight:600; }
+.hc-body { padding:24px; }
+.hc-layout { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(260px,1fr); gap:28px; }
+.hc-month-navigation { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px; }
+.hc-month-navigation h3,.hc-upcoming-panel h3 { font-size:16px; font-weight:700; margin:0; }
+.hc-controls { display:flex; gap:6px; }
+.hc-controls button { display:flex; align-items:center; justify-content:center; height:34px; min-width:34px; background:white; border:1px solid #dce3eb; border-radius:8px; color:#475569; font-size:12px; }
+.hc-controls .hc-today-btn { padding:0 12px; margin-right:4px; }
+.hc-controls button:hover:not(:disabled) { background:#eef4fb; color:#1f4e79; }
+.hc-controls button:disabled { opacity:.4; cursor:not-allowed; }
+.hc-controls button:focus-visible,.hc-day--holiday:focus-visible { outline:2px solid #52718c; outline-offset:3px; }
+.hc-weekdays,.hc-days { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); text-align:center; gap:6px; }
+.hc-weekdays { font-size:11px; font-weight:600; color:#64748b; margin-bottom:12px; }
+.hc-day { min-width:0; display:flex; align-items:center; justify-content:center; height:48px; border:1px solid transparent; background:#f8fafc; border-radius:8px; color:#475569; font:inherit; font-size:13px; }
+.hc-day--empty { visibility:hidden; }
+.hc-day--weekend { color:#7a8494; background:#fff; }
+.hc-day--holiday { background:var(--hc-color,#1f4e79); color:white; font-weight:600; cursor:pointer; }
+.hc-day--holiday:hover { filter:brightness(1.12); }
+.hc-day--today { outline:2px solid #1f4e79; outline-offset:2px; font-weight:700; }
+.hc-legend { display:flex; flex-wrap:wrap; gap:16px; margin-top:20px; }
+.hc-legend-item { display:inline-flex; align-items:center; gap:6px; font-size:11px; color:#64748b; }
+.hc-legend-dot { width:8px; height:8px; border-radius:50%; }
+.hc-month-note { color:#64748b; font-size:12px; margin:12px 0 0; }
+.hc-upcoming-panel { border-left:1px solid #e5eaf0; padding-left:28px; }
+.hc-upcoming-panel > .hc-subtitle { margin-top:6px; }
+.hc-holiday-list { padding:0; margin:20px 0 0; list-style:none; }
+.hc-holiday-list li { display:flex; gap:12px; padding:16px 0; border-bottom:1px solid #eef2f6; }
+.hc-holiday-list li:first-child { padding-top:0; }
+.hc-holiday-list li:last-child { border-bottom:0; }
+.hc-date-tile { display:flex; flex-direction:column; align-items:center; justify-content:center; width:52px; height:58px; border-radius:10px; background:#eef4fb; color:#1f4e79; flex-shrink:0; }
+.hc-date-tile span { font-size:10px; text-transform:uppercase; }
+.hc-date-tile strong { font-size:21px; }
+.hc-holiday-info { display:flex; flex-direction:column; gap:5px; min-width:0; }
+.hc-holiday-info strong { font-size:13px; overflow-wrap:anywhere; }
+.hc-holiday-info span { font-size:11px; color:#64748b; }
+.hc-empty { font-size:13px; color:#64748b; padding:24px 0; }
+.hc-footer { border-top:1px solid #e5eaf0; padding:16px 24px; font-size:11px; color:#64748b; }
+.hc-popover-detail { border-top:1px solid #e5eaf0; padding-top:8px; margin-top:8px; line-height:1.6; }
+@media (max-width:991px) { .hc-layout { grid-template-columns:1fr; } .hc-upcoming-panel { border-left:0; border-top:1px solid #e5eaf0; padding:24px 0 0; } }
+@media (max-width:575px) { .hc-header,.hc-body { padding:16px; } .hc-title { font-size:14px; } .hc-day { height:36px; font-size:12px; } .hc-days,.hc-weekdays { gap:4px; } .hc-weekdays { font-size:10px; } .hc-footer { padding:16px; } }

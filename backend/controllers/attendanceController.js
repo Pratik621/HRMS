@@ -580,7 +580,6 @@ exports.clockIn = async (req, res) => {
         if (activeSessions && activeSessions.length > 0) {
             const activeSession = activeSessions[0];
 
-            // ✅ STALE SESSION CHECK: If attendance for this session already has clock_out, auto-fix it
             const { data: staleAtt } = await supabase
                 .from('attendance')
                 .select('id, clock_out, clock_out_ist, attendance_date')
@@ -596,7 +595,6 @@ exports.clockIn = async (req, res) => {
                     .update({ is_active: false, clock_out_time: staleAtt.clock_out })
                     .eq('session_id', activeSession.session_id)
                     .eq('employee_id', employee_id);
-                // Allow clock-in to proceed
             } else {
                 // Check if orphan session (no attendance record at all)
                 const { data: anyAtt } = await supabase
@@ -613,7 +611,6 @@ exports.clockIn = async (req, res) => {
                         .update({ is_active: false, clock_out_time: new Date().toISOString() })
                         .eq('session_id', activeSession.session_id)
                         .eq('employee_id', employee_id);
-                    // Allow clock-in to proceed
                 } else {
                     // Compare using IST dates to avoid UTC midnight mismatch
                     const sessionISTDate = utcMsToISTString(new Date(activeSession.clock_in_time).getTime()).split(' ')[0];

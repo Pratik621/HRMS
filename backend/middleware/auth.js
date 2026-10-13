@@ -1,15 +1,11 @@
 const jwt = require('jsonwebtoken');
 
-// TEMPORARY diagnostic logging for the "many endpoints 401 at once" investigation — traces
-// why a request was rejected without ever logging the token/credential itself. Safe to remove
-// once the 401 flood is confirmed fixed in production.
 const AUTH_DEBUG = process.env.NODE_ENV !== 'production' || process.env.AUTH_DEBUG === 'true';
 const authLog = (...args) => { if (AUTH_DEBUG) console.log('[auth]', ...args); };
 
 const verifyToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-
     if (!token) {
         authLog(req.method, req.originalUrl, '-> 401 NO_TOKEN (Authorization header missing or malformed)');
         return res.status(401).json({ success: false, message: 'Access token required', code: 'NO_TOKEN' });

@@ -13,7 +13,7 @@ const MONTHS = [
 const fmtCurrency = (value) => `₹${Number(value || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const fmtDate = (value) => value ? new Date(value).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
-export default function EmployeeDeductions() {
+export default function EmployeeDeductions({ embedded = false }) {
   const { user } = useAuth();
   const [deductions, setDeductions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -50,7 +50,8 @@ export default function EmployeeDeductions() {
   }, [deductions]);
 
   return (
-    <Container fluid className="py-4">
+    <Container fluid className={embedded ? 'payroll-deductions p-0' : 'py-4'}>
+      {!embedded && (
       <div className="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
         <div className="d-flex align-items-center gap-3">
           <div style={{ background: 'linear-gradient(135deg,#2563eb,#3b82f6)', borderRadius: 14, padding: '12px 14px', boxShadow: '0 10px 24px rgba(37,99,235,0.18)' }}>
@@ -63,6 +64,8 @@ export default function EmployeeDeductions() {
         </div>
         <Badge bg="primary" className="px-3 py-2">Private to your account</Badge>
       </div>
+
+      )}
 
       <Card className="border-0 shadow-sm mb-4" style={{ borderRadius: 18 }}>
         <Card.Body style={{ padding: 20 }}>
@@ -106,7 +109,7 @@ export default function EmployeeDeductions() {
                 <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(255,255,255,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <FaMoneyBill />
                 </div>
-                <Badge bg="light" text="dark">This month</Badge>
+                <Badge bg="light" text="dark">{MONTHS[filterMonth - 1]} {filterYear}</Badge>
               </div>
               <div className="fw-bold" style={{ fontSize: 24 }}>{fmtCurrency(summary.total)}</div>
               <div className="text-muted mt-1" style={{ fontSize: 13 }}>Total deductions</div>

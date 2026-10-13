@@ -1,0 +1,18 @@
+
+.tickets-page { width:100%; min-height:100vh; background:#f5f7fa; color:#172033; }
+.tickets-eyebrow { font-size:10px; font-weight:700; letter-spacing:1.6px; color:#64748b; }
+.tickets-title { font-size:28px; font-weight:700; margin:5px 0; letter-spacing:-.6px; }
+.tickets-stat-card { box-shadow:0 2px 8px rgba(15,23,42,.03); }
+.tickets-stat-card[aria-pressed="true"] { border-color:#52718c !important; background:#f8fafc !important; }
+.tickets-filter-panel { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; padding:18px; margin-bottom:20px; border:1px solid #e5eaf0; border-radius:12px; background:#fff; }
+.tickets-page input:not([type="checkbox"]),.tickets-page select,.tickets-modal input,.tickets-modal select,.tickets-modal textarea { border-color:#dce3eb !important; border-radius:8px !important; font-size:13px !important; }
+.tickets-page input:focus,.tickets-page select:focus,.tickets-modal input:focus,.tickets-modal select:focus,.tickets-modal textarea:focus { outline:2px solid #52718c; outline-offset:2px; }
+.tickets-page button,.tickets-modal button { font-weight:600; border-radius:8px; }
+.tickets-page button:focus-visible,.tickets-stat-card:focus-visible,.tickets-modal button:focus-visible { outline:2px solid #52718c; outline-offset:3px; }
+.tickets-modal .modal-content { border:1px solid #e5eaf0; border-radius:14px; overflow:hidden; }
+.tickets-modal .modal-header { background:#f8fafc !important; border-bottom:1px solid #e5eaf0 !important; padding:18px 24px; }
+.tickets-modal .modal-title { color:#172033 !important; }
+.tickets-modal .modal-title svg { color:#64748b; }
+.tickets-modal .modal-footer { border-top:1px solid #e5eaf0; }
+.ticket-drawer { border-left:1px solid #e5eaf0; }
+@media(max-width:575px) { .tickets-title { font-size:24px; } .tickets-filter-panel { padding:14px; } .tickets-filter-panel > div { min-width:0 !important; width:100%; } .tickets-filter-panel select { flex:1; max-width:none !important; } .tickets-filter-panel input { min-width:0; } }

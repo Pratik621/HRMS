@@ -1,0 +1,67 @@
+
+.al-card { background:#fff; border-radius:20px; border:1px solid #e5eaf0; box-shadow:0 10px 35px rgba(16,24,40,.06); }
+.al-card-header { border-bottom:1px solid #e5eaf0; }
+.al-icon-circle { width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+.al-btn-outline { display:inline-flex; align-items:center; gap:6px; background:#fff; border:1px solid #dce3eb; color:#344054; border-radius:10px; padding:7px 14px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap; }
+.al-btn-outline:hover { background:#F9FAFB; }
+.al-btn-primary { display:inline-flex; align-items:center; justify-content:center; gap:8px; background:linear-gradient(135deg,#4F46E5,#6366F1); color:#fff; border:none; border-radius:12px; padding:10px 22px; font-weight:600; font-size:13.5px; box-shadow:0 6px 16px rgba(79,70,229,.28); cursor:pointer; transition:transform .12s ease, box-shadow .12s ease; }
+.al-btn-primary:hover { transform:translateY(-1px); box-shadow:0 10px 22px rgba(79,70,229,.35); color:#fff; }
+.al-btn-primary:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+.al-recent-row { display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid #F5F6F8; }
+.al-recent-row:last-child { border-bottom:none; }
+.al-recent-icon { width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.al-status-pill { display:inline-flex; align-items:center; border-radius:999px; padding:4px 12px; font-size:11.5px; font-weight:700; white-space:nowrap; text-transform:capitalize; }
+.al-policy-icon { width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.al-policy-list { list-style:disc; padding-left:18px; margin:6px 0 0; font-size:12px; color:#667085; }
+.al-policy-list li { margin-bottom:4px; }
+.al-form-control, .al-select, .al-textarea, textarea.al-textarea { border:1px solid #dce3eb !important; border-radius:12px !important; font-size:13.5px !important; }
+.al-form-control:focus, .al-select:focus, .al-textarea:focus { border-color:#1f4e79 !important; box-shadow:0 0 0 3px rgba(79,70,229,.12) !important; }
+.al-radio .form-check-input { cursor:pointer; }
+.al-radio .form-check-input:checked { background-color:#1f4e79; border-color:#1f4e79; }
+.al-radio .form-check-label { cursor:pointer; }
+.al-balance-banner { border-radius:14px; padding:16px; text-align:center; }
+.al-balance-icon-check { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 8px; }
+.al-select-icon-wrap { position:relative; }
+.al-select-icon-wrap .al-select-emoji { position:absolute; left:12px; top:50%; transform:translateY(-50%); pointer-events:none; font-size:14px; z-index:5; }
+.al-select-icon-wrap select { padding-left:34px !important; }
+
+/* Sober form-first layout, matching the employee dashboard. */
+.al-page { min-height:100vh; background:#f5f7fa; color:#172033; }
+.al-page-header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:24px; }
+.al-eyebrow { font-size:10px; letter-spacing:1.6px; font-weight:700; color:#64748b; }
+.al-page-header h1 { font-size:28px; font-weight:700; letter-spacing:-.6px; margin:6px 0; }
+.al-page-header p { font-size:13px; color:#64748b; margin:0; }
+.al-card { border-radius:14px; box-shadow:0 2px 8px rgba(15,23,42,.03); }
+.al-card-header { flex-wrap:wrap; gap:12px; padding:20px !important; }
+.al-card-header h6 { font-size:14px; }
+.al-card > .p-3 { padding:24px !important; }
+.al-page .al-icon-circle,.al-page .al-policy-icon,.al-page .al-recent-icon,.al-page .al-balance-icon-check { background:#f1f5f9 !important; color:#64748b !important; border-radius:10px; }
+.al-page .al-balance-icon-check svg { color:#64748b; }
+.al-recent-icon { font-size:14px; }
+.al-btn-primary { background:#1f4e79; box-shadow:none; border-radius:8px; padding:11px 20px; transition:background .15s; }
+.al-btn-primary:hover { background:#173a5c; transform:none; box-shadow:none; }
+.al-btn-outline { border-radius:8px; padding:9px 14px; }
+.al-page button:focus-visible,.al-modal button:focus-visible { outline:2px solid #52718c; outline-offset:3px; }
+.al-form-control,.al-select,.al-textarea,textarea.al-textarea { border-radius:8px !important; padding:11px 12px !important; min-height:42px; font-size:13px !important; }
+.al-select-icon-wrap select { padding-left:12px !important; padding-right:36px !important; }
+.al-form-control:focus,.al-select:focus,.al-textarea:focus { border-color:#52718c !important; box-shadow:0 0 0 3px rgba(31,78,121,.1) !important; }
+.al-page .is-invalid { border-color:#c53030 !important; }
+.al-page .form-label { color:#475569 !important; margin-bottom:8px; }
+.al-radio { gap:20px !important; min-height:42px; font-size:13px; }
+.al-radio .form-check-input:checked { background-color:#1f4e79; border-color:#1f4e79; }
+.al-page .alert { background:#f8fafc !important; border:1px solid #e5eaf0 !important; border-radius:10px; color:#475569; line-height:1.7; }
+.al-page .alert-danger { border-left:3px solid #c53030 !important; }
+.al-page .alert-warning { border-left:3px solid #c05621 !important; }
+.al-page .text-primary,.al-page .text-purple { color:#1f4e79 !important; }
+.al-page .al-balance-banner { background:#f8fafc !important; border:1px solid #e5eaf0; border-radius:10px; }
+.al-page .al-balance-banner h5,.al-page .al-balance-banner p.fw-semibold { color:#172033 !important; }
+.al-page .al-status-pill { background:#f1f5f9 !important; color:#475569 !important; border:1px solid #e5eaf0; border-radius:6px; font-size:11px; font-weight:600; }
+.al-page .progress { height:6px; border-radius:6px; background:#eef2f6; }
+.al-page .progress-bar { background:#64748b; }
+.al-policy-list { line-height:1.8; color:#64748b; }
+.al-recent-row { padding:14px 0; }
+.al-modal .modal-content { border:1px solid #e5eaf0; border-radius:14px; overflow:hidden; }
+.al-modal .modal-header { background:#f8fafc !important; color:#172033 !important; border-bottom:1px solid #e5eaf0; }
+.al-modal .modal-body { padding:24px !important; line-height:1.8; }
+.al-modal .btn { border-radius:8px; font-size:12px; }
+@media(max-width:575px) { .al-page-header h1 { font-size:24px; } .al-page-header { align-items:flex-start; } .al-card-header,.al-card > .p-3 { padding:16px !important; } .al-recent-row { gap:8px; flex-wrap:wrap; } .al-page .al-status-pill { padding:4px 8px; } }

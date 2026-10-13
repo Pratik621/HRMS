@@ -222,6 +222,45 @@ const sendEmployeeCredentialsEmail = async (employee, credentials, offerLetter) 
     });
 };
 
+// Only these fields may be shared with IT; never serialize the employee record.
+const sendITNewJoinerEmail = async (notifyEmails, employee) => {
+    if (!notifyEmails?.length) return { success: false, reason: 'no_recipients' };
+    const { getCompanyInfo } = require('../config/companyInfo');
+    const name = [employee.first_name, employee.middle_name, employee.last_name].filter(Boolean).join(' ');
+    const details = [
+        ['Employee Name', name],
+        ['Employee ID', employee.employee_id],
+        ['Email', employee.email],
+        ['Contact Number', employee.phone],
+        ['Joining Date', employee.joining_date],
+        ['Designation', employee.designation],
+        ['Department', employee.department],
+        ['Reporting Manager', employee.reporting_manager],
+        ['Employment Type', employee.employment_type],
+        ['Shift', employee.shift_timing],
+        ['Work Location', employee.work_location || getCompanyInfo(employee).defaultWorkLocation],
+    ];
+    const instruction = 'Please assign a system/laptop to the new employee and arrange the required work access.';
+    const detailsText = details.map(([label, value]) => `${label}: ${value || 'N/A'}`).join('\n');
+    const safeId = String(employee.employee_id || 'employee').replace(/[^a-z0-9-]/gi, '-');
+    return sendEmail({
+        to: notifyEmails,
+        subject: `New Employee Joined – Assign System – ${name}`,
+        html: shell('New Employee – System Allocation', `
+            ${h2('New Employee – System Allocation')}
+            ${para(`${escapeHtml(name)} has completed onboarding and their HRMS account has been created.`)}
+            ${para(instruction)}
+            ${tbl(details.map(([label, value]) => row(label, escapeHtml(String(value || 'N/A')))).join(''))}
+            ${para('Employee work details are also attached for system allocation.')}
+        `),
+        text: `${name} has completed onboarding and their HRMS account has been created.\n\n${instruction}\n\n${detailsText}`,
+        attachments: [{
+            filename: `${safeId}-IT-Onboarding-Details.txt`,
+            content: Buffer.from(`${instruction}\n\n${detailsText}`, 'utf8').toString('base64'),
+        }],
+    });
+};
+
 // ─── 13. GENERATED OFFER LETTER (Flow A — HR-triggered from /admin/employees) ───────
 const sendOfferLetterEmail = async (employee, { pdfBase64, filename, additionalEmail, designation, companyName, hrEmail }) => {
     const { to, name } = resolveRecipient(employee);
@@ -811,6 +850,7 @@ module.exports = {
     sendHolidayEmail,
     sendPasswordResetOtpEmail,
     sendEmployeeCredentialsEmail,
+    sendITNewJoinerEmail,
     sendNewJoinerEmail,
     sendLeaveAppliedEmail,
     sendTicketCreatedEmail,

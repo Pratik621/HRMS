@@ -103,7 +103,7 @@ export const holidays = [
     name: 'Gandhi Jayanti',
     region: 'India',
     type: 'optional_holiday',
-    note: 'Optional holiday — employees who work on this day will receive double pay'
+    note: 'Optional holiday'
   },
   {
     date: '2026-10-12',

@@ -11,16 +11,17 @@ import { useAuth } from '../../context/AuthContext';
 import axios from '../../config/axios';
 import API_ENDPOINTS from '../../config/api';
 import { getTicketAge } from '../../utils/ticketAge';
+import './TicketList.css';
 
 // ─── Page design tokens ───────────────────────────────────────────────────────
 const TK = {
-  primary: '#4F46E5', primaryLight: '#EEF2FF',
-  success: '#10B981', successLight: '#ECFDF5',
-  warning: '#F59E0B', warningLight: '#FFFBEB',
-  purple:  '#8B5CF6', purpleLight:  '#F5F3FF',
-  danger:  '#EF4444', dangerLight:  '#FEF2F2',
-  blue:    '#3B82F6', blueLight:    '#EFF6FF',
-  textDark: '#111827', textMuted: '#6B7280', border: '#E5E7EB',
+  primary: '#1f4e79', primaryLight: '#eef4fb',
+  success: '#168a70', successLight: '#f8fafc',
+  warning: '#8a702c', warningLight: '#f8fafc',
+  purple:  '#64748b', purpleLight:  '#f8fafc',
+  danger:  '#c53030', dangerLight:  '#FEF2F2',
+  blue:    '#52718c', blueLight:    '#f8fafc',
+  textDark: '#172033', textMuted: '#64748b', border: '#e5eaf0',
 };
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -59,24 +60,24 @@ const ISSUE_TYPES = {
 const PRIORITIES = ['low', 'medium', 'high', 'urgent'];
 
 const STATUS_META = {
-  open:             { label: 'Open',             color: '#3b82f6', bg: '#dbeafe' },
-  in_progress:      { label: 'In Progress',      color: '#f59e0b', bg: '#fef3c7' },
-  resolved_pending: { label: 'Pending Confirm',  color: '#8b5cf6', bg: '#ede9fe' },
-  closed:           { label: 'Closed',           color: '#10b981', bg: '#d1fae5' },
-  reopened:         { label: 'Reopened',         color: '#ef4444', bg: '#fee2e2' },
+  open:             { label: 'Open',             color: '#475569', bg: '#f1f5f9' },
+  in_progress:      { label: 'In Progress',      color: '#475569', bg: '#f1f5f9' },
+  resolved_pending: { label: 'Pending Confirm',  color: '#475569', bg: '#f1f5f9' },
+  closed:           { label: 'Closed',           color: '#475569', bg: '#f1f5f9' },
+  reopened:         { label: 'Reopened',         color: '#475569', bg: '#f1f5f9' },
 };
 
 const PRIORITY_META = {
-  low:    { color: '#10b981', label: 'Low' },
-  medium: { color: '#f59e0b', label: 'Medium' },
-  high:   { color: '#ef4444', label: 'High' },
-  urgent: { color: '#7c3aed', label: 'Urgent' },
+  low:    { color: '#168a70', label: 'Low' },
+  medium: { color: '#8a702c', label: 'Medium' },
+  high:   { color: '#c53030', label: 'High' },
+  urgent: { color: '#475569', label: 'Urgent' },
 };
 
 const DEPT_META = {
-  HR: { color: '#6366f1', icon: '👥' },
-  IT: { color: '#0ea5e9', icon: '💻' },
-  Marketing: { color: '#f59e0b', icon: '📢' },
+  HR: { color: '#52718c', icon: '👥' },
+  IT: { color: '#52718c', icon: '💻' },
+  Marketing: { color: '#8a702c', icon: '📢' },
 };
 
 const ROLES_SEE_ALL = ['admin', 'sub_admin', 'hr'];
@@ -126,7 +127,7 @@ const getEmployeePhotoUrl = (employee) => (
 // ─── StatusBadge ─────────────────────────────────────────────────────────────
 
 const StatusBadge = ({ status }) => {
-  const m = STATUS_META[status] || { label: status, color: '#6b7280', bg: '#f3f4f6' };
+  const m = STATUS_META[status] || { label: status, color: '#64748b', bg: '#f3f4f6' };
   return (
     <span style={{ fontSize: 11, fontWeight: 700, borderRadius: 99, padding: '3px 10px', background: m.bg, color: m.color, whiteSpace: 'nowrap' }}>
       {m.label}
@@ -284,27 +285,27 @@ function TicketForm({ show, onHide, onCreated, userEmail, userName, userEmployee
   };
 
   return (
-    <Modal show={show} onHide={() => { reset(); onHide(); }} size="lg" centered>
-      <Modal.Header closeButton style={{ background: '#1e2a3e', border: 'none' }}>
+    <Modal className="tickets-modal" show={show} onHide={() => { reset(); onHide(); }} size="lg" centered>
+      <Modal.Header closeButton style={{ background: '#1f4e79', border: 'none' }}>
         <Modal.Title style={{ color: '#fff', fontSize: 16, fontWeight: 700 }}>
           🎫 Raise a Support Ticket
         </Modal.Title>
       </Modal.Header>
       <Modal.Body style={{ padding: '24px 28px' }}>
         <form onSubmit={handleSubmit}>
-          {error && <div style={{ background: '#fee2e2', color: '#dc2626', borderRadius: 8, padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>{error}</div>}
+          {error && <div style={{ background: '#f1f5f9', color: '#dc2626', borderRadius: 8, padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>{error}</div>}
 
           {/* Email — read only */}
           <div style={{ marginBottom: 16 }}>
             <label style={labelStyle}>Your Email <span style={{ color: '#9ca3af', fontWeight: 400 }}>(auto-filled)</span></label>
-            <input value={userEmail} disabled style={{ ...inputStyle, background: '#f9fafb', color: '#6b7280', cursor: 'not-allowed' }} />
+            <input value={userEmail} disabled style={{ ...inputStyle, background: '#f9fafb', color: '#64748b', cursor: 'not-allowed' }} />
           </div>
 
           {/* Raised For — who the ticket is actually about (defaults to the raiser themselves) */}
           <div style={{ marginBottom: 16 }} ref={raisedForRef}>
             <label style={labelStyle}>Raise Ticket For <span style={{ color: '#9ca3af', fontWeight: 400 }}>(defaults to you)</span></label>
             {raisedFor ? (
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, padding: '7px 12px' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#f8fafc', border: '1px solid #bfdbfe', borderRadius: 8, padding: '7px 12px' }}>
                 <div style={{ width: 24, height: 24, borderRadius: '50%', background: avatarColor(`${raisedFor.first_name} ${raisedFor.last_name}`), color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   {(raisedFor.first_name?.[0] || '?').toUpperCase()}
                 </div>
@@ -321,7 +322,7 @@ function TicketForm({ show, onHide, onCreated, userEmail, userName, userEmployee
                   style={inputStyle}
                 />
                 {showRaisedForDD && raisedForInput && filteredRaisedForEmps.length > 0 && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.1)', zIndex: 100, maxHeight: 200, overflowY: 'auto' }}>
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #e5eaf0', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.1)', zIndex: 100, maxHeight: 200, overflowY: 'auto' }}>
                     {filteredRaisedForEmps.map(emp => (
                       <div key={emp.employee_id} onMouseDown={() => { setRaisedFor(emp); setRaisedForInput(''); setShowRaisedForDD(false); }} style={{ padding: '9px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}
                         onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
@@ -330,7 +331,7 @@ function TicketForm({ show, onHide, onCreated, userEmail, userName, userEmployee
                           {(emp.first_name?.[0] || '?').toUpperCase()}
                         </div>
                         <div>
-                          <div style={{ fontWeight: 600, color: '#111827' }}>{emp.first_name} {emp.last_name}</div>
+                          <div style={{ fontWeight: 600, color: '#172033' }}>{emp.first_name} {emp.last_name}</div>
                           <div style={{ fontSize: 11, color: '#9ca3af' }}>{emp.department || ''}</div>
                         </div>
                       </div>
@@ -344,7 +345,7 @@ function TicketForm({ show, onHide, onCreated, userEmail, userName, userEmployee
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
             {/* Department */}
             <div>
-              <label style={labelStyle}>Department <span style={{ color: '#ef4444' }}>*</span></label>
+              <label style={labelStyle}>Department <span style={{ color: '#c53030' }}>*</span></label>
               <select value={dept} onChange={e => setDept(e.target.value)} style={inputStyle} required>
                 <option value="">Select Department</option>
                 {DEPARTMENTS.map(d => <option key={d} value={d}>{DEPT_META[d]?.icon} {d}</option>)}
@@ -352,7 +353,7 @@ function TicketForm({ show, onHide, onCreated, userEmail, userName, userEmployee
             </div>
             {/* Issue Type */}
             <div>
-              <label style={labelStyle}>Issue Type <span style={{ color: '#ef4444' }}>*</span></label>
+              <label style={labelStyle}>Issue Type <span style={{ color: '#c53030' }}>*</span></label>
               <select value={issueType} onChange={e => setIssueType(e.target.value)} style={inputStyle} required disabled={!dept}>
                 <option value="">{dept ? 'Select Issue' : 'Select dept first'}</option>
                 {(ISSUE_TYPES[dept] || []).map(t => <option key={t} value={t}>{t}</option>)}
@@ -379,13 +380,13 @@ function TicketForm({ show, onHide, onCreated, userEmail, userName, userEmployee
 
           {/* Subject */}
           <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>Subject <span style={{ color: '#ef4444' }}>*</span></label>
+            <label style={labelStyle}>Subject <span style={{ color: '#c53030' }}>*</span></label>
             <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Brief summary of your issue" style={inputStyle} maxLength={200} required />
           </div>
 
           {/* Description */}
           <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>Description <span style={{ color: '#ef4444' }}>*</span></label>
+            <label style={labelStyle}>Description <span style={{ color: '#c53030' }}>*</span></label>
             <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe your issue in detail..." rows={4} style={{ ...inputStyle, resize: 'vertical', minHeight: 100 }} required />
           </div>
 
@@ -396,7 +397,7 @@ function TicketForm({ show, onHide, onCreated, userEmail, userName, userEmployee
             <div style={{ marginBottom: 16 }} ref={tagRef}>
               <label style={labelStyle}>Assign To <span style={{ color: '#9ca3af', fontWeight: 400 }}>(optional — type @ to search the {dept} team, or leave blank for the {dept} team queue)</span></label>
               {taggedEmps.length > 0 ? (
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: '#ede9fe', color: '#6d28d9', borderRadius: 99, padding: '5px 12px 5px 8px', fontSize: 13, fontWeight: 600 }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: '#f1f5f9', color: '#6d28d9', borderRadius: 99, padding: '5px 12px 5px 8px', fontSize: 13, fontWeight: 600 }}>
                   @{taggedEmps[0].first_name} {taggedEmps[0].last_name}
                   <button type="button" onClick={() => removeTag(taggedEmps[0].employee_id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6d28d9', padding: 0, lineHeight: 1, fontSize: 15 }}>×</button>
                 </div>
@@ -410,16 +411,16 @@ function TicketForm({ show, onHide, onCreated, userEmail, userName, userEmployee
                     style={inputStyle}
                   />
                   {showTagDD && filteredDeptEmps.length > 0 && (
-                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.1)', zIndex: 100, maxHeight: 180, overflowY: 'auto' }}>
+                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #e5eaf0', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.1)', zIndex: 100, maxHeight: 180, overflowY: 'auto' }}>
                       {filteredDeptEmps.map(emp => (
                         <div key={emp.employee_id} onMouseDown={() => addTag(emp)} style={{ padding: '9px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}
                           onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
                           onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
-                          <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#6366f1', color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#52718c', color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                             {(emp.first_name?.[0] || '?').toUpperCase()}
                           </div>
                           <div>
-                            <div style={{ fontWeight: 600, color: '#111827' }}>{emp.first_name} {emp.last_name}</div>
+                            <div style={{ fontWeight: 600, color: '#172033' }}>{emp.first_name} {emp.last_name}</div>
                             <div style={{ fontSize: 11, color: '#9ca3af' }}>{emp.email}</div>
                           </div>
                         </div>
@@ -436,11 +437,11 @@ function TicketForm({ show, onHide, onCreated, userEmail, userName, userEmployee
             <label style={labelStyle}>Attachment <span style={{ color: '#9ca3af', fontWeight: 400 }}>(screenshot, optional)</span></label>
             <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '10px 14px', border: '1.5px dashed #d1d5db', borderRadius: 8, background: '#fafafa' }}>
               <span style={{ fontSize: 20 }}>📎</span>
-              <span style={{ fontSize: 13, color: attName ? '#111827' : '#9ca3af' }}>{attName || 'Click to attach a file (image, PDF)'}</span>
+              <span style={{ fontSize: 13, color: attName ? '#172033' : '#9ca3af' }}>{attName || 'Click to attach a file (image, PDF)'}</span>
               <input type="file" accept="image/*,.pdf,.doc,.docx" onChange={handleFile} style={{ display: 'none' }} />
             </label>
             {attName && (
-              <button type="button" onClick={() => { setAttachment(null); setAttName(''); }} style={{ marginTop: 4, background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 12 }}>
+              <button type="button" onClick={() => { setAttachment(null); setAttName(''); }} style={{ marginTop: 4, background: 'none', border: 'none', color: '#c53030', cursor: 'pointer', fontSize: 12 }}>
                 Remove attachment
               </button>
             )}
@@ -487,18 +488,18 @@ const TICKET_DRAWER_CSS = `
 `;
 
 const ACTION_HISTORY_META = {
-  created: { icon: FaTicketAlt, color: '#3b82f6' },
-  comment: { icon: FaComment, color: '#6366f1' },
-  status_changed: { icon: FaExchangeAlt, color: '#f59e0b' },
-  resolved: { icon: FaCheckCircle, color: '#8b5cf6' },
-  closed: { icon: FaLock, color: '#10b981' },
-  reopened: { icon: FaLockOpen, color: '#ef4444' },
+  created: { icon: FaTicketAlt, color: '#52718c' },
+  comment: { icon: FaComment, color: '#52718c' },
+  status_changed: { icon: FaExchangeAlt, color: '#8a702c' },
+  resolved: { icon: FaCheckCircle, color: '#64748b' },
+  closed: { icon: FaLock, color: '#168a70' },
+  reopened: { icon: FaLockOpen, color: '#c53030' },
 };
 
 const drawerBtnBase = { border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', padding: '10px 16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'opacity 120ms ease, transform 120ms ease' };
 const DRAWER_BTN = {
-  primary: { ...drawerBtnBase, background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' },
-  success: { ...drawerBtnBase, background: '#10b981', color: '#fff' },
+  primary: { ...drawerBtnBase, background: '#f8fafc', color: '#1d4ed8', border: '1px solid #bfdbfe' },
+  success: { ...drawerBtnBase, background: '#168a70', color: '#fff' },
   danger:  { ...drawerBtnBase, background: '#fff', color: '#dc2626', border: '1.5px solid #fecaca' },
   ghost:   { ...drawerBtnBase, background: '#f3f4f6', color: '#374151' },
 };
@@ -551,9 +552,9 @@ function DrawerKebabMenu({ ticket }) {
         <FaEllipsisV size={13} />
       </button>
       {open && (
-        <div role="menu" style={{ position: 'absolute', top: 38, right: 0, background: '#fff', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.18)', minWidth: 190, zIndex: 10, overflow: 'hidden', border: '1px solid #e5e7eb' }}>
+        <div role="menu" style={{ position: 'absolute', top: 38, right: 0, background: '#fff', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.18)', minWidth: 190, zIndex: 10, overflow: 'hidden', border: '1px solid #e5eaf0' }}>
           <button role="menuitem" onClick={copyLink} style={{ width: '100%', textAlign: 'left', padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 12.5, color: '#374151', display: 'flex', alignItems: 'center', gap: 9 }}>
-            <FaLink size={11} color={copied ? TK.success : '#6b7280'} /> {copied ? 'Link copied!' : 'Copy Ticket Link'}
+            <FaLink size={11} color={copied ? TK.success : '#64748b'} /> {copied ? 'Link copied!' : 'Copy Ticket Link'}
           </button>
         </div>
       )}
@@ -567,7 +568,7 @@ const QuickInfoCard = ({ icon: Icon, label, value, mono }) => (
       {Icon && <Icon size={10} color="#9ca3af" />}
       <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.3 }}>{label}</div>
     </div>
-    <div style={{ fontSize: 12.5, color: '#111827', fontWeight: 600, fontFamily: mono ? 'monospace' : undefined, wordBreak: 'break-word' }}>{value || '—'}</div>
+    <div style={{ fontSize: 12.5, color: '#172033', fontWeight: 600, fontFamily: mono ? 'monospace' : undefined, wordBreak: 'break-word' }}>{value || '—'}</div>
   </div>
 );
 
@@ -651,10 +652,10 @@ function TicketDetail({ ticketId, show, onHide, onUpdated, userRole, userEmploye
   const actionable = t?.status !== 'closed';
   const age        = t ? getTicketAge(t) : null;
   const slaMeta     = age && ({
-    green:  { label: 'Within SLA',      color: '#10b981', bg: '#ecfdf5', icon: FaCheckCircle },
-    amber:  { label: 'Within SLA',      color: '#10b981', bg: '#ecfdf5', icon: FaCheckCircle },
+    green:  { label: 'Within SLA',      color: '#168a70', bg: '#f8fafc', icon: FaCheckCircle },
+    amber:  { label: 'Within SLA',      color: '#168a70', bg: '#f8fafc', icon: FaCheckCircle },
     orange: { label: 'Approaching SLA', color: '#f97316', bg: '#fff7ed', icon: FaExclamationTriangle },
-    red:    { label: 'SLA Overdue',     color: '#ef4444', bg: '#fef2f2', icon: FaExclamationTriangle },
+    red:    { label: 'SLA Overdue',     color: '#c53030', bg: '#fef2f2', icon: FaExclamationTriangle },
   }[age.colorKey]);
 
   // Comments are chat-style and split out from the system-event timeline — same underlying
@@ -678,7 +679,7 @@ function TicketDetail({ ticketId, show, onHide, onUpdated, userRole, userEmploye
       >
         {loading && !t ? (
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <div style={{ background: '#1e2a3e', padding: '20px 24px', flexShrink: 0 }}>
+            <div style={{ background: '#1f4e79', padding: '20px 24px', flexShrink: 0 }}>
               <div style={{ width: '60%', height: 16, background: 'rgba(255,255,255,0.15)', borderRadius: 6 }} />
             </div>
             <div style={{ flex: 1, padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -692,7 +693,7 @@ function TicketDetail({ ticketId, show, onHide, onUpdated, userRole, userEmploye
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
 
             {/* ── Sticky header ── */}
-            <div style={{ flexShrink: 0, background: '#1e2a3e', color: '#fff' }}>
+            <div style={{ flexShrink: 0, background: '#1f4e79', color: '#fff' }}>
               <div style={{ padding: '16px 22px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', minWidth: 0 }}>
                   <div style={{ width: 34, height: 34, borderRadius: 9, background: 'rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -721,7 +722,7 @@ function TicketDetail({ ticketId, show, onHide, onUpdated, userRole, userEmploye
               </div>
               <div style={{ background: '#fff', padding: '14px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, flexWrap: 'wrap' }}>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: '#111827', wordBreak: 'break-word' }}>{t.subject}</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: '#172033', wordBreak: 'break-word' }}>{t.subject}</div>
                   <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>Issue Category: {t.issue_type}</div>
                 </div>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -741,7 +742,7 @@ function TicketDetail({ ticketId, show, onHide, onUpdated, userRole, userEmploye
 
               {/* Ticket Summary Card */}
               <div className="td-fade-in" style={{ background: '#fff', borderRadius: 16, padding: '16px 18px', marginBottom: 16, border: '1px solid #eef0f3', boxShadow: '0 1px 3px rgba(15,23,42,0.04)' }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Request Summary</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#52718c', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Request Summary</div>
                 {employeeDetails ? (
                   <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.7fr) 220px', gap: 18, alignItems: 'start' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '10px 14px' }}>
@@ -759,21 +760,21 @@ function TicketDetail({ ticketId, show, onHide, onUpdated, userRole, userEmploye
                       ].map(([label, value]) => (
                         <div key={label} style={{ background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: 10, padding: '10px 12px' }}>
                           <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 3 }}>{label}</div>
-                          <div style={{ fontSize: 12, color: '#111827', fontWeight: 600, lineHeight: 1.4 }}>{value || '—'}</div>
+                          <div style={{ fontSize: 12, color: '#172033', fontWeight: 600, lineHeight: 1.4 }}>{value || '—'}</div>
                         </div>
                       ))}
                     </div>
                     <div style={{ padding: 12, border: '1px solid #f1f5f9', borderRadius: 12, background: '#f8fafc', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                       {employeePhoto ? (
-                        <img src={employeePhoto} alt={employeeDetails.employeeName || 'Employee profile'} style={{ width: '100%', height: 160, objectFit: 'cover', borderRadius: 10, border: '1px solid #e5e7eb' }} />
+                        <img src={employeePhoto} alt={employeeDetails.employeeName || 'Employee profile'} style={{ width: '100%', height: 160, objectFit: 'cover', borderRadius: 10, border: '1px solid #e5eaf0' }} />
                       ) : (
-                        <div style={{ width: '100%', height: 160, borderRadius: 10, background: 'linear-gradient(135deg, #eef2ff 0%, #f9fafb 100%)', border: '1px dashed #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', fontSize: 11.5, textAlign: 'center', padding: 12 }}>
+                        <div style={{ width: '100%', height: 160, borderRadius: 10, background: 'linear-gradient(135deg, #eef4fb 0%, #f9fafb 100%)', border: '1px dashed #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', fontSize: 11.5, textAlign: 'center', padding: 12 }}>
                           No profile photo uploaded yet
                         </div>
                       )}
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#111827', marginTop: 9, textAlign: 'center' }}>{employeeDetails.employeeName || 'Employee Profile'}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#172033', marginTop: 9, textAlign: 'center' }}>{employeeDetails.employeeName || 'Employee Profile'}</div>
                       {employeePhoto && (
-                        <a href={employeePhoto} target="_blank" rel="noreferrer" style={{ marginTop: 8, fontSize: 11, fontWeight: 700, color: '#4f46e5', textDecoration: 'none' }}>
+                        <a href={employeePhoto} target="_blank" rel="noreferrer" style={{ marginTop: 8, fontSize: 11, fontWeight: 700, color: '#1f4e79', textDecoration: 'none' }}>
                           ⬇ Download photo
                         </a>
                       )}
@@ -784,7 +785,7 @@ function TicketDetail({ ticketId, show, onHide, onUpdated, userRole, userEmploye
                 )}
                 {t.attachment_url && (
                   <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #f1f5f9' }}>
-                    <a href={t.attachment_url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: '#6366f1', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                    <a href={t.attachment_url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: '#52718c', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                       📎 {t.attachment_name || 'View Attachment'}
                     </a>
                   </div>
@@ -818,7 +819,7 @@ function TicketDetail({ ticketId, show, onHide, onUpdated, userRole, userEmploye
 
               {/* Status & SLA Card */}
               <div style={{ background: '#fff', borderRadius: 16, padding: '14px 18px', marginBottom: 16, border: '1px solid #eef0f3', boxShadow: '0 1px 3px rgba(15,23,42,0.04)' }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Time & SLA</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#52718c', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Time & SLA</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                   <div>
                     <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 4 }}>
@@ -843,24 +844,24 @@ function TicketDetail({ ticketId, show, onHide, onUpdated, userRole, userEmploye
                 </div>
                 {(t.resolved_at || t.closed_at) && (
                   <div style={{ display: 'flex', gap: 18, marginTop: 12, paddingTop: 12, borderTop: '1px solid #f1f5f9', flexWrap: 'wrap' }}>
-                    {t.resolved_at && <div style={{ fontSize: 11.5, color: '#6b7280' }}>Resolved: <strong style={{ color: '#374151' }}>{fmtDate(t.resolved_at)}</strong></div>}
-                    {t.closed_at && <div style={{ fontSize: 11.5, color: '#6b7280' }}>Closed: <strong style={{ color: '#374151' }}>{fmtDate(t.closed_at)}</strong></div>}
+                    {t.resolved_at && <div style={{ fontSize: 11.5, color: '#64748b' }}>Resolved: <strong style={{ color: '#374151' }}>{fmtDate(t.resolved_at)}</strong></div>}
+                    {t.closed_at && <div style={{ fontSize: 11.5, color: '#64748b' }}>Closed: <strong style={{ color: '#374151' }}>{fmtDate(t.closed_at)}</strong></div>}
                   </div>
                 )}
               </div>
 
               {/* Resolved — awaiting raiser confirmation */}
               {showRaiserConfirm && !showDecline && (
-                <div className="td-fade-in" style={{ background: '#ede9fe', borderRadius: 14, padding: '14px 16px', marginBottom: 16, border: '1.5px solid #c4b5fd' }}>
+                <div className="td-fade-in" style={{ background: '#f1f5f9', borderRadius: 14, padding: '14px 16px', marginBottom: 16, border: '1.5px solid #dce3eb' }}>
                   <div style={{ fontWeight: 700, fontSize: 13.5, color: '#5b21b6', marginBottom: 4 }}>✅ Your issue has been marked resolved</div>
                   {t.resolve_note && <div style={{ fontSize: 12.5, color: '#6d28d9' }}>{t.resolve_note}</div>}
-                  <div style={{ fontSize: 12, color: '#7c3aed', marginTop: 8 }}>Use the buttons at the bottom to confirm or reopen this ticket.</div>
+                  <div style={{ fontSize: 12, color: '#475569', marginTop: 8 }}>Use the buttons at the bottom to confirm or reopen this ticket.</div>
                 </div>
               )}
 
               {/* Activity Timeline */}
               <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginBottom: 12 }}>Activity Timeline</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#172033', marginBottom: 12 }}>Activity Timeline</div>
                 {timelineEvents.length === 0 ? (
                   <div style={{ fontSize: 12, color: '#9ca3af' }}>No activity yet</div>
                 ) : (
@@ -877,16 +878,16 @@ function TicketDetail({ ticketId, show, onHide, onUpdated, userRole, userEmploye
                           </div>
                           <div style={{ flex: 1, paddingTop: 2 }}>
                             <div style={{ fontSize: 12.5, color: '#374151', lineHeight: 1.5 }}>
-                              <span style={{ fontWeight: 700, color: '#111827' }}>{h.performed_by_name || 'System'}</span>
+                              <span style={{ fontWeight: 700, color: '#172033' }}>{h.performed_by_name || 'System'}</span>
                               {h.new_status && <span> → <StatusBadge status={h.new_status} /></span>}
                               {h.is_internal && (
-                                <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, color: '#b45309', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 99, padding: '1px 8px' }}>
+                                <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, color: '#b45309', background: '#f8fafc', border: '1px solid #fde68a', borderRadius: 99, padding: '1px 8px' }}>
                                   🔒 Internal
                                 </span>
                               )}
                             </div>
                             {h.message && (
-                              <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4, background: h.is_internal ? '#fffbeb' : '#fff', border: `1px solid ${h.is_internal ? '#fde68a' : '#f1f5f9'}`, borderRadius: 8, padding: '7px 10px' }}>
+                              <div style={{ fontSize: 12, color: '#64748b', marginTop: 4, background: h.is_internal ? '#f8fafc' : '#fff', border: `1px solid ${h.is_internal ? '#fde68a' : '#f1f5f9'}`, borderRadius: 8, padding: '7px 10px' }}>
                                 {h.message}
                               </div>
                             )}
@@ -901,7 +902,7 @@ function TicketDetail({ ticketId, show, onHide, onUpdated, userRole, userEmploye
 
               {/* Comments — chat-style conversation */}
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginBottom: 12 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#172033', marginBottom: 12 }}>
                   Comments {comments.length > 0 && <span style={{ color: '#9ca3af', fontWeight: 600 }}>({comments.length})</span>}
                 </div>
                 {comments.length === 0 ? (
@@ -911,18 +912,18 @@ function TicketDetail({ ticketId, show, onHide, onUpdated, userRole, userEmploye
                     {comments.map(c => {
                       const fromRaiser = c.performed_by === t.raised_by;
                       return (
-                        <div key={c.id} className="td-fade-in" style={{ display: 'flex', gap: 10, background: c.is_internal ? '#fffbeb' : '#fff', border: `1px solid ${c.is_internal ? '#fde68a' : '#eef0f3'}`, borderRadius: 14, padding: '12px 14px' }}>
+                        <div key={c.id} className="td-fade-in" style={{ display: 'flex', gap: 10, background: c.is_internal ? '#f8fafc' : '#fff', border: `1px solid ${c.is_internal ? '#fde68a' : '#eef0f3'}`, borderRadius: 14, padding: '12px 14px' }}>
                           <div style={{ width: 32, height: 32, borderRadius: '50%', background: avatarColor(c.performed_by_name), color: '#fff', fontSize: 11.5, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                             {initialsOf(c.performed_by_name) || '?'}
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                              <span style={{ fontSize: 12.5, fontWeight: 700, color: '#111827' }}>{c.performed_by_name || 'Unknown'}</span>
-                              <span style={{ fontSize: 10.5, fontWeight: 700, color: fromRaiser ? '#4338ca' : '#0369a1', background: fromRaiser ? '#e0e7ff' : '#e0f2fe', borderRadius: 99, padding: '1px 8px' }}>
+                              <span style={{ fontSize: 12.5, fontWeight: 700, color: '#172033' }}>{c.performed_by_name || 'Unknown'}</span>
+                              <span style={{ fontSize: 10.5, fontWeight: 700, color: fromRaiser ? '#1f4e79' : '#0369a1', background: fromRaiser ? '#e0e7ff' : '#e0f2fe', borderRadius: 99, padding: '1px 8px' }}>
                                 {fromRaiser ? 'Raised By' : 'Team'}
                               </span>
                               {c.is_internal && (
-                                <span style={{ fontSize: 10, fontWeight: 700, color: '#b45309', background: '#fef3c7', borderRadius: 99, padding: '1px 8px', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: '#b45309', background: '#f1f5f9', borderRadius: 99, padding: '1px 8px', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
                                   <FaLock size={8} /> Internal
                                 </span>
                               )}
@@ -945,14 +946,14 @@ function TicketDetail({ ticketId, show, onHide, onUpdated, userRole, userEmploye
                   value={comment}
                   onChange={setComment}
                   placeholder={isInternalNote ? 'Write an internal note (not visible to the employee)…' : 'Write a comment…'}
-                  style={{ fontSize: 13, marginBottom: 8, background: isInternalNote ? '#fffbeb' : '#fff', borderColor: isInternalNote ? '#fde68a' : undefined }}
+                  style={{ fontSize: 13, marginBottom: 8, background: isInternalNote ? '#f8fafc' : '#fff', borderColor: isInternalNote ? '#fde68a' : undefined }}
                 />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                   {canResolve ? (
                     <select
                       value={isInternalNote ? 'internal' : 'public'}
                       onChange={e => setIsInternalNote(e.target.value === 'internal')}
-                      style={{ fontSize: 12, fontWeight: 600, color: isInternalNote ? '#92400e' : '#374151', background: isInternalNote ? '#fffbeb' : '#f9fafb', border: `1.5px solid ${isInternalNote ? '#fde68a' : '#e5e7eb'}`, borderRadius: 8, padding: '7px 10px', cursor: 'pointer' }}
+                      style={{ fontSize: 12, fontWeight: 600, color: isInternalNote ? '#92400e' : '#374151', background: isInternalNote ? '#f8fafc' : '#f9fafb', border: `1.5px solid ${isInternalNote ? '#fde68a' : '#e5eaf0'}`, borderRadius: 8, padding: '7px 10px', cursor: 'pointer' }}
                     >
                       <option value="public">💬 Public Reply</option>
                       <option value="internal">🔒 Internal Note</option>
@@ -961,7 +962,7 @@ function TicketDetail({ ticketId, show, onHide, onUpdated, userRole, userEmploye
                   <button
                     onClick={() => comment.trim() && act('comment')}
                     disabled={!comment.trim() || !!acting}
-                    style={{ ...DRAWER_BTN.success, background: isInternalNote ? '#f59e0b' : '#4f46e5', opacity: (!comment.trim() || acting) ? 0.55 : 1, cursor: (!comment.trim() || acting) ? 'not-allowed' : 'pointer' }}
+                    style={{ ...DRAWER_BTN.success, background: isInternalNote ? '#8a702c' : '#1f4e79', opacity: (!comment.trim() || acting) ? 0.55 : 1, cursor: (!comment.trim() || acting) ? 'not-allowed' : 'pointer' }}
                   >
                     {acting === 'comment' ? 'Posting…' : <>Send <FaPaperPlane size={11} /></>}
                   </button>
@@ -991,7 +992,7 @@ function TicketDetail({ ticketId, show, onHide, onUpdated, userRole, userEmploye
                   <div className="td-fade-in">
                     <AutoGrowTextarea value={declineNote} onChange={setDeclineNote} placeholder="Why is it not resolved? (optional)" style={{ fontSize: 12.5, marginBottom: 8 }} minRows={2} />
                     <div style={{ display: 'flex', gap: 8 }}>
-                      <button onClick={() => act('decline')} disabled={!!acting} className="td-hover-lift" style={{ ...DRAWER_BTN.danger, flex: 1, background: '#ef4444', color: '#fff', border: 'none' }}>
+                      <button onClick={() => act('decline')} disabled={!!acting} className="td-hover-lift" style={{ ...DRAWER_BTN.danger, flex: 1, background: '#c53030', color: '#fff', border: 'none' }}>
                         {acting === 'decline' ? 'Sending…' : '✕ Confirm Reopen'}
                       </button>
                       <button onClick={() => setShowDecline(false)} className="td-hover-lift" style={DRAWER_BTN.ghost}>Cancel</button>
@@ -1035,17 +1036,17 @@ function TicketDetail({ ticketId, show, onHide, onUpdated, userRole, userEmploye
 // ─── Shared styles ────────────────────────────────────────────────────────────
 
 const inputStyle = {
-  width: '100%', padding: '9px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb',
-  fontSize: 13, color: '#111827', outline: 'none', boxSizing: 'border-box',
+  width: '100%', padding: '9px 12px', borderRadius: 8, border: '1.5px solid #e5eaf0',
+  fontSize: 13, color: '#172033', outline: 'none', boxSizing: 'border-box',
   fontFamily: 'inherit', background: '#fff',
 };
 const labelStyle = { display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 5 };
-const submitBtnStyle = { padding: '9px 20px', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: 'pointer' };
+const submitBtnStyle = { padding: '9px 20px', background: '#1f4e79', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: 'pointer' };
 const cancelBtnStyle = { padding: '9px 20px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer' };
 
 // ─── List-page helpers ────────────────────────────────────────────────────────
 
-const AVATAR_COLORS = ['#6366f1', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#0ea5e9', '#ec4899'];
+const AVATAR_COLORS = ['#52718c', '#64748b', '#168a70', '#8a702c', '#c53030', '#52718c', '#ec4899'];
 const avatarColor = (str) => AVATAR_COLORS[((str || '').charCodeAt(0) || 0) % AVATAR_COLORS.length];
 const initialsOf  = (name) => (name || '').trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase() || '').join('');
 
@@ -1065,7 +1066,7 @@ function Sparkline({ data, color, height = 26 }) {
 }
 
 const StatusDot = ({ status }) => {
-  const m = STATUS_META[status] || { label: status, color: '#6b7280' };
+  const m = STATUS_META[status] || { label: status, color: '#64748b' };
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: m.color }}>
       <span style={{ width: 7, height: 7, borderRadius: '50%', background: m.color, display: 'inline-block', flexShrink: 0 }} />
@@ -1264,7 +1265,7 @@ export default function TicketList() {
   };
 
   return (
-    <div style={{ width: '100%' }}>
+    <div className="tickets-page p-3 p-md-4">
       {/* ── Header ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -1272,7 +1273,8 @@ export default function TicketList() {
             <FaTicketAlt size={19} color={TK.primary} />
           </div>
           <div>
-            <h4 style={{ fontWeight: 800, color: TK.textDark, margin: 0, fontSize: 22 }}>Support Tickets</h4>
+            <span className="tickets-eyebrow">EMPLOYEE WORKSPACE</span>
+            <h1 className="tickets-title">Support Tickets</h1>
             <p style={{ color: TK.textMuted, margin: '3px 0 0', fontSize: 13 }}>
               {canSeeAll ? 'Track, manage and resolve all team support requests' : canResolve ? 'Track and resolve tickets assigned to you' : 'Track, manage and resolve your support requests'}
             </p>
@@ -1286,8 +1288,8 @@ export default function TicketList() {
       {/* ── Stat cards ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 14, marginBottom: 20 }}>
         {statCards.map(s => (
-          <div key={s.key} onClick={() => setFilterStatus(s.key)}
-            style={{ background: s.bg, border: `1px solid ${TK.border}`, borderRadius: 14, padding: '16px 18px', cursor: 'pointer', transition: 'transform 0.12s' }}
+          <div className="tickets-stat-card" key={s.key} role="button" tabIndex={0} aria-pressed={filterStatus === s.key} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setFilterStatus(s.key); } }} onClick={() => setFilterStatus(s.key)}
+            style={{ background: '#fff', border: `1px solid ${TK.border}`, borderRadius: 14, padding: '16px 18px', cursor: 'pointer', transition: 'transform 0.12s' }}
             onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
             onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
@@ -1303,17 +1305,17 @@ export default function TicketList() {
       </div>
 
       {/* ── Filters ── */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div className="tickets-filter-panel">
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', flex: 1, minWidth: 260 }}>
           <div style={{ position: 'relative', flex: 1, minWidth: 220, maxWidth: 340 }}>
             <FaSearch size={12} color="#9ca3af" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by ID, subject, raised by/for, assignee, department…" style={{ ...inputStyle, paddingLeft: 32 }} />
+            <input aria-label="Search tickets" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by ID, subject, raised by/for, assignee, department…" style={{ ...inputStyle, paddingLeft: 32 }} />
           </div>
-          <select value={filterDept} onChange={e => setFilterDept(e.target.value)} style={{ ...inputStyle, width: 'auto', maxWidth: 170 }}>
+          <select aria-label="Filter by department" value={filterDept} onChange={e => setFilterDept(e.target.value)} style={{ ...inputStyle, width: 'auto', maxWidth: 170 }}>
             <option value="all">All Departments</option>
             {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
-          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ ...inputStyle, width: 'auto', maxWidth: 170 }}>
+          <select aria-label="Filter by status" value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ ...inputStyle, width: 'auto', maxWidth: 170 }}>
             <option value="all">All Statuses</option>
             {Object.entries(STATUS_META).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
           </select>
@@ -1321,7 +1323,7 @@ export default function TicketList() {
             <button onClick={() => { setFilterStatus('all'); setFilterDept('all'); setSearch(''); }} style={cancelBtnStyle}>Clear</button>
           )}
         </div>
-        <select value={sortOrder} onChange={e => setSortOrder(e.target.value)} style={{ ...inputStyle, width: 'auto' }}>
+        <select aria-label="Sort tickets" value={sortOrder} onChange={e => setSortOrder(e.target.value)} style={{ ...inputStyle, width: 'auto' }}>
           <option value="latest">Sort by: Latest</option>
           <option value="oldest">Sort by: Oldest</option>
         </select>
@@ -1329,8 +1331,8 @@ export default function TicketList() {
 
       {/* ── Bulk-select action bar ── */}
       {canResolve && selectedIds.size > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: 12, padding: '10px 16px', marginBottom: 12 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#4338ca' }}>{selectedIds.size} ticket{selectedIds.size > 1 ? 's' : ''} selected</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, background: '#eef4fb', border: '1px solid #dce3eb', borderRadius: 12, padding: '10px 16px', marginBottom: 12 }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#1f4e79' }}>{selectedIds.size} ticket{selectedIds.size > 1 ? 's' : ''} selected</span>
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={clearSelection} style={cancelBtnStyle}>Clear</button>
             <button onClick={() => setShowBulkResolve(true)} style={{ ...submitBtnStyle, background: TK.success, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -1345,16 +1347,16 @@ export default function TicketList() {
         <div style={{ display: 'flex', justifyContent: 'center', padding: 48 }}><Spinner animation="border" /></div>
       ) : filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 0', color: '#9ca3af', background: '#fff', borderRadius: 14, border: `1px solid ${TK.border}` }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>🎫</div>
+          <div style={{ marginBottom: 16 }}><FaTicketAlt size={36} color="#94a3b8" /></div>
           <div style={{ fontSize: 16, fontWeight: 600, color: '#374151', marginBottom: 6 }}>No tickets found</div>
           <div style={{ fontSize: 13 }}>
             {tickets.length === 0 ? 'No tickets have been raised yet.' : 'No tickets match your filters.'}
           </div>
         </div>
       ) : (
-        <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${TK.border}`, boxShadow: '0 2px 10px rgba(0,0,0,0.04)', overflow: 'hidden' }}>
+        <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${TK.border}`, boxShadow: '0 2px 10px rgba(0,0,0,0.04)', overflowX: 'auto' }}>
           {/* Header row */}
-          <div style={{ display: 'grid', gridTemplateColumns: listCols, gap: 12, padding: '12px 18px', background: '#f9fafb', borderBottom: `1px solid ${TK.border}`, fontSize: 11, fontWeight: 700, color: TK.textMuted, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: listCols, minWidth: listMinWidth, gap: 12, padding: '14px 18px', background: '#f9fafb', borderBottom: `1px solid ${TK.border}`, fontSize: 11, fontWeight: 700, color: TK.textMuted, textTransform: 'uppercase', letterSpacing: 0.4 }}>
             {canResolve && (
               <span onClick={e => e.stopPropagation()}>
                 <input
@@ -1377,9 +1379,9 @@ export default function TicketList() {
             <span>Age</span>
             <span>Action</span>
           </div>
-          <div style={{ overflowX: 'auto' }}>
+          <div>
             {pageItems.map(t => {
-              const deptM  = DEPT_META[t.department] || { color: '#6b7280', icon: '•' };
+              const deptM  = DEPT_META[t.department] || { color: '#64748b', icon: '•' };
               const statusColor = STATUS_META[t.status]?.color || TK.border;
               const isPending = t.status === 'resolved_pending' && t.raised_by === user?.employeeId;
               const created = new Date(t.created_at);
@@ -1391,7 +1393,7 @@ export default function TicketList() {
                     display: 'grid', gridTemplateColumns: listCols, gap: 12, minWidth: listMinWidth,
                     padding: '14px 18px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6',
                     borderLeft: `4px solid ${statusColor}`,
-                    background: selectedIds.has(t.id) ? '#eef2ff' : isPending ? '#faf5ff' : '#fff', transition: 'background 0.12s',
+                    background: selectedIds.has(t.id) ? '#eef4fb' : isPending ? '#faf5ff' : '#fff', transition: 'background 0.12s',
                     alignItems: 'center',
                   }}
                   onMouseEnter={e => !isPending && !selectedIds.has(t.id) && (e.currentTarget.style.background = '#f9fafb')}
@@ -1414,9 +1416,9 @@ export default function TicketList() {
                     <CopyButton text={t.ticket_number} />
                   </span>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 2 }}>{t.subject}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#172033', marginBottom: 2 }}>{t.subject}</div>
                     <div style={{ fontSize: 11, color: '#9ca3af' }}>{t.issue_type}</div>
-                    {isPending && <span style={{ fontSize: 10, fontWeight: 700, color: '#7c3aed', background: '#ede9fe', borderRadius: 99, padding: '1px 7px' }}>⚠ Your confirmation needed</span>}
+                    {isPending && <span style={{ fontSize: 10, fontWeight: 700, color: '#475569', background: '#f1f5f9', borderRadius: 99, padding: '1px 7px' }}>⚠ Your confirmation needed</span>}
                   </div>
                   <span style={{ fontSize: 12, fontWeight: 700, color: deptM.color }}>{deptM.icon} {t.department}</span>
                   <StatusDot status={t.status} />
@@ -1541,7 +1543,7 @@ export default function TicketList() {
       {/* Bulk resolve result toast-ish banner — simple inline confirmation, auto-clears */}
       {bulkResult && (
         <div
-          style={{ position: 'fixed', bottom: 24, right: 24, background: bulkResult.failed ? '#fff7ed' : '#ecfdf5', border: `1px solid ${bulkResult.failed ? '#fdba74' : '#6ee7b7'}`, color: bulkResult.failed ? '#9a3412' : '#065f46', borderRadius: 10, padding: '12px 16px', fontSize: 13, fontWeight: 600, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', zIndex: 2000 }}
+          style={{ position: 'fixed', bottom: 24, right: 24, background: bulkResult.failed ? '#fff7ed' : '#f8fafc', border: `1px solid ${bulkResult.failed ? '#fdba74' : '#6ee7b7'}`, color: bulkResult.failed ? '#9a3412' : '#065f46', borderRadius: 10, padding: '12px 16px', fontSize: 13, fontWeight: 600, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', zIndex: 2000 }}
         >
           {bulkResult.ok} ticket{bulkResult.ok !== 1 ? 's' : ''} resolved{bulkResult.failed ? `, ${bulkResult.failed} failed` : ''}.
           <button onClick={() => setBulkResult(null)} style={{ background: 'none', border: 'none', marginLeft: 10, cursor: 'pointer', fontWeight: 700, color: 'inherit' }}>×</button>

@@ -110,7 +110,7 @@ const Sidebar = () => {
       to={to}
       end={end}
       onClick={() => { if (onClick) onClick(); closeSidebar(); }}
-      className={({ isActive }) => `hrms-nav-item${isActive ? ' active' : ''}`}
+      className={({ isActive }) => `hrms-nav-item${isActive || (to === '/salary-slip' && location.pathname === '/employee/deductions') ? ' active' : ''}`}
       title={!isOpen ? label : ''}
     >
       <span className="hrms-nav-item__icon">{icon}</span>
@@ -316,8 +316,7 @@ const Sidebar = () => {
               <NavItem to="/profile"     icon={<FaUserCircle />}  label="My Profile" />
               <NavItem to="/attendance" icon={<FaFingerprint />} label="Daily Attendance" />
               <NavItem to="/apply-leave" icon={<FaCalendarAlt />} label="Apply Leave" />
-              <NavItem to="/salary-slip" icon={<FaMoneyBill />}   label="Salary Slip" />
-              <NavItem to="/employee/deductions" icon={<FaReceipt />} label="My Deductions" />
+              <NavItem to="/salary-slip" icon={<FaMoneyBill />}   label="Payroll" />
               <Section label="Team" />
               <NavItem to="/manager/panel"       icon={<FaUserTie />}    label="Team Shifts" />
               <NavItem to="/performance/reviews" icon={<FaChartLine />}  label="Performance Reviews" />
@@ -332,8 +331,7 @@ const Sidebar = () => {
               <NavItem to="/profile"                 icon={<FaUserCircle />}  label="My Profile" />
               <NavItem to="/attendance"              icon={<FaFingerprint />} label="Daily Attendance" />
               <NavItem to="/apply-leave"             icon={<FaCalendarAlt />} label="Apply Leave" />
-              <NavItem to="/salary-slip"             icon={<FaMoneyBill />}   label="Salary Slip" />
-              <NavItem to="/employee/deductions"     icon={<FaReceipt />}    label="My Deductions" />
+              <NavItem to="/salary-slip"             icon={<FaMoneyBill />}   label="Payroll" />
               <NavItem to="/employee/update-requests" icon={<FaEdit />}       label="Update Requests" />
               <NavItem to="/performance/history"     icon={<FaChartLine />}   label="My Performance" />
               <NavItem to="/tickets"                 icon={<FaTicketAlt />}   label="Support Tickets" />

@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from '../../config/axios';
 import API_ENDPOINTS from '../../config/api';
 import { useAuth } from '../../context/AuthContext';
+import './Performance.css';
 
 const RATING_LABELS = {
   5: 'Excellent Performer',
@@ -19,11 +20,11 @@ const RATING_LABELS = {
 };
 
 const RATING_COLORS = {
-  5: '#22c55e',
-  4: '#4ade80',
-  3: '#eab308',
-  2: '#f97316',
-  1: '#ef4444',
+  5: '#168a70',
+  4: '#52718c',
+  3: '#8a702c',
+  2: '#c05621',
+  1: '#c53030',
 };
 
 const getRatingLabel = (r) => RATING_LABELS[r] || '—';
@@ -123,35 +124,14 @@ const PerformanceHistory = () => {
   }
 
   return (
-    <div style={{ maxWidth: 860, margin: '0 auto' }}>
-      {/* ── Header ── */}
-      <div style={{
-        background: 'linear-gradient(135deg,#1e2a3e,#2d3f5e)',
-        borderRadius: 14, padding: '24px 28px', marginBottom: 24,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{
-            width: 48, height: 48, borderRadius: 12,
-            background: 'rgba(255,255,255,0.15)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <FaChartLine size={22} color="#fff" />
-          </div>
-          <div>
-            <h4 style={{ color: '#fff', margin: 0, fontWeight: 700, fontSize: 20 }}>My Performance</h4>
-            <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 2 }}>
-              {user?.name || user?.employeeId} · {reviews.length} review{reviews.length !== 1 ? 's' : ''}
-            </div>
-          </div>
+    <div className="performance-page p-3 p-md-4">
+      <header className="performance-header">
+        <div><span className="performance-eyebrow">EMPLOYEE WORKSPACE</span><h1>My Performance</h1><p>{user?.name || user?.employeeId} · {reviews.length} review{reviews.length !== 1 ? 's' : ''}</p></div>
+        <div className="performance-header-actions">
+
+          <button type="button" className="performance-back" onClick={() => navigate(-1)}><FaArrowLeft size={12} /> Back</button>
         </div>
-        <button
-          className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
-          onClick={() => navigate(-1)}
-        >
-          <FaArrowLeft size={12} /> Back
-        </button>
-      </div>
+      </header>
 
       {error && <Alert variant="danger">{error}</Alert>}
 
@@ -169,20 +149,20 @@ const PerformanceHistory = () => {
           </Col>
           <Col xs={12} sm={4}>
             <SummaryCard
-              icon={<FaChartLine size={18} color="#6366f1" />}
+              icon={<FaChartLine size={18} color="#1f4e79" />}
               label="Overall Average"
               value={avgRating ? `${avgRating} / 5` : '—'}
               sub={avgRating ? getRatingLabel(Math.round(Number(avgRating))) : ''}
-              color="#6366f1"
+              color="#1f4e79"
             />
           </Col>
           <Col xs={12} sm={4}>
             <SummaryCard
-              icon={<FaHistory size={18} color="#0ea5e9" />}
+              icon={<FaHistory size={18} color="#52718c" />}
               label="Total Reviews"
               value={reviews.length}
               sub="All time"
-              color="#0ea5e9"
+              color="#52718c"
             />
           </Col>
         </Row>

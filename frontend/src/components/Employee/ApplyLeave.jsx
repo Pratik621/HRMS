@@ -1,3 +1,4 @@
+import { calculateLeaveDays } from '../../utils/leaveDays';
 // src/components/Employee/ApplyLeave.jsx
 import React, { useState, useEffect } from 'react';
 import {
@@ -26,66 +27,23 @@ import { useNotification } from '../../context/NotificationContext';
 import axios from '../../config/axios';
 import API_ENDPOINTS from '../../config/api';
 import { useNavigate } from 'react-router-dom';
+import './ApplyLeave.css';
 
-// ── Design tokens (indigo/enterprise palette — matches Admin Leave Requests) ──
+// Dashboard-aligned presentation palette.
 const AL = {
-  primary: '#4F46E5',
-  success: '#10B981',
-  warning: '#F59E0B',
-  danger: '#EF4444',
+  primary: '#1f4e79',
+  success: '#168a70',
+  warning: '#c05621',
+  danger: '#c53030',
   border: '#E5E7EB',
   borderSoft: '#EEF2F7',
-};
-
-const TYPE_META = {
-  Unpaid:      { emoji: '💰', bg: '#FEF3E2', color: '#B45309' },
-  Annual:      { emoji: '🌴', bg: '#DCFCE7', color: '#15803D' },
-  'Comp-Off':  { emoji: '🎉', bg: '#F3E8FF', color: '#7C3AED' },
-  Sick:        { emoji: '🤒', bg: '#FEE2E2', color: '#B91C1C' },
-  Personal:    { emoji: '👤', bg: '#E0E7FF', color: '#4338CA' },
-  Maternity:   { emoji: '🤱', bg: '#FCE7F3', color: '#BE185D' },
-  Paternity:   { emoji: '👨‍👧', bg: '#E0F2FE', color: '#0369A1' },
-  Bereavement: { emoji: '💐', bg: '#F1F5F9', color: '#475569' },
-  Birthday:    { emoji: '🎂', bg: '#FEF9C3', color: '#854D0E' },
 };
 
 // Mirrors backend/config/leavePolicy.js PAID_LEAVE_ELIGIBILITY_MONTHS — display-only,
 // the backend remains the authority on actual eligibility (is_eligible / eligible_from_date).
 const PAID_LEAVE_ELIGIBILITY_MONTHS = 3;
 
-const STATUS_META = {
-  pending:  { bg: 'rgba(245,158,11,.14)', color: '#b45309' },
-  approved: { bg: 'rgba(16,185,129,.14)', color: '#047857' },
-  rejected: { bg: 'rgba(239,68,68,.14)', color: '#b91c1c' },
-};
-
-const AL_CSS = `
-.al-card { background:#fff; border-radius:20px; border:1px solid ${AL.borderSoft}; box-shadow:0 10px 35px rgba(16,24,40,.06); }
-.al-card-header { border-bottom:1px solid ${AL.borderSoft}; }
-.al-icon-circle { width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
-.al-btn-outline { display:inline-flex; align-items:center; gap:6px; background:#fff; border:1px solid ${AL.border}; color:#344054; border-radius:10px; padding:7px 14px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap; }
-.al-btn-outline:hover { background:#F9FAFB; }
-.al-btn-primary { display:inline-flex; align-items:center; justify-content:center; gap:8px; background:linear-gradient(135deg,#4F46E5,#6366F1); color:#fff; border:none; border-radius:12px; padding:10px 22px; font-weight:600; font-size:13.5px; box-shadow:0 6px 16px rgba(79,70,229,.28); cursor:pointer; transition:transform .12s ease, box-shadow .12s ease; }
-.al-btn-primary:hover { transform:translateY(-1px); box-shadow:0 10px 22px rgba(79,70,229,.35); color:#fff; }
-.al-btn-primary:disabled { opacity:.6; cursor:not-allowed; transform:none; }
-.al-recent-row { display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid #F5F6F8; }
-.al-recent-row:last-child { border-bottom:none; }
-.al-recent-icon { width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
-.al-status-pill { display:inline-flex; align-items:center; border-radius:999px; padding:4px 12px; font-size:11.5px; font-weight:700; white-space:nowrap; text-transform:capitalize; }
-.al-policy-icon { width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-.al-policy-list { list-style:disc; padding-left:18px; margin:6px 0 0; font-size:12px; color:#667085; }
-.al-policy-list li { margin-bottom:4px; }
-.al-form-control, .al-select, .al-textarea, textarea.al-textarea { border:1px solid ${AL.border} !important; border-radius:12px !important; font-size:13.5px !important; }
-.al-form-control:focus, .al-select:focus, .al-textarea:focus { border-color:${AL.primary} !important; box-shadow:0 0 0 3px rgba(79,70,229,.12) !important; }
-.al-radio .form-check-input { cursor:pointer; }
-.al-radio .form-check-input:checked { background-color:${AL.primary}; border-color:${AL.primary}; }
-.al-radio .form-check-label { cursor:pointer; }
-.al-balance-banner { border-radius:14px; padding:16px; text-align:center; }
-.al-balance-icon-check { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 8px; }
-.al-select-icon-wrap { position:relative; }
-.al-select-icon-wrap .al-select-emoji { position:absolute; left:12px; top:50%; transform:translateY(-50%); pointer-events:none; font-size:14px; z-index:5; }
-.al-select-icon-wrap select { padding-left:34px !important; }
-`;
+const STATUS_META = Object.fromEntries(['pending', 'approved', 'rejected'].map(status => [status, { bg: '#f1f5f9', color: '#475569' }]));
 
 const ApplyLeave = () => {
   const { user } = useAuth();
@@ -124,7 +82,6 @@ const ApplyLeave = () => {
   });
   const [calculatedDays, setCalculatedDays] = useState(1);
   const [errors, setErrors] = useState({});
-  const [managers, setManagers] = useState([]);
 
   // Returns this year's birthday as YYYY-MM-DD, or '' if dob not set
   const getBirthdayThisYear = () => {
@@ -202,8 +159,7 @@ const ApplyLeave = () => {
       Promise.all([
         fetchEmployeeDetails(),
         fetchLeaveBalance(),
-        fetchRecentLeaves(),
-        fetchManagers()
+        fetchRecentLeaves()
       ]).finally(() => {
         clearTimeout(timeoutId);
       });
@@ -270,7 +226,7 @@ const ApplyLeave = () => {
       if (response.data.reporting_manager) {
         setFormData(prev => ({
           ...prev,
-          reporting_manager: prev.reporting_manager || response.data.reporting_manager
+          reporting_manager: response.data.reporting_manager
         }));
       }
 
@@ -342,36 +298,9 @@ const ApplyLeave = () => {
     }
   };
 
-  const fetchManagers = async () => {
-    try {
-      const [tlRes, mgrRes] = await Promise.allSettled([
-        axios.get(API_ENDPOINTS.TEAMS_MANAGERS_LIST),
-        axios.get(API_ENDPOINTS.TEAMS_SUB_ADMINS_LIST),
-      ]);
-      const tls  = (tlRes.status  === 'fulfilled' ? tlRes.value.data.managers  : []) || [];
-      const mgrs = (mgrRes.status === 'fulfilled' ? mgrRes.value.data.managers : []) || [];
-      setManagers([
-        ...tls.map(m  => ({ ...m, _group: 'TL' })),
-        ...mgrs.map(m => ({ ...m, _group: 'Manager' })),
-      ]);
-    } catch (error) {
-      console.error('Error fetching managers:', error);
-    }
-  };
-
   const calculateDays = () => {
     if (!formData.start_date) {
       setCalculatedDays(0);
-      return;
-    }
-
-    if (formData.leave_duration === 'Half Day') {
-      setCalculatedDays(0.5);
-      return;
-    }
-
-    if (!formData.end_date) {
-      setCalculatedDays(1);
       return;
     }
 
@@ -387,10 +316,9 @@ const ApplyLeave = () => {
       return;
     }
 
-    const diffTime = Math.abs(end - start);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-
-    setCalculatedDays(diffDays);
+    setCalculatedDays(calculateLeaveDays(
+      formData.start_date, formData.end_date || formData.start_date, formData.leave_duration
+    ));
     setErrors(prev => ({ ...prev, end_date: '' }));
   };
 
@@ -443,6 +371,10 @@ const ApplyLeave = () => {
       newErrors.end_date = 'End date cannot be before start date';
     }
 
+    if (formData.start_date && calculatedDays === 0) {
+      newErrors.start_date = 'Select at least one working day. Saturdays and Sundays are excluded.';
+    }
+
     if (!formData.reason) {
       newErrors.reason = 'Reason is required';
     } else if (formData.reason.length < 10) {
@@ -450,7 +382,7 @@ const ApplyLeave = () => {
     }
 
     if (!formData.reporting_manager || !formData.reporting_manager.trim()) {
-      newErrors.reporting_manager = 'Reporting manager is required';
+      newErrors.reporting_manager = 'No reporting manager is assigned. Please contact HR to update your profile.';
     }
 
     if (formData.leave_type === 'Birthday') {
@@ -578,117 +510,13 @@ const ApplyLeave = () => {
 
   const availableLeaveTypes = getAvailableLeaveTypes();
   const displayedRecent = showAllRecent ? allLeaves : recentLeaves;
-  const currentTypeMeta = TYPE_META[formData.leave_type];
 
   return (
-    <div className="p-2 p-md-3 p-lg-4" style={{ backgroundColor: '#F8FAFC', minHeight: '100vh' }}>
-      <style>{AL_CSS}</style>
-
-      {/* Row 1: Recent Requests + Leave Policy */}
-      <Row className="g-3 mb-3">
-        <Col lg={6}>
-          <div className="al-card h-100">
-            <div className="d-flex align-items-center justify-content-between p-3 al-card-header">
-              <div className="d-flex align-items-center gap-2">
-                <div className="al-icon-circle" style={{ background: 'rgba(79,70,229,.12)', color: AL.primary }}>
-                  <FaCalendarAlt size={15} />
-                </div>
-                <h6 className="mb-0 fw-bold">Recent Requests</h6>
-              </div>
-              {allLeaves.length > 3 && (
-                <button className="al-btn-outline" onClick={() => setShowAllRecent(v => !v)}>
-                  {showAllRecent ? 'Show Less' : 'View All'}
-                </button>
-              )}
-            </div>
-            <div className="p-3">
-              {displayedRecent.length === 0 ? (
-                <div className="text-muted text-center small py-4">No leave requests yet</div>
-              ) : (
-                <div style={showAllRecent ? { maxHeight: 320, overflowY: 'auto' } : {}}>
-                  {displayedRecent.map((leave, idx) => {
-                    const meta = TYPE_META[leave.leave_type] || { emoji: '📄', bg: '#F1F5F9', color: '#475569' };
-                    const status = STATUS_META[leave.status] || STATUS_META.pending;
-                    return (
-                      <div key={leave.id || idx} className="al-recent-row">
-                        <div className="al-recent-icon" style={{ background: meta.bg }}>
-                          <span>{meta.emoji}</span>
-                        </div>
-                        <div className="flex-grow-1 overflow-hidden">
-                          <div className="fw-semibold small">{leave.leave_type}</div>
-                          <div className="text-muted text-truncate" style={{ fontSize: 12 }}>
-                            {formatDate(leave.start_date)}
-                            {leave.start_date !== leave.end_date && ` - ${formatDate(leave.end_date)}`}
-                          </div>
-                        </div>
-                        <span className="al-status-pill" style={{ background: status.bg, color: status.color }}>
-                          {leave.status}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-        </Col>
-
-        <Col lg={6}>
-          <div className="al-card h-100">
-            <div className="d-flex align-items-center justify-content-between p-3 al-card-header">
-              <div className="d-flex align-items-center gap-2">
-                <div className="al-icon-circle" style={{ background: 'rgba(79,70,229,.12)', color: AL.primary }}>
-                  <FaShieldAlt size={14} />
-                </div>
-                <h6 className="mb-0 fw-bold">Leave Policy</h6>
-              </div>
-              <button className="al-btn-outline" onClick={() => setShowPolicyModal(true)}>
-                View Policy
-              </button>
-            </div>
-            <div className="p-3">
-              <Row className="g-3">
-                <Col xs={12} md={4}>
-                  <div className="al-policy-icon" style={{ background: '#E0E7FF', color: AL.primary }}>
-                    <FaCalendarAlt size={13} />
-                  </div>
-                  <div className="fw-semibold small mt-2">Comp-Off Leave</div>
-                  <ul className="al-policy-list">
-                    <li>Earned by working on holidays (8+ hours)</li>
-                    <li>1 holiday work = 1 Comp-Off day</li>
-                    <li>Can be used during probation period</li>
-                    <li>Valid for 90 days from earning</li>
-                  </ul>
-                </Col>
-                <Col xs={12} md={4}>
-                  <div className="al-policy-icon" style={{ background: '#DCFCE7', color: '#15803D' }}>
-                    <FaUsers size={13} />
-                  </div>
-                  <div className="fw-semibold small mt-2">
-                    During Probation <span className="text-muted fw-normal">(First {PAID_LEAVE_ELIGIBILITY_MONTHS} months)</span>
-                  </div>
-                  <ul className="al-policy-list">
-                    <li>Comp-Off and Unpaid Leave available</li>
-                    <li>Regular leaves accrue but cannot be used</li>
-                  </ul>
-                </Col>
-                <Col xs={12} md={4}>
-                  <div className="al-policy-icon" style={{ background: '#DBEAFE', color: '#1D4ED8' }}>
-                    <FaUserCircle size={13} />
-                  </div>
-                  <div className="fw-semibold small mt-2">
-                    After Probation <span className="text-muted fw-normal">({PAID_LEAVE_ELIGIBILITY_MONTHS}+ months)</span>
-                  </div>
-                  <ul className="al-policy-list">
-                    <li>All leave types become available</li>
-                    <li>Annual leaves: 2 days/month (24 days/year)</li>
-                  </ul>
-                </Col>
-              </Row>
-            </div>
-          </div>
-        </Col>
-      </Row>
+    <div className="al-page p-3 p-md-4">
+      <div className="al-page-header">
+        <div><span className="al-eyebrow">EMPLOYEE WORKSPACE</span><h1>Apply for leave</h1><p>Submit your request and review your available balance.</p></div>
+        <button type="button" className="al-btn-outline" onClick={() => navigate(-1)}><FaArrowLeft size={12} /> Back</button>
+      </div>
 
       {/* Row 2: Leave Request Form + Leave Balance */}
       <Row className="g-3">
@@ -740,7 +568,7 @@ const ApplyLeave = () => {
                   <div className="d-flex align-items-start">
                     <FaTrophy className="me-3 text-purple mt-1 flex-shrink-0" size={20} />
                     <div>
-                      <h6 className="alert-heading mb-1 small">Comp-Off Available! 🎉</h6>
+                      <h6 className="alert-heading mb-1 small">Comp-Off available</h6>
                       <p className="mb-0 small">
                         You have <strong>{leaveBalance.comp_off_balance} Comp-Off day(s)</strong> earned by working on holidays.
                         You can use these like regular leaves, even during probation.
@@ -777,7 +605,6 @@ const ApplyLeave = () => {
                         Leave Type <span className="text-danger">*</span>
                       </Form.Label>
                       <div className="al-select-icon-wrap">
-                        {currentTypeMeta && <span className="al-select-emoji">{currentTypeMeta.emoji}</span>}
                         <Form.Select
                           name="leave_type"
                           value={formData.leave_type}
@@ -788,7 +615,7 @@ const ApplyLeave = () => {
                         >
                           {availableLeaveTypes.map(type => (
                             <option key={type.value} value={type.value}>
-                              {type.icon} {type.label}
+                              {type.label}
                             </option>
                           ))}
                         </Form.Select>
@@ -966,41 +793,25 @@ const ApplyLeave = () => {
                   <Form.Label className="small fw-semibold text-muted">
                     Reporting Manager <span className="text-danger">*</span>
                   </Form.Label>
-                  <Form.Select
+                  <Form.Control
+                    type="text"
                     name="reporting_manager"
                     value={formData.reporting_manager}
-                    onChange={handleChange}
-                    size="sm"
-                    className="al-select"
+                    placeholder="No reporting manager assigned"
+                    disabled
+                    className="al-form-control"
                     isInvalid={!!errors.reporting_manager}
-                  >
-                    <option value="">-- Select Reporting Manager --</option>
-                    {['Manager', 'TL'].map(group => {
-                      const group_members = managers.filter(m => m._group === group);
-                      if (group_members.length === 0) return null;
-                      return (
-                        <optgroup key={group} label={group === 'Manager' ? '👔 Managers' : '👤 Team Leads (TL)'}>
-                          {group_members.map(m => {
-                            const fullName = `${m.first_name} ${m.last_name}`.trim();
-                            return (
-                              <option key={m.employee_id} value={fullName}>
-                                {fullName}{m.designation ? ` (${m.designation})` : ''}
-                              </option>
-                            );
-                          })}
-                        </optgroup>
-                      );
-                    })}
-                  </Form.Select>
+                    aria-describedby="reporting-manager-help"
+                  />
                   {errors.reporting_manager && (
                     <Form.Control.Feedback type="invalid" className="d-block">
                       {errors.reporting_manager}
                     </Form.Control.Feedback>
                   )}
-                  <Form.Text className="text-muted small">
+                  <Form.Text id="reporting-manager-help" className="text-muted small">
                     {formData.reporting_manager
-                      ? 'Auto-selected from your profile. Change it if needed.'
-                      : 'Leave request will be sent to this manager for approval'}
+                      ? 'Assigned from your profile. Your request will be sent to this manager for approval.'
+                      : 'Please contact HR to assign your reporting manager before applying for leave.'}
                   </Form.Text>
                 </Form.Group>
 
@@ -1077,10 +888,10 @@ const ApplyLeave = () => {
               {/* Comp-Off Balance Display */}
               {leaveBalance.comp_off_balance > 0 && (
                 <div className="al-balance-banner mb-3" style={{ background: 'rgba(124,58,237,.08)' }}>
-                  <FaTrophy color="#7C3AED" size={20} className="mb-2" />
-                  <h5 className="fw-bold mb-0" style={{ color: '#7C3AED' }}>{leaveBalance.comp_off_balance}</h5>
+                  <FaTrophy color="#64748b" size={20} className="mb-2" />
+                  <h5 className="fw-bold mb-0" style={{ color: '#475569' }}>{leaveBalance.comp_off_balance}</h5>
                   <p className="text-muted small mb-0">Comp-Off Days Available</p>
-                  <span className="al-status-pill mt-1 d-inline-flex" style={{ background: 'rgba(124,58,237,.14)', color: '#7C3AED' }}>
+                  <span className="al-status-pill mt-1 d-inline-flex" style={{ background: 'rgba(124,58,237,.14)', color: '#475569' }}>
                     Earned by working on holidays
                   </span>
                 </div>
@@ -1156,7 +967,7 @@ const ApplyLeave = () => {
                   <div className="d-flex align-items-start">
                     <FaClock className="me-2 mt-1 flex-shrink-0" />
                     <div>
-                      <span>This request is for <strong>{calculatedDays} day{calculatedDays > 1 ? 's' : ''}</strong></span>
+                      <span>This request is for <strong>{calculatedDays} day{calculatedDays > 1 ? 's' : ''}</strong> (excluding Saturdays and Sundays)</span>
                       {formData.leave_type === 'Comp-Off' ? (
                         <>
                           <br />
@@ -1202,7 +1013,112 @@ const ApplyLeave = () => {
       </Row>
 
       {/* Leave Policy Modal (full detail, includes items not shown in the compact card) */}
-      <Modal show={showPolicyModal} onHide={() => setShowPolicyModal(false)} centered size="lg">
+      {/* Row 1: Recent Requests + Leave Policy */}
+      <Row className="g-3 mt-4">
+        <Col lg={6}>
+          <div className="al-card h-100">
+            <div className="d-flex align-items-center justify-content-between p-3 al-card-header">
+              <div className="d-flex align-items-center gap-2">
+                <div className="al-icon-circle" style={{ background: 'rgba(79,70,229,.12)', color: AL.primary }}>
+                  <FaCalendarAlt size={15} />
+                </div>
+                <h6 className="mb-0 fw-bold">Recent Requests</h6>
+              </div>
+              {allLeaves.length > 3 && (
+                <button className="al-btn-outline" onClick={() => setShowAllRecent(v => !v)}>
+                  {showAllRecent ? 'Show Less' : 'View All'}
+                </button>
+              )}
+            </div>
+            <div className="p-3">
+              {displayedRecent.length === 0 ? (
+                <div className="text-muted text-center small py-4">No leave requests yet</div>
+              ) : (
+                <div style={showAllRecent ? { maxHeight: 320, overflowY: 'auto' } : {}}>
+                  {displayedRecent.map((leave, idx) => {
+                    const status = STATUS_META[leave.status] || STATUS_META.pending;
+                    return (
+                      <div key={leave.id || idx} className="al-recent-row">
+                        <div className="al-recent-icon">
+                          <FaCalendarAlt aria-hidden="true" />
+                        </div>
+                        <div className="flex-grow-1 overflow-hidden">
+                          <div className="fw-semibold small">{leave.leave_type}</div>
+                          <div className="text-muted text-truncate" style={{ fontSize: 12 }}>
+                            {formatDate(leave.start_date)}
+                            {leave.start_date !== leave.end_date && ` - ${formatDate(leave.end_date)}`}
+                          </div>
+                        </div>
+                        <span className="al-status-pill" style={{ background: status.bg, color: status.color }}>
+                          {leave.status}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </Col>
+
+        <Col lg={6}>
+          <div className="al-card h-100">
+            <div className="d-flex align-items-center justify-content-between p-3 al-card-header">
+              <div className="d-flex align-items-center gap-2">
+                <div className="al-icon-circle" style={{ background: 'rgba(79,70,229,.12)', color: AL.primary }}>
+                  <FaShieldAlt size={14} />
+                </div>
+                <h6 className="mb-0 fw-bold">Leave Policy</h6>
+              </div>
+              <button className="al-btn-outline" onClick={() => setShowPolicyModal(true)}>
+                View Policy
+              </button>
+            </div>
+            <div className="p-3">
+              <Row className="g-3">
+                <Col xs={12} md={4}>
+                  <div className="al-policy-icon" style={{ background: '#E0E7FF', color: AL.primary }}>
+                    <FaCalendarAlt size={13} />
+                  </div>
+                  <div className="fw-semibold small mt-2">Comp-Off Leave</div>
+                  <ul className="al-policy-list">
+                    <li>Earned by working on holidays (8+ hours)</li>
+                    <li>1 holiday work = 1 Comp-Off day</li>
+                    <li>Can be used during probation period</li>
+                    <li>Valid for 90 days from earning</li>
+                  </ul>
+                </Col>
+                <Col xs={12} md={4}>
+                  <div className="al-policy-icon" style={{ background: '#DCFCE7', color: '#15803D' }}>
+                    <FaUsers size={13} />
+                  </div>
+                  <div className="fw-semibold small mt-2">
+                    During Probation <span className="text-muted fw-normal">(First {PAID_LEAVE_ELIGIBILITY_MONTHS} months)</span>
+                  </div>
+                  <ul className="al-policy-list">
+                    <li>Comp-Off and Unpaid Leave available</li>
+                    <li>Regular leaves accrue but cannot be used</li>
+                  </ul>
+                </Col>
+                <Col xs={12} md={4}>
+                  <div className="al-policy-icon" style={{ background: '#DBEAFE', color: '#1D4ED8' }}>
+                    <FaUserCircle size={13} />
+                  </div>
+                  <div className="fw-semibold small mt-2">
+                    After Probation <span className="text-muted fw-normal">({PAID_LEAVE_ELIGIBILITY_MONTHS}+ months)</span>
+                  </div>
+                  <ul className="al-policy-list">
+                    <li>All leave types become available</li>
+                    <li>Annual leaves: 2 days/month (24 days/year)</li>
+                  </ul>
+                </Col>
+              </Row>
+            </div>
+          </div>
+        </Col>
+      </Row>
+
+      <Modal className="al-modal" show={showPolicyModal} onHide={() => setShowPolicyModal(false)} centered size="lg">
         <Modal.Header closeButton style={{ background: AL.primary, color: '#fff' }}>
           <Modal.Title as="h6" className="mb-0 small fw-semibold d-flex align-items-center">
             <FaShieldAlt className="me-2" size={13} /> Leave Policy

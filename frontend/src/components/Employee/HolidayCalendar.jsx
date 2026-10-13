@@ -2,75 +2,25 @@
 
 import React, { useMemo, useState } from 'react';
 import { OverlayTrigger, Popover } from 'react-bootstrap';
-import { FaCalendarAlt } from 'react-icons/fa';
+import { FaCalendarAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { holidays } from '../../data/holidays';
+import './HolidayCalendar.css';
 
-// ── Design tokens (matches the indigo/enterprise palette used across Profile) ──
+// Muted navy and slate colors match the employee dashboard.
 const HC = {
-  primary: '#4F46E5',   // shared (USA & India)
-  india: '#EA580C',
-  usa: '#2563EB',
-  optional: '#B45309',
+  primary: '#1f4e79',   // shared (USA & India)
+  india: '#475569',
+  usa: '#52718c',
+  optional: '#6b7280',
   border: '#E5E7EB',
   borderSoft: '#EEF2F7',
   textMuted: '#667085',
 };
 
-const HC_CSS = `
-.hc-card { background:#fff; border-radius:16px; border:1px solid ${HC.borderSoft}; box-shadow:0 6px 20px rgba(16,24,40,.05); }
-.hc-header { padding:12px 16px; border-bottom:1px solid ${HC.borderSoft}; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
-.hc-title-wrap { display:flex; align-items:center; gap:9px; }
-.hc-icon-circle { width:30px; height:30px; border-radius:9px; background:#EEF2FF; color:${HC.primary}; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:13px; }
-.hc-title { font-size:13.5px; font-weight:700; color:#1D2939; margin:0; }
-.hc-subtitle { font-size:11px; color:${HC.textMuted}; margin:0; }
-.hc-year-toggle { display:flex; gap:4px; background:#F8FAFC; border:1px solid ${HC.borderSoft}; border-radius:9px; padding:3px; }
-.hc-year-btn { border:none; background:transparent; font-size:11.5px; font-weight:600; color:${HC.textMuted}; padding:4px 10px; border-radius:7px; cursor:pointer; }
-.hc-year-btn.active { background:${HC.primary}; color:#fff; }
-.hc-legend { display:flex; flex-wrap:wrap; gap:12px; padding:10px 16px 0; }
-.hc-legend-item { display:flex; align-items:center; gap:5px; font-size:10.5px; color:${HC.textMuted}; font-weight:600; }
-.hc-legend-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-.hc-body { padding:12px 16px 14px; }
-.hc-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:10px; margin-top:10px; }
-.hc-month { background:#F9FAFB; border:1px solid ${HC.borderSoft}; border-radius:11px; padding:8px 9px; }
-.hc-month-title { font-size:10.5px; font-weight:700; color:#344054; margin-bottom:5px; text-transform:uppercase; letter-spacing:.4px; }
-.hc-weekdays { display:grid; grid-template-columns:repeat(7,1fr); text-align:center; font-size:9px; color:#98A2B3; font-weight:700; margin-bottom:3px; }
-.hc-days { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
-.hc-day { display:flex; align-items:center; justify-content:center; height:20px; font-size:10px; color:#667085; border:none; background:transparent; border-radius:5px; padding:0; position:relative; font-family:inherit; }
-.hc-day--empty { visibility:hidden; }
-.hc-day--weekend { color:#D0D5DD; }
-.hc-day--holiday { cursor:pointer; font-weight:700; color:#fff; background:var(--hc-color, ${HC.primary}); }
-.hc-day--holiday:hover { filter:brightness(1.1); }
-.hc-day--holiday:focus { outline:2px solid rgba(79,70,229,.35); outline-offset:1px; }
-.hc-emoji-badge { position:absolute; top:-5px; right:-3px; font-size:8px; line-height:1; }
-.hc-upcoming { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:2px; }
-.hc-upcoming-chip { display:inline-flex; align-items:center; gap:5px; background:#F8FAFC; border:1px solid ${HC.borderSoft}; border-radius:8px; padding:4px 9px; font-size:10.5px; font-weight:600; color:#344054; }
-.hc-footer { margin-top:10px; padding-top:8px; border-top:1px solid #F5F6F8; font-size:10.5px; color:#98A2B3; }
-`;
-
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
-
-const HOLIDAY_ICON_MAP = [
-  [/new year/i, '🎆'],
-  [/christmas/i, '🎄'],
-  [/diwali/i, '🪔'],
-  [/holi/i, '🎨'],
-  [/eid/i, '🌙'],
-  [/thanksgiving/i, '🦃'],
-  [/republic day/i, '🎉'],
-  [/independence/i, '🎉'],
-  [/ganesh/i, '🐘'],
-  [/labor|labour/i, '💼'],
-  [/memorial/i, '🎗️'],
-  [/martin luther|juneteenth/i, '✊'],
-  [/president/i, '🏛️'],
-  [/columbus/i, '🧭'],
-  [/good friday/i, '✝️'],
-  [/gandhi/i, '🕊️'],
-];
-const getHolidayIcon = (name) => (HOLIDAY_ICON_MAP.find(([re]) => re.test(name)) || [null, '🎉'])[1];
 
 const colorForHoliday = (holiday) => {
   if (holiday.type === 'optional_holiday') return HC.optional;
@@ -80,7 +30,7 @@ const colorForHoliday = (holiday) => {
 };
 
 const formatDate = (dateString) => {
-  const date = new Date(dateString);
+  const date = new Date(`${dateString}T00:00:00`);
   return date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 };
 
@@ -90,7 +40,7 @@ const reasonFor = (holiday) => {
   return `${holiday.name} is observed as ${kind} for ${holiday.region}.`;
 };
 
-function MiniMonth({ year, month, holidaysByDate }) {
+function CalendarMonth({ year, month, holidaysByDate, todayStr }) {
   const first = new Date(year, month - 1, 1).getDay();
   const totalDays = new Date(year, month, 0).getDate();
 
@@ -101,21 +51,23 @@ function MiniMonth({ year, month, holidaysByDate }) {
 
   return (
     <div className="hc-month">
-      <div className="hc-month-title">{MONTH_NAMES[month - 1]}</div>
+
       <div className="hc-weekdays">
-        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => <span key={i}>{d}</span>)}
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d, i) => <span key={i}>{d}</span>)}
       </div>
       <div className="hc-days">
         {cells.map((day, idx) => {
           if (day === null) return <span key={idx} className="hc-day hc-day--empty">.</span>;
 
           const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-          const holiday = holidaysByDate[dateStr];
+          const dateHolidays = holidaysByDate[dateStr] || [];
+          const holiday = dateHolidays[0];
+          const todayClass = dateStr === todayStr ? ' hc-day--today' : '';
           const dow = new Date(year, month - 1, day).getDay();
           const isWeekend = dow === 0 || dow === 6;
 
           if (!holiday) {
-            return <span key={idx} className={`hc-day ${isWeekend ? 'hc-day--weekend' : ''}`}>{day}</span>;
+            return <span key={idx} aria-current={dateStr === todayStr ? 'date' : undefined} className={`hc-day ${isWeekend ? 'hc-day--weekend' : ''}${todayClass}`}>{day}</span>;
           }
 
           return (
@@ -127,24 +79,28 @@ function MiniMonth({ year, month, holidaysByDate }) {
               overlay={
                 <Popover id={`hc-pop-${dateStr}`} style={{ maxWidth: 240 }}>
                   <Popover.Header style={{ fontSize: 12.5, fontWeight: 700 }}>
-                    {getHolidayIcon(holiday.name)} {holiday.name}
+                    {dateHolidays.map(h => h.name).join(', ')}
                   </Popover.Header>
                   <Popover.Body style={{ fontSize: 11.5 }}>
                     <div className="mb-1" style={{ color: '#475467' }}>{formatDate(holiday.date)}</div>
-                    <div className="mb-1" style={{ color: '#475467' }}><strong>Region:</strong> {holiday.region}</div>
-                    <div style={{ color: '#344054' }}>{reasonFor(holiday)}</div>
+                    {dateHolidays.map(h => (
+                      <div key={h.name + h.region} className="hc-popover-detail">
+                        <strong>{h.name}</strong><div>{h.region} · {h.type === 'optional_holiday' ? 'Optional' : 'Public holiday'}</div>
+                        <div>{reasonFor(h)}</div>
+                      </div>
+                    ))}
                   </Popover.Body>
                 </Popover>
               }
             >
               <button
                 type="button"
-                className="hc-day hc-day--holiday"
+                className={`hc-day hc-day--holiday${todayClass}`}
+                aria-current={dateStr === todayStr ? 'date' : undefined}
                 style={{ '--hc-color': colorForHoliday(holiday) }}
-                aria-label={`${holiday.name} — ${formatDate(holiday.date)}`}
+                aria-label={`${dateHolidays.map(h => h.name).join(', ')} — ${formatDate(holiday.date)}`}
               >
                 {day}
-                <span className="hc-emoji-badge">{getHolidayIcon(holiday.name)}</span>
               </button>
             </OverlayTrigger>
           );
@@ -154,84 +110,77 @@ function MiniMonth({ year, month, holidaysByDate }) {
   );
 }
 
+const localDateKey = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+const availableYears = [...new Set(holidays.map(h => Number(h.date.slice(0, 4))))].sort((a, b) => a - b);
+
 const HolidayCalendar = ({ employeeRegion = 'All' }) => {
-  const [selectedYear, setSelectedYear] = useState(2026);
-
-  const yearHolidays = useMemo(() => {
-    return holidays
-      .filter(h => h.date.startsWith(String(selectedYear)))
-      .filter(h => h.region === 'USA & India' || h.region === employeeRegion || employeeRegion === 'All');
-  }, [selectedYear, employeeRegion]);
-
+  const today = new Date();
+  const todayStr = localDateKey(today);
+  const [viewDate, setViewDate] = useState(() => {
+    const year = availableYears.includes(today.getFullYear()) ? today.getFullYear() : availableYears.at(-1);
+    return { year, month: year === today.getFullYear() ? today.getMonth() + 1 : 1 };
+  });
+  const { year, month } = viewDate;
+  const regionalHolidays = useMemo(() => holidays
+    .filter(h => h.region === 'USA & India' || h.region === employeeRegion || employeeRegion === 'All')
+    .sort((a, b) => a.date.localeCompare(b.date)), [employeeRegion]);
   const holidaysByDate = useMemo(() => {
     const map = {};
-    yearHolidays.forEach(h => { map[h.date] = h; });
+    regionalHolidays.forEach(h => { (map[h.date] ||= []).push(h); });
     return map;
-  }, [yearHolidays]);
-
-  const upcoming = useMemo(() => {
-    const todayStr = new Date().toISOString().split('T')[0];
-    return yearHolidays
-      .filter(h => h.date >= todayStr)
-      .sort((a, b) => a.date.localeCompare(b.date))
-      .slice(0, 4);
-  }, [yearHolidays]);
+  }, [regionalHolidays]);
+  const upcoming = regionalHolidays.filter(h => h.date >= todayStr).slice(0, 4);
+  const monthPrefix = `${year}-${String(month).padStart(2, '0')}`;
+  const monthHolidays = regionalHolidays.filter(h => h.date.startsWith(monthPrefix));
+  const moveMonth = (offset) => {
+    const next = new Date(year, month - 1 + offset, 1);
+    setViewDate({ year: next.getFullYear(), month: next.getMonth() + 1 });
+  };
+  const minYear = availableYears[0];
+  const maxYear = availableYears.at(-1);
 
   return (
-    <div className="hc-card">
-      <style>{HC_CSS}</style>
-
+    <section className="hc-card" aria-labelledby="hc-title">
       <div className="hc-header">
         <div className="hc-title-wrap">
-          <div className="hc-icon-circle"><FaCalendarAlt /></div>
-          <div>
-            <p className="hc-title">Company Holiday Calendar</p>
-            <p className="hc-subtitle">United States & India</p>
+          <div className="hc-icon-circle"><FaCalendarAlt aria-hidden="true" /></div>
+          <div><h2 id="hc-title" className="hc-title">Company Holiday Calendar</h2>
+            <p className="hc-subtitle">{employeeRegion === 'All' ? 'United States & India' : employeeRegion} · Plan your time off</p>
           </div>
         </div>
-        <div className="hc-year-toggle">
-          {[2025, 2026].map(y => (
-            <button
-              key={y}
-              type="button"
-              className={`hc-year-btn ${selectedYear === y ? 'active' : ''}`}
-              onClick={() => setSelectedYear(y)}
-            >
-              {y}
-            </button>
-          ))}
-        </div>
+        <span className="hc-count">{monthHolidays.length} {monthHolidays.length === 1 ? 'holiday' : 'holidays'} this month</span>
       </div>
-
-      <div className="hc-legend">
-        <span className="hc-legend-item"><span className="hc-legend-dot" style={{ background: HC.primary }} /> Shared</span>
-        <span className="hc-legend-item"><span className="hc-legend-dot" style={{ background: HC.india }} /> India</span>
-        <span className="hc-legend-item"><span className="hc-legend-dot" style={{ background: HC.usa }} /> USA</span>
-        <span className="hc-legend-item"><span className="hc-legend-dot" style={{ background: HC.optional }} /> Optional</span>
-      </div>
-
-      <div className="hc-body">
-        {upcoming.length > 0 && (
-          <div className="hc-upcoming">
-            {upcoming.map((h, i) => (
-              <span key={i} className="hc-upcoming-chip">
-                {getHolidayIcon(h.name)} {formatDate(h.date).split(',').slice(0, 2).join(',')} — {h.name}
-              </span>
+      <div className="hc-body hc-layout">
+        <div>
+          <div className="hc-month-navigation">
+            <h3 aria-live="polite">{MONTH_NAMES[month - 1]} {year}</h3>
+            <div className="hc-controls">
+              <button type="button" onClick={() => setViewDate({ year: today.getFullYear(), month: today.getMonth() + 1 })} disabled={!availableYears.includes(today.getFullYear())} className="hc-today-btn">Today</button>
+              <button type="button" aria-label="Previous month" disabled={year === minYear && month === 1} onClick={() => moveMonth(-1)}><FaChevronLeft aria-hidden="true" /></button>
+              <button type="button" aria-label="Next month" disabled={year === maxYear && month === 12} onClick={() => moveMonth(1)}><FaChevronRight aria-hidden="true" /></button>
+            </div>
+          </div>
+          <CalendarMonth key={monthPrefix} year={year} month={month} holidaysByDate={holidaysByDate} todayStr={todayStr} />
+          <div className="hc-legend">
+            {[['Shared', HC.primary], ['India', HC.india], ['USA', HC.usa], ['Optional', HC.optional]].map(([label, color]) => (
+              <span key={label} className="hc-legend-item"><span className="hc-legend-dot" style={{ background: color }} />{label}</span>
             ))}
           </div>
-        )}
-
-        <div className="hc-grid">
-          {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
-            <MiniMonth key={month} year={selectedYear} month={month} holidaysByDate={holidaysByDate} />
-          ))}
+          <p className="hc-month-note">{monthHolidays.length ? 'Select a highlighted date for holiday details.' : 'No company holidays for your region this month.'}</p>
         </div>
-
-        <div className="hc-footer">
-          Click a highlighted date to see the holiday reason. Subject to change — contact HR for the latest updates.
-        </div>
+        <aside className="hc-upcoming-panel" aria-labelledby="hc-upcoming-title">
+          <h3 id="hc-upcoming-title">Upcoming holidays</h3>
+          <p className="hc-subtitle">The next holidays for your region</p>
+          {upcoming.length ? <ul className="hc-holiday-list">
+            {upcoming.map(h => <li key={h.date + h.name + h.region}>
+              <div className="hc-date-tile"><span>{new Date(h.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short' })}</span><strong>{Number(h.date.slice(8))}</strong></div>
+              <div className="hc-holiday-info"><strong>{h.name}</strong><span>{h.region} · {h.type === 'optional_holiday' ? 'Optional' : 'Public holiday'}</span><span>{new Date(h.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric' })}</span></div>
+            </li>)}
+          </ul> : <p className="hc-empty">No upcoming holidays in the published calendar.</p>}
+        </aside>
       </div>
-    </div>
+      <div className="hc-footer">Holiday dates are subject to change. Contact HR for the latest updates.</div>
+    </section>
   );
 };
 

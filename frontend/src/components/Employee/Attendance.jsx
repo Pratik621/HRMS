@@ -29,9 +29,18 @@ import { loadDashboardCache, saveDashboardCache } from '../../utils/dashboardCac
 import { useAuth } from '../../context/AuthContext';
 import { useMobileDevice } from '../../hooks/useMobileDevice';
 import {
-  DA, STATUS_PILL, DA_TH_STYLE, DA_CARD_STYLE, DA_GRADIENT_BAR, ATTENDANCE_TABLE_CSS,
+  DA as SHARED_DA, STATUS_PILL as SHARED_STATUS_PILL, DA_TH_STYLE as SHARED_TH_STYLE, ATTENDANCE_TABLE_CSS,
 } from '../Common/attendanceTheme';
 import { Line } from 'react-chartjs-2';
+import './Attendance.css';
+
+// Local presentation tokens keep this page aligned with the employee dashboard.
+const DA = { ...SHARED_DA, bg: '#f5f7fa', text: '#172033', secondary: '#64748b', primaryGreen: '#1f4e79', success: '#168a70', warning: '#c05621', danger: '#c53030', purple: '#475569' };
+const STATUS_PILL = Object.fromEntries(Object.keys(SHARED_STATUS_PILL).map(status => [status, {
+  background: '#f1f5f9', color: '#475569', border: '1px solid #e5eaf0',
+}]));
+const DA_TH_STYLE = { ...SHARED_TH_STYLE, height: 48, background: '#f8fafc', color: '#64748b', fontSize: 11, borderBottom: '1px solid #e5eaf0' };
+const DA_CARD_STYLE = { background: '#fff', borderRadius: 14, boxShadow: '0 2px 8px rgba(15,23,42,.03)', border: '1px solid #e5eaf0', overflow: 'hidden' };
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -129,11 +138,11 @@ const Attendance = () => {
       {
         label: 'Hours Worked',
         data: [],
-        borderColor: 'rgb(75, 192, 192)',
-        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+        borderColor: '#1f4e79',
+        backgroundColor: 'rgba(31,78,121,.08)',
         tension: 0.4,
         fill: true,
-        pointBackgroundColor: 'rgb(75, 192, 192)',
+        pointBackgroundColor: '#1f4e79',
         pointBorderColor: '#fff',
         pointBorderWidth: 2,
         pointRadius: 4,
@@ -1208,11 +1217,11 @@ const Attendance = () => {
       datasets: [{
         label: 'Hours Worked',
         data: data.slice(-15),
-        borderColor: 'rgb(75, 192, 192)',
-        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+        borderColor: '#1f4e79',
+        backgroundColor: 'rgba(31,78,121,.08)',
         tension: 0.4,
         fill: true,
-        pointBackgroundColor: data.slice(-15).map(v => v >= 8 ? 'rgb(40, 167, 69)' : v >= 5 ? 'rgb(255, 193, 7)' : 'rgb(220, 53, 69)'),
+        pointBackgroundColor: data.slice(-15).map(v => v >= 8 ? '#1f4e79' : v >= 5 ? '#64748b' : '#a1aab7'),
         pointBorderColor: '#fff',
         pointBorderWidth: 2,
         pointRadius: 5,
@@ -1404,14 +1413,15 @@ const Attendance = () => {
   };
 
   const handlePreviousPage = () => {
-    if (historyPage === 0) return;
-    const newPage = historyPage - 1;
+    if (loadingHistory) return;
+    const newPage = historyPage + 1;
     setHistoryPage(newPage);
     fetchAttendanceHistory(newPage);
   };
 
   const handleNextPage = () => {
-    const newPage = historyPage + 1;
+    if (loadingHistory || historyPage === 0) return;
+    const newPage = historyPage - 1;
     setHistoryPage(newPage);
     fetchAttendanceHistory(newPage);
   };
@@ -2121,20 +2131,19 @@ const Attendance = () => {
   }
 
   return (
-    <div className="p-2 p-md-3 p-lg-4" style={{ backgroundColor: '#f8f9fc', minHeight: '100vh' }}>
+    <div className="am-page p-3 p-md-4">
       <div
-        className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3"
-        style={{ background: '#fff', borderRadius: 16, padding: '18px 22px', boxShadow: '0 10px 35px rgba(16,24,40,.06)' }}
+        className="am-page-header"
       >
         <div className="d-flex align-items-center gap-3">
           <div
-            className="d-flex align-items-center justify-content-center"
-            style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(22,163,74,.12)', color: DA.primaryGreen, flexShrink: 0 }}
+            className="am-header-icon"
           >
             <FaClock size={20} />
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 18, color: '#101828' }}>Attendance Management</div>
+            <span className="am-eyebrow">EMPLOYEE WORKSPACE</span>
+            <h1 className="am-page-title">Attendance Management</h1>
             <div style={{ fontSize: 13, color: DA.secondary }}>Track your time and attendance</div>
           </div>
         </div>
@@ -2260,7 +2269,7 @@ const Attendance = () => {
       )}
 
       {/* Main Attendance Card */}
-      <div style={{ ...DA_CARD_STYLE, marginBottom: 24 }} className="da-fade-in">
+      <div style={{ ...DA_CARD_STYLE, marginBottom: 24 }} className="am-surface da-fade-in">
         <div className="p-3 p-md-4">
           <Row className="align-items-center g-3">
             <Col xs={12} md={3}>
@@ -2312,7 +2321,7 @@ const Attendance = () => {
             <Col xs={6} md={1}>
               <div className="text-center">
                 <small className="text-muted d-block">Working Hours</small>
-                <strong style={{ fontSize: 18, color: '#2563eb' }}>
+                <strong style={{ fontSize: 18, color: '#1f4e79' }}>
                   {attendance?.total_hours_display || '0h 0m'}
                 </strong>
               </div>
@@ -2340,10 +2349,10 @@ const Attendance = () => {
       {/* Stats Cards */}
       <Row className="mb-4 g-3">
         {[
-          { label: 'Present Days', value: monthlyStats.presentDays, icon: <FaCheckCircle size={16} />, color: DA.primaryGreen, bg: 'rgba(22,163,74,.12)', trend: presentTrend },
-          { label: 'Absent Days', value: monthlyStats.absentDays, icon: <FaExclamationTriangle size={16} />, color: '#ef4444', bg: 'rgba(239,68,68,.12)', trend: absentTrend },
-          { label: 'Total Hours', value: `${monthlyStats.totalHours}h`, icon: <FaClock size={16} />, color: '#7c3aed', bg: 'rgba(124,58,237,.12)', trend: hoursTrend },
-          { label: 'Avg Hours/Day', value: `${monthlyStats.averageHours}h`, icon: <FaRegClock size={16} />, color: '#2563eb', bg: 'rgba(37,99,235,.12)', trend: avgHoursTrend },
+          { label: 'Present Days', value: monthlyStats.presentDays, icon: <FaCheckCircle size={16} />, color: DA.primaryGreen, bg: '#eef4fb', trend: presentTrend },
+          { label: 'Absent Days', value: monthlyStats.absentDays, icon: <FaExclamationTriangle size={16} />, color: '#475569', bg: '#f1f5f9', trend: absentTrend },
+          { label: 'Total Hours', value: `${monthlyStats.totalHours}h`, icon: <FaClock size={16} />, color: '#1f4e79', bg: '#eef4fb', trend: hoursTrend },
+          { label: 'Avg Hours/Day', value: `${monthlyStats.averageHours}h`, icon: <FaRegClock size={16} />, color: '#52718c', bg: '#eef4fb', trend: avgHoursTrend },
         ].map((stat) => (
           <Col xs={6} md={3} key={stat.label}>
             <div style={{ ...DA_CARD_STYLE, height: '100%' }} className="da-fade-in">
@@ -2375,7 +2384,7 @@ const Attendance = () => {
       <Row>
         <Col lg={12}>
           <div style={DA_CARD_STYLE} className="da-fade-in">
-            <div style={DA_GRADIENT_BAR} />
+            
             <div className="bg-white py-2 py-md-3 px-3">
               <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
                 <h6 className="mb-0 small d-flex align-items-center">
@@ -2412,11 +2421,11 @@ const Attendance = () => {
               </div>
             </div>
             <div className="p-2 p-md-3">
-              <div className="mb-3 border-bottom">
-                <Button variant={activeTab === 'daily' ? 'primary' : 'light'} size="sm" onClick={() => setActiveTab('daily')} className="me-2" style={{ borderBottom: activeTab === 'daily' ? '3px solid #0d6efd' : 'none', borderRadius: '4px 4px 0 0' }}>
+              <div className="am-view-tabs mb-3">
+                <Button variant={activeTab === 'daily' ? 'primary' : 'light'} size="sm" onClick={() => setActiveTab('daily')} className="me-2" aria-pressed={activeTab === 'daily'}>
                   Daily View
                 </Button>
-                <Button variant={activeTab === 'chart' ? 'primary' : 'light'} size="sm" onClick={() => setActiveTab('chart')} style={{ borderBottom: activeTab === 'chart' ? '3px solid #0d6efd' : 'none', borderRadius: '4px 4px 0 0' }}>
+                <Button variant={activeTab === 'chart' ? 'primary' : 'light'} size="sm" onClick={() => setActiveTab('chart')} aria-pressed={activeTab === 'chart'}>
                   Chart View
                 </Button>
               </div>
@@ -2461,7 +2470,7 @@ const Attendance = () => {
                               className={`da-row da-row-enter ${record.isToday ? 'fw-bold' : ''}`}
                               style={{
                                 borderBottom: `1px solid ${DA.border}`,
-                                ...(isBirthday ? { background: 'linear-gradient(90deg, rgba(239,68,68,.35), rgba(250,204,21,.35))' } : {})
+                                ...(isBirthday ? { background: '#eef4fb' } : {})
                               }}
                             >
                               <td className="small">
@@ -2569,7 +2578,7 @@ const Attendance = () => {
                       <Button
                         variant="outline-secondary"
                         size="sm"
-                        disabled={historyPage === 0 || loadingHistory}
+                        disabled={loadingHistory}
                         onClick={handlePreviousPage}
                       >
                         ← Previous 30 Days
@@ -2577,7 +2586,7 @@ const Attendance = () => {
                       <Button
                         variant="outline-secondary"
                         size="sm"
-                        disabled={loadingHistory}
+                        disabled={historyPage === 0 || loadingHistory}
                         onClick={handleNextPage}
                       >
                         Next 30 Days →
@@ -2587,18 +2596,54 @@ const Attendance = () => {
                 </>
               ) : (
                 <>
-                  <div style={{ height: '300px' }}>
-                    <Line data={chartData} options={{
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (context) => `${context.raw} hours` } } },
-                      scales: { y: { beginAtZero: true, max: 10, title: { display: true, text: 'Hours' }, ticks: { stepSize: 1, callback: (value) => value + 'h' } } }
-                    }} />
+                  <div className="am-chart-heading">
+                    <div><h3>Daily working hours</h3><p>Recorded hours for the most recent {chartData.labels.length} days in this reporting period.</p></div>
+                    <span className="am-chart-unit">Hours per day</span>
                   </div>
-                  <div className="mt-2 text-center text-muted small">
-                    <span className="me-3"><span style={{ color: 'rgb(40, 167, 69)' }}>●</span> Full Day (8+ hrs)</span>
-                    <span className="me-3"><span style={{ color: 'rgb(255, 193, 7)' }}>●</span> Half Day (5-8 hrs)</span>
-                    <span><span style={{ color: 'rgb(220, 53, 69)' }}>●</span> Absent ({'<'}5 hrs)</span>
+                  {chartData.labels.length ? (
+                    <div className="am-hours-chart">
+                      <Line
+                        data={{ ...chartData, datasets: chartData.datasets.map(dataset => ({
+                          ...dataset,
+                          borderColor: '#1f4e79',
+                          backgroundColor: 'rgba(31,78,121,.04)',
+                          tension: 0,
+                          fill: false,
+                          borderWidth: 2,
+                          pointRadius: 4,
+                          pointHoverRadius: 6,
+                          pointBorderColor: '#fff',
+                          pointBorderWidth: 2,
+                          pointBackgroundColor: dataset.data.map(value => value >= 8 ? '#1f4e79' : value >= 5 ? '#64748b' : '#a1aab7'),
+                        })) }}
+                        options={{
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          layout: { padding: { top: 16, right: 12 } },
+                          interaction: { mode: 'index', intersect: false },
+                          plugins: {
+                            legend: { display: false },
+                            tooltip: { backgroundColor: '#172033', padding: 12, displayColors: false, callbacks: { label: context => `Worked: ${Number(context.raw).toFixed(2)} hours` } },
+                          },
+                          scales: {
+                            x: { grid: { display: false }, border: { color: '#e5eaf0' }, ticks: { color: '#64748b', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } },
+                            y: {
+                              beginAtZero: true,
+                              suggestedMax: Math.max(10, Math.ceil(Math.max(0, ...chartData.datasets.flatMap(dataset => dataset.data.map(value => Number(value) || 0))) * 1.15)),
+                              title: { display: true, text: 'Hours worked', color: '#64748b' },
+                              grid: { color: '#eef2f6' },
+                              border: { display: false },
+                              ticks: { color: '#64748b', maxTicksLimit: 7, callback: value => value + 'h' },
+                            },
+                          },
+                        }}
+                      />
+                    </div>
+                  ) : <div className="am-chart-empty">No recorded working hours for this period.</div>}
+                  <div className="am-chart-legend">
+                    <span><i style={{ background: '#1f4e79' }} />8+ hours</span>
+                    <span><i style={{ background: '#64748b' }} />5–8 hours</span>
+                    <span><i style={{ background: '#a1aab7' }} />Under 5 hours</span>
                   </div>
                 </>
               )}
@@ -2608,7 +2653,7 @@ const Attendance = () => {
       </Row>
 
       {/* Modals */}
-      <Modal show={showRegularizationModal} onHide={() => { setShowRegularizationModal(false); setSelectedMissedRecord(null); setRegularizationTime(''); setRegularizationClockIn(''); setRegularizationReason(''); setRegularizationBreakDuration(''); setRegularizationAttachment(null); setAttachmentError(''); }} centered size="lg">
+      <Modal className="am-modal" show={showRegularizationModal} onHide={() => { setShowRegularizationModal(false); setSelectedMissedRecord(null); setRegularizationTime(''); setRegularizationClockIn(''); setRegularizationReason(''); setRegularizationBreakDuration(''); setRegularizationAttachment(null); setAttachmentError(''); }} centered size="lg">
         <Modal.Header closeButton className="bg-warning">
           <Modal.Title className="h6"><FaRegClock className="me-2" /> Regularize Attendance - {selectedMissedRecord?.attendance_date}</Modal.Title>
         </Modal.Header>
@@ -2705,18 +2750,18 @@ const Attendance = () => {
         </Modal.Footer>
       </Modal>
 
-      <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)} centered>
+      <Modal className="am-modal" show={showSuccessModal} onHide={() => setShowSuccessModal(false)} centered>
         <Modal.Header closeButton className="bg-success text-white"><Modal.Title className="h6">Request Submitted</Modal.Title></Modal.Header>
         <Modal.Body className="p-4 text-center"><FaCheckCircle className="text-success mb-3" size={50} /><p>{successMessage}</p><Button variant="success" size="sm" onClick={() => setShowSuccessModal(false)}>Close</Button></Modal.Body>
       </Modal>
 
-      <Modal show={showExitWarning} onHide={() => setShowExitWarning(false)} centered>
+      <Modal className="am-modal" show={showExitWarning} onHide={() => setShowExitWarning(false)} centered>
         <Modal.Header closeButton className="bg-warning"><Modal.Title className="h6">⚠️ Active Session Detected</Modal.Title></Modal.Header>
         <Modal.Body className="p-3"><p className="small">You have an active session. Would you like to clock out before leaving?</p><p className="text-muted small">If you don't clock out, your attendance will not be recorded properly.</p></Modal.Body>
         <Modal.Footer className="py-2"><Button variant="secondary" size="sm" onClick={() => setShowExitWarning(false)}>Cancel</Button><Button variant="warning" size="sm" onClick={handleManualClockOut}><FaSignOutAlt className="me-2" /> Clock Out Now</Button></Modal.Footer>
       </Modal>
 
-      <Modal show={showPreviousDayClockOut.show} onHide={() => setShowPreviousDayClockOut({ show: false, attendance_id: null, attendance_date: null, clock_in_time: null })} centered>
+      <Modal className="am-modal" show={showPreviousDayClockOut.show} onHide={() => setShowPreviousDayClockOut({ show: false, attendance_id: null, attendance_date: null, clock_in_time: null })} centered>
         <Modal.Header closeButton className="bg-warning">
           <Modal.Title className="h6">⚠️ Incomplete Attendance Detected</Modal.Title>
         </Modal.Header>

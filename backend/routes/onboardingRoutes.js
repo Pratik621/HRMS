@@ -10,6 +10,7 @@ const { verifyToken, isAdmin, isAdminOrDesktopSupport } = require('../middleware
 const { uploadFile } = require('../lib/supabaseStorage');
 const { createOnboardingTickets } = require('../utils/onboardingTickets');
 const emailService = require('../services/emailService');
+const { sendOnboardingEmails } = require('../utils/onboardingEmails');
 const { generateAndStoreOfferLetter } = require('../services/offerLetterService');
 const { DEFAULT_CONTRACT_POLICY } = require('../utils/contractPolicy');
 const { generateNextEmployeeId } = require('../utils/employeeId');
@@ -501,8 +502,9 @@ router.patch('/links/:id/approve', verifyToken, isAdmin, async (req, res) => {
         }
         const { employee: emp, employeeId: newEmployeeId, tempPassword, offerLetterAttachment, panWarning } = accountResult;
 
-        emailService.sendEmployeeCredentialsEmail(emp, { employeeId: newEmployeeId, tempPassword }, offerLetterAttachment)
-            .catch(e => console.error('❌ Failed to send employee-credentials email:', e.message));
+        await sendOnboardingEmails(supabase, {
+            employee: emp, credentials: { employeeId: newEmployeeId, tempPassword }, offerLetterAttachment,
+        });
 
         await createOnboardingTickets(supabase, { employee: emp, actor: req.user });
 
@@ -839,12 +841,11 @@ router.post('/:token/submit', async (req, res) => {
                 await supabase.from('employee_offer_links').update({ notes: newNotes }).eq('token', req.params.token);
             }
 
-            // Fire-and-forget: email the new employee their own credentials (+ their offer
-            // letter, when generation succeeded above) — never blocks the response, and a
-            // failure here must not undo the account/tickets created around it (the
-            // candidate also sees these credentials on-screen regardless).
-            emailService.sendEmployeeCredentialsEmail(emp, { employeeId: newEmployeeId, tempPassword }, offerLetterAttachment)
-                .catch(e => console.error('❌ Failed to send employee-credentials email:', e.message));
+            // Send the employee's credentials/letter, then notify IT for system allocation.
+            // Wait for the sends, but email failures never undo account creation.
+            await sendOnboardingEmails(supabase, {
+                employee: emp, credentials: { employeeId: newEmployeeId, tempPassword }, offerLetterAttachment,
+            });
 
             // Step 2 — raise onboarding tickets. Never throws (see onboardingTickets.js),
             // so a ticketing problem can't undo the account that was just created.

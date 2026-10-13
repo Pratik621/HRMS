@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from '../../config/axios';
 import API_ENDPOINTS from '../../config/api';
 import { useAuth } from '../../context/AuthContext';
+import './Performance.css';
 import { getRoleLabel } from '../../config/roles';
 
 // ── Rating helpers ────────────────────────────────────────────────────────────
@@ -25,11 +26,11 @@ const RATING_LABELS = {
 };
 
 const RATING_COLORS = {
-  5: '#22c55e',
-  4: '#4ade80',
-  3: '#eab308',
-  2: '#f97316',
-  1: '#ef4444',
+  5: '#168a70',
+  4: '#52718c',
+  3: '#8a702c',
+  2: '#c05621',
+  1: '#c53030',
 };
 
 const getRatingLabel = (r) => RATING_LABELS[r] || '—';
@@ -45,7 +46,7 @@ const Stars = ({ rating, size = 18, interactive = false, onSelect }) => (
           onClick={() => interactive && onSelect && onSelect(n)}
           style={{
             cursor: interactive ? 'pointer' : 'default',
-            color:  filled ? (getRatingColor(rating) || '#eab308') : '#d1d5db',
+            color:  filled ? (getRatingColor(rating) || '#8a702c') : '#d1d5db',
             fontSize: size,
             transition: 'transform 0.1s',
           }}
@@ -147,41 +148,14 @@ const PerformanceReviews = () => {
   }
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-      {/* ── Header ── */}
-      <div style={{
-        background: 'linear-gradient(135deg, #1e2a3e 0%, #2d3f5e 100%)',
-        borderRadius: 14, padding: '24px 28px', marginBottom: 24,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{
-            width: 48, height: 48, borderRadius: 12,
-            background: 'rgba(255,255,255,0.15)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <FaChartLine size={22} color="#fff" />
-          </div>
-          <div>
-            <h4 style={{ color: '#fff', margin: 0, fontWeight: 700, fontSize: 20 }}>
-              Performance Reviews
-            </h4>
-            <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 2 }}>
-              {displayRole} — {periodLabel}
-            </div>
-          </div>
+    <div className="performance-page p-3 p-md-4">
+      <header className="performance-header">
+        <div><span className="performance-eyebrow">EMPLOYEE WORKSPACE</span><h1>Performance Reviews</h1><p>{displayRole} · {periodLabel}</p></div>
+        <div className="performance-header-actions">
+          <span className="performance-count">{pending.length} pending</span><span className="performance-count">{completed.length} completed</span>
+          <button type="button" className="performance-back" onClick={() => navigate(-1)}><FaArrowLeft size={12} /> Back</button>
         </div>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <StatPill label="Pending"   value={pending.length}   color="#f97316" />
-          <StatPill label="Completed" value={completed.length} color="#22c55e" />
-          <button
-            className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
-            onClick={() => navigate(-1)}
-          >
-            <FaArrowLeft size={12} /> Back
-          </button>
-        </div>
-      </div>
+      </header>
 
       {error && <Alert variant="danger" className="mb-3">{error}</Alert>}
 
@@ -196,10 +170,10 @@ const PerformanceReviews = () => {
       </Tabs>
 
       {/* ── Review Modal ── */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered size="md">
+      <Modal className="performance-modal" show={showModal} onHide={() => setShowModal(false)} centered size="md">
         <Modal.Header closeButton style={{ borderBottom: '1px solid #e2e8f0', padding: '18px 24px' }}>
           <Modal.Title style={{ fontSize: 16, fontWeight: 700, color: '#0f172a' }}>
-            <FaStar className="me-2" size={14} style={{ color: '#eab308' }} />
+            <FaStar className="me-2" size={14} style={{ color: '#8a702c' }} />
             Performance Review
           </Modal.Title>
         </Modal.Header>
@@ -213,7 +187,7 @@ const PerformanceReviews = () => {
               }}>
                 <div style={{
                   width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
-                  background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+                  background: '#1f4e79',
                   color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontWeight: 700, fontSize: 16,
                 }}>
@@ -261,7 +235,7 @@ const PerformanceReviews = () => {
               {/* Star picker */}
               <Form.Group className="mb-3">
                 <Form.Label style={{ fontWeight: 600, fontSize: 13, color: '#374151' }}>
-                  Select Rating <span style={{ color: '#ef4444' }}>*</span>
+                  Select Rating <span style={{ color: '#c53030' }}>*</span>
                 </Form.Label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {[5, 4, 3, 2, 1].map(n => (
@@ -332,7 +306,7 @@ const PerformanceReviews = () => {
             disabled={submitting}
             style={{
               borderRadius: 8, fontSize: 13,
-              background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+              background: '#1f4e79',
               border: 'none', padding: '8px 20px',
             }}
           >
@@ -358,7 +332,7 @@ const PerformanceReviews = () => {
               size="sm"
               onClick={handleSubmit}
               style={{
-                background: 'linear-gradient(135deg,#22c55e,#16a34a)',
+                background: '#168a70',
                 border: 'none', borderRadius: 8,
               }}
             >
@@ -393,7 +367,7 @@ const EmployeeGrid = ({ employees, onReview, completed }) => {
         background: '#f8fafc', borderRadius: 12, border: '1px dashed #e2e8f0',
       }}>
         {completed
-          ? <FaCheckCircle size={40} style={{ color: '#22c55e', marginBottom: 12 }} />
+          ? <FaCheckCircle size={40} style={{ color: '#168a70', marginBottom: 12 }} />
           : <FaUsers size={40} style={{ color: '#94a3b8', marginBottom: 12 }} />
         }
         <p style={{ color: '#64748b', margin: 0, fontSize: 14 }}>
@@ -431,7 +405,7 @@ const EmployeeCard = ({ emp, onReview, completed }) => {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
           <div style={{
             width: 42, height: 42, borderRadius: '50%', flexShrink: 0,
-            background: `linear-gradient(135deg,${completed ? color : '#6366f1'},${completed ? color + 'cc' : '#8b5cf6'})`,
+            background: `linear-gradient(135deg,${completed ? color : '#1f4e79'},${completed ? color + 'cc' : '#52718c'})`,
             color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontWeight: 700, fontSize: 15,
           }}>{initials}</div>
@@ -481,7 +455,7 @@ const EmployeeCard = ({ emp, onReview, completed }) => {
             width: '100%', borderRadius: 8, fontSize: 12, fontWeight: 600,
             background: completed
               ? 'transparent'
-              : 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+              : '#1f4e79',
             border: completed ? `1px solid ${color}` : 'none',
             color: completed ? color : '#fff',
             padding: '6px 0',

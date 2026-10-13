@@ -41,6 +41,7 @@ const AddEmployee = () => {
   const [debugInfo, setDebugInfo] = useState(null);
   const [employeeId, setEmployeeId] = useState('');
   const [managers, setManagers] = useState([]);
+  const [subAdmins, setSubAdmins] = useState([]);
   const [hrEmployees, setHrEmployees] = useState([]);
 
   // Track completed tabs
@@ -127,11 +128,13 @@ const AddEmployee = () => {
   useEffect(() => {
     const fetchManagers = async () => {
       try {
-        const [tlRes, hrRes] = await Promise.all([
+        const [tlRes, managerRes, hrRes] = await Promise.all([
           axios.get(API_ENDPOINTS.TEAMS_MANAGERS_LIST),
+          axios.get(API_ENDPOINTS.TEAMS_SUB_ADMINS_LIST),
           axios.get(API_ENDPOINTS.TEAMS_HR_LIST),
         ]);
         setManagers(tlRes.data.managers || []);
+        setSubAdmins(managerRes.data.managers || []);
         setHrEmployees(hrRes.data.managers || []);
       } catch (err) {
         console.error('Error fetching managers:', err);
@@ -858,6 +861,18 @@ const AddEmployee = () => {
                         {managers.length > 0 && (
                           <optgroup label="Team Leaders">
                             {managers.map(m => {
+                              const fullName = `${m.first_name} ${m.last_name}`.trim();
+                              return (
+                                <option key={m.employee_id} value={fullName}>
+                                  {fullName} ({m.designation})
+                                </option>
+                              );
+                            })}
+                          </optgroup>
+                        )}
+                        {subAdmins.length > 0 && (
+                          <optgroup label="Managers">
+                            {subAdmins.map(m => {
                               const fullName = `${m.first_name} ${m.last_name}`.trim();
                               return (
                                 <option key={m.employee_id} value={fullName}>

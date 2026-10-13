@@ -44,7 +44,7 @@ const COMPANY_INFO = {
   pc:  { name: 'PropCulture', address: 'Pune, Maharashtra', accent: '#0d7b6f' },
 };
 
-const SalarySlip = () => {
+const SalarySlip = ({ embedded = false }) => {
   const { user } = useAuth();
   const { showNotification } = useNotification();
   const navigate = useNavigate();
@@ -730,10 +730,10 @@ const SalarySlip = () => {
   }
 
   return (
-    <Container fluid className="p-2 p-md-3 p-lg-4" style={{ backgroundColor: '#f8f9fc', minHeight: '100vh' }}>
+    <Container fluid className={embedded ? 'payroll-salary p-0' : 'p-2 p-md-3 p-lg-4'} style={embedded ? undefined : { backgroundColor: '#f8f9fc', minHeight: '100vh' }}>
       {/* Header - Responsive */}
       <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3">
-        <h5 className="mb-0 d-flex align-items-center">
+        <h5 className="mb-0 d-flex align-items-center" hidden={embedded}>
           <FaMoneyBillWave className="me-2 text-primary" />
           Salary Slips
         </h5>
@@ -750,6 +750,7 @@ const SalarySlip = () => {
           </Badge>
           <button
             className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
+            hidden={embedded}
             onClick={() => navigate(-1)}
           >
             <FaArrowLeft size={12} /> Back
@@ -775,35 +776,22 @@ const SalarySlip = () => {
         </Alert>
       )}
 
-      {/* Joining Info Card - Responsive */}
-      {joiningInfo && (
-        <Card className="mb-4 shadow-sm border-0 bg-white">
-          <Card.Body className="p-2 p-md-3">
-            <div className="d-flex align-items-start">
-              <FaCalendarAlt className="text-primary me-3 flex-shrink-0" size={20} />
-              <div className="text-wrap">
-                <h6 className="mb-1 text-dark fw-semibold small">Employment Start Date</h6>
-                <p className="mb-0 small text-muted">
-                  You joined on <strong>{joiningInfo.formattedDate}</strong>
-                </p>
-                <small className="text-muted small d-block">
-                  Salary slips available from {months.find(m => m.value === joiningInfo.month)?.label} {joiningInfo.year}
-                </small>
-              </div>
-            </div>
-          </Card.Body>
-        </Card>
-      )}
+      <div className="salary-overview">
+        <div><span>Employee</span><strong>{employee ? [employee.first_name, employee.last_name].filter(Boolean).join(' ') : '—'}</strong><small>{employee?.employee_id || 'Employee account'}</small></div>
+        <div><span>Selected pay period</span><strong>{getMonthName(Number(selectedMonth))} {selectedYear}</strong><small>Completed pay cycles only</small></div>
+        <div><span>Available statements</span><strong>{allSalarySlips.length}</strong><small>Generated salary slips</small></div>
+      </div>
+      {joiningInfo && <p className="salary-eligibility-note"><FaInfoCircle size={12} /> Salary slips are available from {months.find(m => m.value === joiningInfo.month)?.label} {joiningInfo.year}, based on your joining date.</p>}
 
       <Row className="g-3">
         {/* Left Column - Generate Form */}
         <Col lg={4}>
           {/* Generate New Slip Card */}
-          <Card className="mb-4 shadow-sm border-0">
+          <Card className="salary-generate-card mb-4 shadow-sm border-0">
             <Card.Header className="bg-light text-dark py-2">
               <h6 className="mb-0 fw-semibold small">
                 <FaCalendarAlt className="me-2" size={14} />
-                Generate New Salary Slip
+                Create salary statement
               </h6>
             </Card.Header>
             <Card.Body className="p-2 p-md-3">
@@ -929,7 +917,7 @@ const SalarySlip = () => {
             <Card.Header className="bg-light text-dark py-2 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
               <h6 className="mb-0 fw-semibold small d-flex align-items-center">
                 <FaHistory className="me-2" size={14} />
-                Salary Slip History
+                Salary statements
               </h6>
               <div className="d-flex flex-wrap gap-2 ms-0 ms-sm-auto">
                 <Badge bg="light" text="dark" className="px-2 py-1 small text-nowrap">
@@ -943,101 +931,23 @@ const SalarySlip = () => {
 
             <Card.Body className="p-0">
               {/* Table with Vertical Scroll */}
-              <div className="table-responsive" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                <Table hover className="mb-0 table-sm">
-                  <thead className="bg-light sticky-top" style={{ top: 0, zIndex: 10 }}>
-                    <tr>
-                      <th className="text-nowrap small text-dark fw-semibold text-center" style={{ width: '50px' }}>#</th>
-                      <th className="text-nowrap small text-dark fw-semibold">Month</th>
-                      <th className="text-nowrap small text-dark fw-semibold">Year</th>
-                      <th className="text-nowrap small text-dark fw-semibold text-end d-none d-md-table-cell">Basic</th>
-                      <th className="text-nowrap small text-dark fw-semibold text-end">OT Hrs</th>
-                      <th className="text-nowrap small text-dark fw-semibold text-end d-none d-lg-table-cell">OT Amt</th>
-                      <th className="text-nowrap small text-dark fw-semibold text-end">DT</th>
-                      <th className="text-nowrap small text-dark fw-semibold text-end">Net</th>
-                      <th className="text-nowrap small text-dark fw-semibold text-center">Action</th>
-                    </tr>
-                  </thead>
+              <div className="table-responsive" style={{ maxHeight: '480px', overflowY: 'auto' }}>
+                <Table hover className="salary-statements-table mb-0">
+                  <thead><tr><th>Pay period</th><th className="text-end">Basic salary</th><th className="text-end">Deductions</th><th className="text-end">Net pay</th><th className="text-end">Statement</th></tr></thead>
                   <tbody>
-                    {displaySlips.length > 0 ? (
-                      displaySlips.map((slip, index) => {
-                        const isCurrentMonth = slip.month === currentMonth && slip.year === currentYear;
-                        const { basicSalary, deduction, netSalary, overtimeAmount, overtimeHours } = getSlipAmounts(slip);
-
-                        return (
-                          <tr key={slip.id} className={isCurrentMonth ? 'table-primary' : ''}>
-                            <td className="text-center small">{index + 1}</td>
-                            <td className="small">
-                              <Badge bg="primary" className="px-2 py-1 small text-nowrap">
-                                {getMonthName(slip.month).substring(0, 3)}
-                                {isCurrentMonth && ' (C)'}
-                              </Badge>
-                            </td>
-                            <td className="fw-bold small">{slip.year}</td>
-                            <td className="text-primary fw-bold small text-end d-none d-md-table-cell">₹{formatCurrency(basicSalary)}</td>
-                            <td className="small text-end">
-                              <Badge bg={overtimeHours > 0 ? "success" : "secondary"} pill className="text-nowrap">
-                                {overtimeHours || 0}h
-                              </Badge>
-                            </td>
-                            <td className="small text-end d-none d-lg-table-cell">
-                              <span className={overtimeAmount > 0 ? "text-success text-nowrap" : "text-nowrap"}>
-                                {overtimeAmount > 0 ? '+' : ''}₹{formatCurrency(overtimeAmount)}
-                              </span>
-                            </td>
-                            <td className="text-danger small text-end">₹{formatCurrency(deduction)}</td>
-                            <td className="small text-end text-nowrap">
-                              <span className="text-success fw-bold">₹{formatCurrency(netSalary)}</span>
-                            </td>
-                            <td className="text-center">
-                              <div className="d-flex gap-1 justify-content-center">
-                                <Button
-                                  variant="outline-primary"
-                                  size="sm"
-                                  onClick={() => handleViewSlip(slip)}
-                                  className="p-1"
-                                  title="View Slip"
-                                >
-                                  <FaEye size={10} />
-                                </Button>
-                                <Button
-                                  variant="outline-success"
-                                  size="sm"
-                                  onClick={() => handleDownloadPDF(slip)}
-                                  title="Download PDF"
-                                  className="p-1"
-                                >
-                                  <FaDownload size={10} />
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td colSpan="9" className="text-center py-4">
-                          <div className="mb-2">
-                            <FaFilePdf size={30} className="text-muted opacity-50" />
-                          </div>
-                          <h6 className="text-muted small">No Salary Slips Found</h6>
-                          <p className="text-muted mb-2 small">
-                            {joiningInfo ?
-                              `Generate your first salary slip for ${months.find(m => m.value === joiningInfo.month)?.label} ${joiningInfo.year}` :
-                              'Generate your first salary slip using the form'
-                            }
-                          </p>
-                          <Button
-                            variant="outline-primary"
-                            size="sm"
-                            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                          >
-                            <FaCalendarAlt className="me-2" size={10} />
-                            Generate Now
-                          </Button>
-                        </td>
-                      </tr>
-                    )}
+                    {displaySlips.length ? displaySlips.map(slip => {
+                      const { basicSalary, deduction, netSalary, overtimeAmount, overtimeHours } = getSlipAmounts(slip);
+                      return <tr key={slip.id}>
+                        <td><strong>{getMonthName(slip.month)} {slip.year}</strong><small className="salary-row-note">Monthly salary statement</small></td>
+                        <td className="text-end">₹{formatCurrency(basicSalary)}{overtimeHours > 0 && <small className="salary-row-note">OT: {overtimeHours}h · ₹{formatCurrency(overtimeAmount)}</small>}</td>
+                        <td className="text-end">₹{formatCurrency(deduction)}</td>
+                        <td className="text-end"><strong className="salary-net-pay">₹{formatCurrency(netSalary)}</strong></td>
+                        <td><div className="salary-statement-actions">
+                          <Button variant="outline-primary" size="sm" onClick={() => handleViewSlip(slip)} aria-label={`View salary slip for ${getMonthName(slip.month)} ${slip.year}`}><FaEye size={12} /> View</Button>
+                          <Button variant="outline-secondary" size="sm" onClick={() => handleDownloadPDF(slip)} aria-label={`Download salary slip for ${getMonthName(slip.month)} ${slip.year}`}><FaDownload size={12} /> PDF</Button>
+                        </div></td>
+                      </tr>;
+                    }) : <tr><td colSpan={5}><div className="salary-empty-state"><FaFilePdf size={30} /><h3>No salary statements yet</h3><p>Select an eligible pay period to generate your first statement.</p></div></td></tr>}
                   </tbody>
                 </Table>
 
@@ -1055,7 +965,7 @@ const SalarySlip = () => {
 
           {/* Employee Details Card */}
           {employee && (
-            <Card className="shadow-sm border-0">
+            <Card className="salary-employee-details shadow-sm border-0">
               <Card.Header className="bg-white text-dark py-2">
                 <h6 className="mb-0 fw-semibold small">
                   <FaUserTie className="me-2" size={14} />
@@ -1100,7 +1010,7 @@ const SalarySlip = () => {
         onHide={() => setShowSlipModal(false)}
         size="lg"
         centered
-        className="salary-slip-modal"
+        className="salary-slip-modal payroll-slip-modal"
         dialogClassName="mx-2 mx-md-auto"
       >
         <Modal.Header closeButton className="bg-primary text-white py-2">

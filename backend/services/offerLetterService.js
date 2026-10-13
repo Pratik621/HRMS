@@ -61,7 +61,7 @@ const resolveInput = (employee, formInput = {}) => {
         department: formInput.department || employee?.department || null,
         employmentType: formInput.employmentType || employee?.employment_type || null,
         dateOfJoining: fmtDateDDMMYYYY(formInput.dateOfJoining || employee?.joining_date),
-        workLocation: formInput.workLocation || employee?.work_location || null,
+        workLocation: formInput.workLocation || employee?.work_location || getCompanyInfo(employee).defaultWorkLocation,
         reportingManager: formInput.reportingManager || employee?.reporting_manager || null,
         annualCTC,
         monthlyGross,

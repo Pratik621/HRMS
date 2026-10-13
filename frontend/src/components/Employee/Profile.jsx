@@ -33,44 +33,18 @@ import API_ENDPOINTS from '../../config/api';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import HolidayCalendar from './HolidayCalendar';
+import './Profile.css';
 import { useNavigate } from 'react-router-dom';
 
-// ── Design tokens (indigo/enterprise palette — matches Leave Requests / Apply Leave) ──
+// Profile colors follow the employee dashboard palette.
 const PF = {
-    primary: '#4F46E5',
-    success: '#10B981',
-    warning: '#F59E0B',
-    danger: '#EF4444',
+    primary: '#1f4e79',
+    success: '#168a70',
+    warning: '#c05621',
+    danger: '#c53030',
     border: '#E5E7EB',
     borderSoft: '#EEF2F7',
 };
-
-const PF_CSS = `
-.pf-card { background:#fff; border-radius:20px; border:1px solid ${PF.borderSoft}; box-shadow:0 10px 35px rgba(16,24,40,.06); }
-.pf-card-header { padding:14px 18px; border-bottom:1px solid ${PF.borderSoft}; display:flex; align-items:center; gap:10px; }
-.pf-icon-circle { width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:13px; }
-.pf-tab-bar { display:flex; gap:6px; overflow-x:auto; padding:6px; background:#F8FAFC; border-radius:16px; border:1px solid ${PF.borderSoft}; }
-.pf-tab { display:flex; align-items:center; gap:7px; padding:9px 16px; border-radius:11px; border:none; background:transparent; color:#667085; font-size:13px; font-weight:600; white-space:nowrap; cursor:pointer; transition:background .15s ease, color .15s ease; }
-.pf-tab.active { background:${PF.primary}; color:#fff; box-shadow:0 4px 12px rgba(79,70,229,.28); }
-.pf-tab:hover:not(.active) { background:#EEF2FF; color:${PF.primary}; }
-.pf-avatar-wrap { position:relative; width:112px; height:112px; margin:0 auto; }
-.pf-avatar-img { width:112px; height:112px; border-radius:50%; object-fit:cover; border:4px solid #EEF2FF; display:block; }
-.pf-avatar-fallback { width:112px; height:112px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:#F1F5F9; color:#94A3B8; border:4px solid #EEF2FF; }
-.pf-avatar-edit-btn { position:absolute; bottom:2px; right:2px; width:34px; height:34px; border-radius:50%; background:${PF.primary}; color:#fff; border:3px solid #fff; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 10px rgba(79,70,229,.35); }
-.pf-avatar-edit-btn:hover { background:#4338CA; }
-.pf-avatar-edit-btn:disabled { opacity:.6; cursor:not-allowed; }
-.pf-pill { display:inline-flex; align-items:center; gap:5px; border-radius:999px; padding:5px 12px; font-size:11.5px; font-weight:700; white-space:nowrap; }
-.pf-detail-row { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid #F5F6F8; font-size:13px; }
-.pf-detail-row:last-child { border-bottom:none; }
-.pf-btn-outline { display:inline-flex; align-items:center; gap:6px; background:#fff; border:1px solid ${PF.border}; color:#344054; border-radius:10px; padding:7px 14px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap; }
-.pf-btn-outline:hover { background:#F9FAFB; }
-.pf-btn-outline:disabled { opacity:.6; cursor:not-allowed; }
-.pf-btn-ghost-danger { display:inline-flex; align-items:center; gap:5px; background:transparent; border:none; color:${PF.danger}; font-size:11.5px; font-weight:600; cursor:pointer; padding:4px 6px; }
-.pf-btn-ghost-danger:hover { text-decoration:underline; }
-.pf-btn-primary { display:inline-flex; align-items:center; justify-content:center; gap:8px; background:linear-gradient(135deg,#4F46E5,#6366F1); color:#fff; border:none; border-radius:12px; padding:9px 18px; font-weight:600; font-size:13px; box-shadow:0 6px 16px rgba(79,70,229,.28); cursor:pointer; }
-.pf-btn-primary:hover { color:#fff; }
-.pf-stat-box { background:#F8FAFC; border-radius:14px; padding:14px; text-align:center; }
-`;
 
 const Profile = () => {
     const { user } = useAuth();
@@ -208,13 +182,13 @@ const Profile = () => {
     const getLeaveStatusBadge = (status) => {
         switch (status) {
             case 'approved':
-                return <span className="pf-pill" style={{ background: 'rgba(16,185,129,.14)', color: '#047857' }}><FaCheckCircle size={10} /> Approved</span>;
+                return <span className="pf-pill pf-pill-neutral"><FaCheckCircle size={10} /> Approved</span>;
             case 'pending':
-                return <span className="pf-pill" style={{ background: 'rgba(245,158,11,.14)', color: '#b45309' }}><FaHourglassHalf size={10} /> Pending</span>;
+                return <span className="pf-pill pf-pill-neutral"><FaHourglassHalf size={10} /> Pending</span>;
             case 'rejected':
-                return <span className="pf-pill" style={{ background: 'rgba(239,68,68,.14)', color: '#b91c1c' }}><FaTimesCircle size={10} /> Rejected</span>;
+                return <span className="pf-pill pf-pill-neutral"><FaTimesCircle size={10} /> Rejected</span>;
             default:
-                return <span className="pf-pill" style={{ background: '#F1F5F9', color: '#475569' }}>Unknown</span>;
+                return <span className="pf-pill pf-pill-neutral">Unknown</span>;
         }
     };
 
@@ -323,29 +297,40 @@ const Profile = () => {
     }
 
     const TABS = [
-        { key: 'personal', label: 'Personal', icon: <FaUserCircle size={13} /> },
+        { key: 'personal', label: 'Personal details', icon: <FaUserCircle size={13} /> },
         { key: 'leave', label: 'Leave', icon: <FaUmbrellaBeach size={13} /> },
         { key: 'comp-off', label: 'Comp-Off', icon: <FaTrophy size={13} /> },
-        { key: 'bank', label: 'Bank', icon: <FaUniversity size={13} /> },
+        { key: 'bank', label: 'Bank & IDs', icon: <FaUniversity size={13} /> },
         { key: 'salary', label: 'Salary', icon: <FaRupeeSign size={13} /> },
         { key: 'policy', label: 'Contract', icon: <FaFileSignature size={13} /> },
     ];
 
+    const sectionDescriptions = {
+        personal: 'Your contact information and employment record.',
+        leave: 'Track your leave balance and review your requests.',
+        'comp-off': 'Review days earned by working on holidays and their expiry dates.',
+        bank: 'Your payroll account and identity information.',
+        salary: 'A summary of your monthly compensation.',
+        policy: 'Review the employment contract policy attached to your profile.',
+    };
+
     return (
-        <div className="p-2 p-md-3 p-lg-4" style={{ backgroundColor: '#F8FAFC', minHeight: '100vh' }}>
-            <style>{PF_CSS}</style>
+        <div className="pf-page p-3 p-md-4">
 
             {/* Header */}
-            <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
-                <h5 className="mb-0 d-flex align-items-center fw-bold">
-                    <FaUserCircle className="me-2" style={{ color: PF.primary }} />
-                    My Profile
-                </h5>
+            <div className="pf-page-header">
+                <div>
+                    <span className="pf-eyebrow">EMPLOYEE WORKSPACE</span>
+                    <h1 className="pf-page-title">My Profile</h1>
+                    <p className="pf-page-description">
+                        Your personal information, employment details, and benefits in one place.
+                    </p>
+                </div>
                 <div className="d-flex flex-wrap gap-2 ms-0 ms-md-auto">
-                    <span className="pf-pill" style={{ background: '#101828', color: '#fff' }}>
+                    <span className="pf-pill" style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #e5eaf0' }}>
                         ID: {employee.employee_id}
                     </span>
-                    <button className="pf-btn-outline" onClick={handleEditProfile}>
+                    <button className="pf-btn-primary" onClick={handleEditProfile}>
                         <FaEdit size={12} /> Update Profile
                     </button>
                     <button className="pf-btn-outline" onClick={() => navigate(-1)}>
@@ -354,25 +339,63 @@ const Profile = () => {
                 </div>
             </div>
 
+            <div className="pf-overview" aria-label="Profile summary">
+                <div className="pf-overview-item">
+                    <span className="pf-overview-icon"><FaBriefcase /></span>
+                    <div>
+                        <span className="pf-overview-label">Department</span>
+                        <strong>{employee.department || 'Not provided'}</strong>
+                    </div>
+                </div>
+                <div className="pf-overview-item">
+                    <span className="pf-overview-icon"><FaFileSignature /></span>
+                    <div>
+                        <span className="pf-overview-label">Joined on</span>
+                        <strong>{formatDate(employee.joining_date)}</strong>
+                    </div>
+                </div>
+                <div className="pf-overview-item">
+                    <span className="pf-overview-icon"><FaUmbrellaBeach /></span>
+                    <div>
+                        <span className="pf-overview-label">Available leave</span>
+                        <strong>{leaveBalance.is_probation_complete ? leaveBalance.available : '0'} <small>days</small></strong>
+                    </div>
+                </div>
+                <div className="pf-overview-item">
+                    <span className="pf-overview-icon"><FaFilePdf /></span>
+                    <div>
+                        <span className="pf-overview-label">Uploaded documents</span>
+                        <strong>{documentCount} <small>documents</small></strong>
+                    </div>
+                </div>
+            </div>
             {/* Tab bar */}
-            <div className="pf-tab-bar mb-3">
+            <nav className="pf-tab-bar mb-4" aria-label="Profile sections">
                 {TABS.map(tab => (
                     <button
                         key={tab.key}
                         className={`pf-tab ${activeTab === tab.key ? 'active' : ''}`}
+                        aria-current={activeTab === tab.key ? 'page' : undefined}
+                        aria-controls="pf-section-content"
                         onClick={() => setActiveTab(tab.key)}
                     >
-                        {tab.icon} {tab.label}
+                        <span aria-hidden="true">{tab.icon}</span>
+                        <span>{tab.label}</span>
                     </button>
                 ))}
-            </div>
+            </nav>
 
+            <div id="pf-section-content" aria-labelledby="pf-section-title">
+                <div className="pf-section-heading">
+                    <h2 id="pf-section-title">{TABS.find(tab => tab.key === activeTab)?.label}</h2>
+                    <p>{sectionDescriptions[activeTab]}</p>
+                </div>
             {/* Personal Tab */}
             {activeTab === 'personal' && (
                 <Row className="g-3">
                     {/* Profile Picture Card */}
                     <Col lg={4}>
-                        <div className="pf-card text-center p-3 p-md-4 h-100">
+                        <div className="pf-card pf-identity-card text-center p-3 p-md-4 h-100">
                             <input
                                 type="file"
                                 accept="image/*"
@@ -399,6 +422,7 @@ const Profile = () => {
                                     onClick={handlePhotoButtonClick}
                                     disabled={uploadingPhoto}
                                     title="Update profile photo"
+                                    aria-label="Update profile photo"
                                 >
                                     {uploadingPhoto ? <Spinner animation="border" size="sm" style={{ width: 14, height: 14 }} /> : <FaCamera size={13} />}
                                 </button>
@@ -419,7 +443,7 @@ const Profile = () => {
                                 {employee.first_name} {employee.middle_name} {employee.last_name}
                             </h6>
                             <p className="text-muted small mb-2 text-truncate">{employee.designation}</p>
-                            <span className="pf-pill mb-3 d-inline-flex" style={{ background: 'rgba(37,99,235,.12)', color: '#1D4ED8' }}>
+                            <span className="pf-pill mb-3 d-inline-flex pf-pill-neutral">
                                 {employee.employment_type}
                             </span>
 
@@ -446,7 +470,7 @@ const Profile = () => {
 
                             <div className="mt-3">
                                 <small className="text-muted d-block mb-1">Documents Uploaded:</small>
-                                <span className="pf-pill" style={{ background: 'rgba(16,185,129,.14)', color: '#047857' }}>
+                                <span className="pf-pill pf-pill-neutral">
                                     <FaFilePdf size={12} />
                                     {documentCount} Documents
                                 </span>
@@ -460,7 +484,7 @@ const Profile = () => {
                             <Col md={6}>
                                 <div className="pf-card mb-3">
                                     <div className="pf-card-header">
-                                        <div className="pf-icon-circle" style={{ background: 'rgba(79,70,229,.12)', color: PF.primary }}>
+                                        <div className="pf-icon-circle" style={{ background: 'rgba(31,78,121,.08)', color: PF.primary }}>
                                             <FaUserCircle size={14} />
                                         </div>
                                         <h6 className="mb-0 small fw-bold">Personal Details</h6>
@@ -476,7 +500,7 @@ const Profile = () => {
                                         </div>
                                         <div className="pf-detail-row">
                                             <span className="text-muted">Blood Group</span>
-                                            <span className="pf-pill" style={{ background: 'rgba(239,68,68,.12)', color: '#B91C1C' }}>
+                                            <span className="pf-pill pf-pill-neutral">
                                                 {employee.blood_group || 'N/A'}
                                             </span>
                                         </div>
@@ -487,7 +511,7 @@ const Profile = () => {
                             <Col md={6}>
                                 <div className="pf-card mb-3">
                                     <div className="pf-card-header">
-                                        <div className="pf-icon-circle" style={{ background: 'rgba(79,70,229,.12)', color: PF.primary }}>
+                                        <div className="pf-icon-circle" style={{ background: 'rgba(31,78,121,.08)', color: PF.primary }}>
                                             <FaBriefcase size={13} />
                                         </div>
                                         <h6 className="mb-0 small fw-bold">Employment Details</h6>
@@ -522,7 +546,7 @@ const Profile = () => {
                         {employee.address && (
                             <div className="pf-card">
                                 <div className="pf-card-header">
-                                    <div className="pf-icon-circle" style={{ background: 'rgba(79,70,229,.12)', color: PF.primary }}>
+                                    <div className="pf-icon-circle" style={{ background: 'rgba(31,78,121,.08)', color: PF.primary }}>
                                         <FaMapMarkerAlt size={13} />
                                     </div>
                                     <h6 className="mb-0 small fw-bold">Address</h6>
@@ -547,7 +571,7 @@ const Profile = () => {
                     <Col lg={4}>
                         <div className="pf-card">
                             <div className="pf-card-header">
-                                <div className="pf-icon-circle" style={{ background: 'rgba(79,70,229,.12)', color: PF.primary }}>
+                                <div className="pf-icon-circle" style={{ background: 'rgba(31,78,121,.08)', color: PF.primary }}>
                                     <FaUmbrellaBeach size={13} />
                                 </div>
                                 <h6 className="mb-0 small fw-bold">Leave Balance</h6>
@@ -555,17 +579,17 @@ const Profile = () => {
                             <div className="p-3">
                                 {parseFloat(leaveBalance.comp_off_balance) > 0 && (
                                     <div className="pf-stat-box mb-3">
-                                        <FaTrophy color="#7C3AED" size={22} className="mb-2" />
-                                        <h5 className="fw-bold mb-0" style={{ color: '#7C3AED' }}>{leaveBalance.comp_off_balance}</h5>
+                                        <FaTrophy color="#64748b" size={22} className="mb-2" />
+                                        <h5 className="fw-bold mb-0" style={{ color: '#475569' }}>{leaveBalance.comp_off_balance}</h5>
                                         <p className="text-muted small mb-1">Comp-Off Days</p>
-                                        <span className="pf-pill" style={{ background: 'rgba(124,58,237,.14)', color: '#7C3AED' }}>
+                                        <span className="pf-pill pf-pill-neutral">
                                             Earned by working on holidays
                                         </span>
                                     </div>
                                 )}
 
                                 <div className="text-center mb-3">
-                                    <h2 className="fw-bold mb-0" style={{ color: leaveBalance.is_probation_complete ? PF.primary : '#0EA5E9', fontSize: 40 }}>
+                                    <h2 className="fw-bold mb-0" style={{ color: PF.primary, fontSize: 40 }}>
                                         {leaveBalance.is_probation_complete ? leaveBalance.available : '0'}
                                     </h2>
                                     <p className="text-muted small mb-0">
@@ -573,7 +597,7 @@ const Profile = () => {
                                     </p>
                                     {!leaveBalance.is_probation_complete && (
                                         <div className="mt-2">
-                                            <span className="pf-pill mb-1 d-inline-flex" style={{ background: 'rgba(14,165,233,.14)', color: '#0369A1' }}>
+                                            <span className="pf-pill mb-1 d-inline-flex pf-pill-neutral">
                                                 Total Accrued: {leaveBalance.total_accrued} days
                                             </span>
                                             <div className="small text-muted mt-1">
@@ -592,21 +616,21 @@ const Profile = () => {
                                     </div>
                                     <div className="pf-detail-row">
                                         <span className="text-muted">Used</span>
-                                        <span className="fw-semibold" style={{ color: PF.danger }}>{leaveBalance.used} days</span>
+                                        <span className="fw-semibold">{leaveBalance.used} days</span>
                                     </div>
                                     <div className="pf-detail-row">
                                         <span className="text-muted">Pending</span>
-                                        <span className="fw-semibold" style={{ color: PF.warning }}>{leaveBalance.pending} days</span>
+                                        <span className="fw-semibold">{leaveBalance.pending} days</span>
                                     </div>
 
                                     {parseFloat(leaveBalance.total_comp_off_earned) > 0 && (
                                         <>
                                             <div className="pf-detail-row">
-                                                <span className="text-muted"><FaTrophy className="me-1" style={{ color: '#7C3AED' }} size={10} />Comp-Off Earned</span>
+                                                <span className="text-muted"><FaTrophy className="me-1" style={{ color: '#475569' }} size={10} />Comp-Off Earned</span>
                                                 <span className="fw-semibold">{leaveBalance.total_comp_off_earned || 0}</span>
                                             </div>
                                             <div className="pf-detail-row">
-                                                <span className="text-muted"><FaTrophy className="me-1" style={{ color: '#7C3AED' }} size={10} />Comp-Off Used</span>
+                                                <span className="text-muted"><FaTrophy className="me-1" style={{ color: '#475569' }} size={10} />Comp-Off Used</span>
                                                 <span className="fw-semibold">{leaveBalance.total_comp_off_used || 0}</span>
                                             </div>
                                         </>
@@ -626,7 +650,7 @@ const Profile = () => {
 
                                     <ProgressBar
                                         now={parseFloat(calculateLeavePercentage())}
-                                        variant="success"
+                                        variant="secondary"
                                         style={{ height: '8px', borderRadius: 999 }}
                                         className="mb-1 mt-2"
                                     />
@@ -644,9 +668,9 @@ const Profile = () => {
 
                     <Col lg={8}>
                         <div className="pf-card">
-                            <div className="pf-card-header d-flex justify-content-between align-items-center">
+                            <div className="pf-card-header pf-flex-header">
                                 <div className="d-flex align-items-center gap-2">
-                                    <div className="pf-icon-circle" style={{ background: 'rgba(79,70,229,.12)', color: PF.primary }}>
+                                    <div className="pf-icon-circle" style={{ background: 'rgba(31,78,121,.08)', color: PF.primary }}>
                                         <FaFileAlt size={13} />
                                     </div>
                                     <h6 className="mb-0 small fw-bold">Leave History</h6>
@@ -658,13 +682,13 @@ const Profile = () => {
                             <div className="p-0">
                                 {leaveRequests.length > 0 ? (
                                     <div className="table-responsive" style={{ maxHeight: '340px', overflowY: 'auto' }}>
-                                        <Table hover size="sm" className="mb-0">
-                                            <thead className="bg-light sticky-top" style={{ top: 0, zIndex: 10 }}>
+                                        <Table hover size="sm" className="pf-history-table mb-0">
+                                            <thead className="pf-table-heading sticky-top" style={{ top: 0, zIndex: 10 }}>
                                                 <tr>
                                                     <th className="small text-dark">Leave Type</th>
-                                                    <th className="small text-dark d-none d-sm-table-cell">Duration</th>
+                                                    <th className="small text-dark">Duration</th>
                                                     <th className="small text-dark">Date Range</th>
-                                                    <th className="small text-dark d-none d-md-table-cell">Days</th>
+                                                    <th className="small text-dark">Days</th>
                                                     <th className="small text-dark">Status</th>
                                                 </tr>
                                             </thead>
@@ -672,19 +696,18 @@ const Profile = () => {
                                                 {leaveRequests.map((leave, index) => (
                                                     <tr key={leave.id || index}>
                                                         <td className="small">
-                                                            <span className="pf-pill" style={{ background: leave.leave_type === 'Comp-Off' ? 'rgba(124,58,237,.14)' : '#F1F5F9', color: leave.leave_type === 'Comp-Off' ? '#7C3AED' : '#475569' }}>
-                                                                {leave.leave_type === 'Comp-Off' && '🎉 '}
+                                                            <span className="pf-leave-type">
                                                                 {leave.leave_type}
                                                             </span>
                                                         </td>
-                                                        <td className="small d-none d-sm-table-cell">{leave.leave_duration || 'Full Day'}</td>
+                                                        <td className="small">{leave.leave_duration || 'Full Day'}</td>
                                                         <td className="small">
                                                             <span className="text-nowrap">{formatShortDate(leave.start_date)}</span>
                                                             {leave.start_date !== leave.end_date && (
                                                                 <span className="text-nowrap d-block d-sm-inline"> - {formatShortDate(leave.end_date)}</span>
                                                             )}
                                                         </td>
-                                                        <td className="small fw-bold d-none d-md-table-cell">{leave.days_count || 1}</td>
+                                                        <td className="small fw-bold">{leave.days_count || 1}</td>
                                                         <td className="small">{getLeaveStatusBadge(leave.status)}</td>
                                                     </tr>
                                                 ))}
@@ -692,7 +715,7 @@ const Profile = () => {
                                         </Table>
                                     </div>
                                 ) : (
-                                    <div className="text-center py-4">
+                                    <div className="pf-empty-state text-center py-4">
                                         <FaUmbrellaBeach size={40} className="text-muted mb-3 opacity-50" />
                                         <p className="text-muted small mb-0">No leave requests found</p>
                                         <button className="pf-btn-outline mt-2" onClick={() => navigate('/apply-leave')}>
@@ -708,31 +731,45 @@ const Profile = () => {
 
             {/* Comp-Off Tab */}
             {activeTab === 'comp-off' && (
-                <Row>
+                <Row className="g-3">
+                    <Col xs={12}>
+                        <div className="pf-benefit-summary">
+                            {[
+                                ['Available balance', leaveBalance.comp_off_balance],
+                                ['Total earned', leaveBalance.total_comp_off_earned],
+                                ['Total used', leaveBalance.total_comp_off_used],
+                            ].map(([label, value]) => (
+                                <div className="pf-stat-box" key={label}>
+                                    <span className="pf-overview-label">{label}</span>
+                                    <strong className="pf-benefit-value">{value || '0'} <small>days</small></strong>
+                                </div>
+                            ))}
+                        </div>
+                    </Col>
                     <Col md={12}>
                         <div className="pf-card">
-                            <div className="pf-card-header d-flex justify-content-between align-items-center">
+                            <div className="pf-card-header pf-flex-header">
                                 <div className="d-flex align-items-center gap-2">
-                                    <div className="pf-icon-circle" style={{ background: 'rgba(124,58,237,.12)', color: '#7C3AED' }}>
+                                    <div className="pf-icon-circle pf-pill-neutral">
                                         <FaTrophy size={13} />
                                     </div>
                                     <h6 className="mb-0 small fw-bold">Comp-Off Earnings History</h6>
                                 </div>
-                                <span className="pf-pill" style={{ background: 'rgba(124,58,237,.14)', color: '#7C3AED' }}>
+                                <span className="pf-pill pf-pill-neutral">
                                     Balance: {leaveBalance.comp_off_balance} days
                                 </span>
                             </div>
                             <div className="p-0">
                                 {compOffHistory.length > 0 ? (
                                     <div className="table-responsive" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                                        <Table hover size="sm" className="mb-0">
+                                        <Table hover size="sm" className="pf-history-table mb-0">
                                             <thead className="bg-light sticky-top" style={{ top: 0, zIndex: 10 }}>
                                                 <tr>
                                                     <th className="small text-dark">Sr No</th>
-                                                    <th className="small text-dark d-none d-sm-table-cell">Holiday Date</th>
+                                                    <th className="small text-dark">Holiday Date</th>
                                                     <th className="small text-dark">Holiday</th>
-                                                    <th className="small text-dark d-none d-md-table-cell">Hours Worked</th>
-                                                    <th className="small text-dark d-none d-md-table-cell">Expires On</th>
+                                                    <th className="small text-dark">Hours Worked</th>
+                                                    <th className="small text-dark">Expires On</th>
                                                     <th className="small text-dark">Status</th>
                                                 </tr>
                                             </thead>
@@ -740,23 +777,23 @@ const Profile = () => {
                                                 {compOffHistory.map((item, index) => (
                                                     <tr key={item.id || index}>
                                                         <td className="small">{index + 1}</td>
-                                                        <td className="small d-none d-sm-table-cell">{formatDate(item.attendance_date)}</td>
+                                                        <td className="small">{formatDate(item.attendance_date)}</td>
                                                         <td className="small">
-                                                            <span className="pf-pill" style={{ background: 'rgba(14,165,233,.14)', color: '#0369A1' }}>
+                                                            <span className="pf-pill pf-pill-neutral">
                                                                 {item.holiday_name}
                                                             </span>
                                                         </td>
-                                                        <td className="small d-none d-md-table-cell">{item.hours_worked} hrs</td>
-                                                        <td className="small d-none d-md-table-cell">
+                                                        <td className="small">{item.hours_worked} hrs</td>
+                                                        <td className="small">
                                                             {item.expiry_date ? formatDate(item.expiry_date) : '-'}
                                                         </td>
                                                         <td className="small">
                                                             {item.status === 'used' ? (
-                                                                <span className="pf-pill" style={{ background: '#F1F5F9', color: '#475569' }}>Used</span>
+                                                                <span className="pf-pill pf-pill-neutral">Used</span>
                                                             ) : item.status === 'expired' ? (
-                                                                <span className="pf-pill" style={{ background: 'rgba(239,68,68,.14)', color: '#B91C1C' }}>Expired</span>
+                                                                <span className="pf-pill pf-pill-neutral">Expired</span>
                                                             ) : (
-                                                                <span className="pf-pill" style={{ background: 'rgba(16,185,129,.14)', color: '#047857' }}>Available</span>
+                                                                <span className="pf-pill pf-pill-neutral">Available</span>
                                                             )}
                                                         </td>
                                                     </tr>
@@ -765,7 +802,7 @@ const Profile = () => {
                                         </Table>
                                     </div>
                                 ) : (
-                                    <div className="text-center py-5">
+                                    <div className="pf-empty-state text-center py-5">
                                         <FaTrophy size={50} className="text-muted mb-3 opacity-50" />
                                         <h6 className="text-muted">No Comp-Off earnings yet</h6>
                                         <p className="text-muted small mb-0">
@@ -783,7 +820,7 @@ const Profile = () => {
             {activeTab === 'bank' && (
                 <div className="pf-card">
                     <div className="pf-card-header">
-                        <div className="pf-icon-circle" style={{ background: 'rgba(79,70,229,.12)', color: PF.primary }}>
+                        <div className="pf-icon-circle" style={{ background: 'rgba(31,78,121,.08)', color: PF.primary }}>
                             <FaUniversity size={13} />
                         </div>
                         <h6 className="mb-0 small fw-bold">Bank Details & ID Proofs</h6>
@@ -791,6 +828,8 @@ const Profile = () => {
                     <div className="p-3">
                         <Row className="g-3">
                             <Col md={6}>
+                                <div className="pf-data-group">
+                                <h3 className="pf-group-title">Payroll account</h3>
                                 <div className="pf-detail-row">
                                     <span className="text-muted">Account Name</span>
                                     <span className="fw-semibold text-end">{employee.bank_account_name || 'N/A'}</span>
@@ -798,42 +837,44 @@ const Profile = () => {
                                 <div className="pf-detail-row">
                                     <span className="text-muted">Account Number</span>
                                     <span className="fw-semibold text-end">
-                                        {employee.account_number ? '••••' + employee.account_number.slice(-4) : 'N/A'}
+                                        {employee.account_number ? '••••' + String(employee.account_number).slice(-4) : 'N/A'}
                                     </span>
                                 </div>
                                 <div className="pf-detail-row">
                                     <span className="text-muted">IFSC Code</span>
                                     <span className="fw-semibold text-end">{employee.ifsc_code || 'N/A'}</span>
                                 </div>
-                            </Col>
-                            <Col md={6}>
                                 <div className="pf-detail-row">
                                     <span className="text-muted">Branch Name</span>
                                     <span className="fw-semibold text-end">{employee.branch_name || 'N/A'}</span>
                                 </div>
+                                </div>
+                            </Col>
+                            <Col md={6}>
+                                <div className="pf-data-group">
+                                <h3 className="pf-group-title">Identity documents</h3>
+
                                 <div className="pf-detail-row">
                                     <span className="text-muted">PAN Number</span>
                                     <span className="fw-semibold text-end">
-                                        {employee.pan_number ? '•••••' + employee.pan_number.slice(-4) : 'N/A'}
+                                        {employee.pan_number ? '•••••' + String(employee.pan_number).slice(-4) : 'N/A'}
                                     </span>
                                 </div>
                                 <div className="pf-detail-row">
                                     <span className="text-muted d-flex align-items-center">
                                         <FaFileAlt className="me-1" style={{ color: PF.primary }} size={12} />
-                                        Aadhar Card
+                                        Aadhaar number
                                     </span>
                                     <span className="fw-semibold text-end">
                                         {employee.aadhar_number ? (
                                             <>
-                                                {employee.aadhar_number.replace(/(\d{4})(\d{4})(\d{4})/, '$1-****-$3')}
-                                                <span className="pf-pill ms-2" style={{ background: 'rgba(16,185,129,.14)', color: '#047857', fontSize: 9 }}>
-                                                    Verified
-                                                </span>
+                                                {String(employee.aadhar_number).replace(/(\d{4})(\d{4})(\d{4})/, '$1-****-$3')}
                                             </>
                                         ) : (
                                             'Not Provided'
                                         )}
                                     </span>
+                                </div>
                                 </div>
                             </Col>
                         </Row>
@@ -845,7 +886,7 @@ const Profile = () => {
             {activeTab === 'salary' && (
                 <div className="pf-card">
                     <div className="pf-card-header">
-                        <div className="pf-icon-circle" style={{ background: 'rgba(16,185,129,.12)', color: PF.success }}>
+                        <div className="pf-icon-circle" style={{ background: '#eef4fb', color: PF.success }}>
                             <FaRupeeSign size={13} />
                         </div>
                         <h6 className="mb-0 small fw-bold">Salary Information</h6>
@@ -853,13 +894,13 @@ const Profile = () => {
                     <div className="p-3">
                         <Row className="g-3">
                             <Col sm={6}>
-                                <div className="pf-stat-box">
+                                <div className="pf-stat-box pf-salary-stat">
                                     <small className="text-muted d-block mb-1">Gross Salary</small>
                                     <h5 className="mb-0 fw-bold" style={{ color: PF.primary }}>{formatCurrency(employee.gross_salary)}</h5>
                                 </div>
                             </Col>
                             <Col sm={6}>
-                                <div className="pf-stat-box">
+                                <div className="pf-stat-box pf-salary-stat">
                                     <small className="text-muted d-block mb-1">In-hand Salary</small>
                                     <h5 className="mb-0 fw-bold" style={{ color: PF.success }}>{formatCurrency(employee.in_hand_salary)}</h5>
                                 </div>
@@ -877,7 +918,7 @@ const Profile = () => {
             {activeTab === 'policy' && (
                 <div className="pf-card">
                     <div className="pf-card-header">
-                        <div className="pf-icon-circle" style={{ background: 'rgba(79,70,229,.12)', color: PF.primary }}>
+                        <div className="pf-icon-circle" style={{ background: 'rgba(31,78,121,.08)', color: PF.primary }}>
                             <FaFileSignature size={13} />
                         </div>
                         <h6 className="mb-0 small fw-bold">Employment Contract Policy</h6>
@@ -885,20 +926,12 @@ const Profile = () => {
                     <div className="p-3">
                         {employee.contract_policy ? (
                             <div
-                                className="p-2 p-md-3 rounded"
-                                style={{
-                                    background: '#F8FAFC',
-                                    maxHeight: '400px',
-                                    overflowY: 'auto',
-                                    fontSize: '0.85rem',
-                                    whiteSpace: 'pre-line',
-                                    fontFamily: 'monospace'
-                                }}
+                                className="pf-contract-content"
                             >
                                 {employee.contract_policy}
                             </div>
                         ) : (
-                            <div className="text-center py-4">
+                            <div className="pf-empty-state text-center py-4">
                                 <FaFileSignature size={40} className="text-muted mb-3 opacity-50" />
                                 <p className="text-muted small mb-0">No contract policy found</p>
                             </div>
@@ -906,6 +939,8 @@ const Profile = () => {
                     </div>
                 </div>
             )}
+
+            </div>
 
             {/* Holiday Calendar */}
             <div className="mt-3">
