@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 // src/components/Admin/AttendanceReports.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -1051,7 +1052,7 @@ const AttendanceReports = () => {
           <Card.Body className="p-0">
             {activeView === 'daily' ? (
               <div className="table-responsive" style={{ maxHeight: '400px', overflow: 'auto' }}>
-                <Table size="sm" striped className="mb-0">
+                <PaginatedTable as={Table} size="sm" striped className="mb-0">
                   <thead className="bg-light sticky-top" style={{ top: 0, zIndex: 10 }}>
                     <tr>
                       <th className="text-dark fw-normal small text-center" style={{ width: '50px' }}>Sr No</th>
@@ -1146,7 +1147,7 @@ const AttendanceReports = () => {
                       </tr>
                     )}
                   </tbody>
-                </Table>
+                </PaginatedTable>
               </div>
             ) : (
               <div className="monthly-table-container" style={{ position: 'relative', height: '400px', overflow: 'auto' }}>
@@ -1219,7 +1220,7 @@ const AttendanceReports = () => {
                     }
                   `}
                 </style>
-                <table className="monthly-table table-sm mb-0">
+                <PaginatedTable className="monthly-table table-sm mb-0">
                   <thead>
                     <tr>
                       <th className="fixed-col-header col-1 text-center fw-normal small bg-light"
@@ -1396,7 +1397,7 @@ const AttendanceReports = () => {
                       </tr>
                     )}
                   </tbody>
-                </table>
+                </PaginatedTable>
               </div>
             )}
           </Card.Body>

@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 // src/components/Admin/EmployeeProfileView.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { Row, Col, Badge, Spinner, Alert, Button, Modal } from 'react-bootstrap';
@@ -70,7 +71,7 @@ const fmtTimeIST = (v) => {
 };
 
 // ─── stat card ─────────────────────────────────────────────────────────────────
-const StatCard = ({ label, value, color = '#6366f1', icon, sub }) => (
+const StatCard = ({ label, value, color = "#1f4e79", icon, sub }) => (
   <div style={{
     background: '#fff', borderRadius: 12, padding: '16px 18px',
     boxShadow: '0 1px 8px rgba(0,0,0,0.07)', height: '100%',
@@ -101,7 +102,7 @@ const Info = ({ label, value, icon }) => (
 );
 
 // ─── section card ──────────────────────────────────────────────────────────────
-const Section = ({ title, icon, color = '#6366f1', children }) => (
+const Section = ({ title, icon, color = "#1f4e79", children }) => (
   <div style={{ background: '#fff', borderRadius: 12, padding: '20px', boxShadow: '0 1px 8px rgba(0,0,0,0.06)', marginBottom: 20 }}>
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #f3f4f6' }}>
       <div style={{ width: 28, height: 28, borderRadius: 7, background: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -120,7 +121,7 @@ const Tab = ({ label, icon, active, onClick }) => (
     style={{
       border: 'none', background: 'none', cursor: 'pointer',
       padding: '10px 16px', fontSize: 13, fontWeight: 600,
-      color: active ? '#6366f1' : '#6b7280',
+      color: active ? "#1f4e79" : '#6b7280',
       borderBottom: active ? '2px solid #6366f1' : '2px solid transparent',
       display: 'flex', alignItems: 'center', gap: 6,
       whiteSpace: 'nowrap', transition: 'all 0.15s'
@@ -544,7 +545,7 @@ const EmployeeProfileView = () => {
     <div style={{  backgroundColor: '#ffffff', minHeight: '100vh', padding: '0 0 40px' }}>
 
       {/* ── Hero Header ─────────────────────────────────────────────────────── */}
-      <div style={{ borderRadius: 12,background: 'linear-gradient(135deg,#1e1b4b 0%,#312e81 60%,#4338ca 100%)', padding: '28px 28px 80px', position: 'relative' }}>
+      <div style={{ borderRadius: 12,background: "#1f4e79", padding: '28px 28px 80px', position: 'relative' }}>
         <button
           onClick={() => navigate(-1)}
           style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', borderRadius: 8, padding: '6px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 20 }}
@@ -568,9 +569,9 @@ const EmployeeProfileView = () => {
               const companyBg   = isPropCulture ? '#0d7b6f' : 'rgba(255,255,255,0.15)';
               return (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
-                  <span style={{ background: 'rgba(255,255,255,0.15)', color: '#e0e7ff', borderRadius: 20, padding: '2px 10px', fontSize: 11, fontWeight: 600 }}>{employee.employee_id}</span>
-                  <span style={{ background: 'rgba(255,255,255,0.15)', color: '#e0e7ff', borderRadius: 20, padding: '2px 10px', fontSize: 11 }}>{employee.designation || 'N/A'}</span>
-                  <span style={{ background: 'rgba(255,255,255,0.15)', color: '#e0e7ff', borderRadius: 20, padding: '2px 10px', fontSize: 11 }}>{employee.department || 'N/A'}</span>
+                  <span style={{ background: 'rgba(255,255,255,0.15)', color: "#dce3eb", borderRadius: 20, padding: '2px 10px', fontSize: 11, fontWeight: 600 }}>{employee.employee_id}</span>
+                  <span style={{ background: 'rgba(255,255,255,0.15)', color: "#dce3eb", borderRadius: 20, padding: '2px 10px', fontSize: 11 }}>{employee.designation || 'N/A'}</span>
+                  <span style={{ background: 'rgba(255,255,255,0.15)', color: "#dce3eb", borderRadius: 20, padding: '2px 10px', fontSize: 11 }}>{employee.department || 'N/A'}</span>
                   <span style={{ background: companyBg, color: '#fff', borderRadius: 20, padding: '2px 10px', fontSize: 11, fontWeight: 700, border: '1px solid rgba(255,255,255,0.3)' }}>
                     🏢 {companyName}
                   </span>
@@ -623,7 +624,7 @@ const EmployeeProfileView = () => {
             { label: 'Present Days',    value: attSummary?.present ?? '—',   color: '#22c55e', icon: <FaCheckCircle /> },
             { label: 'Absent Days',     value: attSummary?.absent  ?? '—',   color: '#ef4444', icon: <FaTimesCircle /> },
             { label: 'Late Arrivals',   value: attSummary?.late    ?? '—',   color: '#f97316', icon: <FaClock /> },
-            { label: 'Attendance %',    value: attSummary ? `${attSummary.pct}%` : '—', color: '#6366f1', icon: <FaChartBar />, sub: `${attSummary?.workingDays || 0} working days` },
+            { label: 'Attendance %',    value: attSummary ? `${attSummary.pct}%` : '—', color: "#1f4e79", icon: <FaChartBar />, sub: `${attSummary?.workingDays || 0} working days` },
             { label: 'Total Hrs (Cycle)', value: attSummary ? `${attSummary.totalHours}h` : '—', color: '#0ea5e9', icon: <FaHistory /> },
             { label: 'Tenure',          value: tenure(employee.joining_date), color: '#8b5cf6', icon: <FaBriefcase /> },
           ].map(s => (
@@ -645,7 +646,7 @@ const EmployeeProfileView = () => {
         {activeTab === 'overview' && (
           <Row className="g-3">
             <Col lg={4}>
-              <Section title="Personal Information" icon={<FaUser />} color="#6366f1">
+              <Section title="Personal Information" icon={<FaUser />} color="#1f4e79">
                 <Info label="Full Name"    value={fullName}                    icon={<FaUser />} />
                 <Info label="Date of Birth" value={fmtDate(employee.dob)}      icon={<FaCalendarAlt />} />
                 <Info label="Gender"       value={employee.gender}             icon={<FaVenusMars />} />
@@ -690,7 +691,7 @@ const EmployeeProfileView = () => {
 
             {/* Monthly hours chart mini */}
             <Col lg={12}>
-              <Section title="Monthly Working Hours (This Year)" icon={<FaChartBar />} color="#6366f1">
+              <Section title="Monthly Working Hours (This Year)" icon={<FaChartBar />} color="#1f4e79">
                 <div style={{ height: 220 }}>
                   <Bar data={monthlyHoursData} options={barOpts('Hours')} />
                 </div>
@@ -710,7 +711,7 @@ const EmployeeProfileView = () => {
                   const today = new Date();
                   setAttFilter({ year: today.getFullYear(), month: (today.getMonth() + 1).toString() });
                 }}
-                  style={{ background: '#6366f1', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
+                  style={{ background: "#1f4e79", color: '#fff', border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
                   This Month
                 </button>
                 <button onClick={() => {
@@ -746,7 +747,7 @@ const EmployeeProfileView = () => {
             {/* Charts row */}
             <Row className="g-3 mb-3">
               <Col md={8}>
-                <Section title="Monthly Working Hours" icon={<FaChartBar />} color="#6366f1">
+                <Section title="Monthly Working Hours" icon={<FaChartBar />} color="#1f4e79">
                   <div style={{ height: 240 }}>
                     <Bar data={monthlyHoursData} options={barOpts('Hours')} />
                   </div>
@@ -789,7 +790,7 @@ const EmployeeProfileView = () => {
                 <div style={{ textAlign: 'center', padding: 30 }}><Spinner size="sm" animation="border" /></div>
               ) : (
                 <div style={{ overflowX: 'auto', maxHeight: 420, overflowY: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                  <PaginatedTable style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                     <thead>
                       <tr style={{ background: '#f9fafb', position: 'sticky', top: 0 }}>
                         {['Date','Day','Clock In','Clock Out','Hours','Late','Status'].map(h => (
@@ -806,7 +807,7 @@ const EmployeeProfileView = () => {
                         const STATUS_COLOR = {
                           present: '#22c55e', absent: '#ef4444', half_day: '#f97316', working: '#0ea5e9',
                           'Paid Leave': '#0891b2', 'Comp Off': '#c026d3',
-                          'Week Off': '#6b7280', 'Holiday': '#2563eb', 'Leave': '#7c3aed',
+                          'Week Off': '#6b7280', 'Holiday': "#1f4e79", 'Leave': '#7c3aed',
                         };
                         const statusLabel = resolveAttStatus(r);
                         const statusColor = STATUS_COLOR[statusLabel] || STATUS_COLOR[r.status] || '#9ca3af';
@@ -829,7 +830,7 @@ const EmployeeProfileView = () => {
                         );
                       })}
                     </tbody>
-                  </table>
+                  </PaginatedTable>
                 </div>
               )}
             </Section>
@@ -841,7 +842,7 @@ const EmployeeProfileView = () => {
           <>
             <Row className="g-3 mb-3">
               {[
-                { label: 'Total Accrued', value: parseFloat(leaveBalance?.total_accrued || 0).toFixed(1), color: '#6366f1', icon: <FaCalendarAlt /> },
+                { label: 'Total Accrued', value: parseFloat(leaveBalance?.total_accrued || 0).toFixed(1), color: "#1f4e79", icon: <FaCalendarAlt /> },
                 { label: 'Used',          value: parseFloat(leaveBalance?.used || 0).toFixed(1),          color: '#ef4444', icon: <FaTimesCircle /> },
                 { label: 'Available',     value: parseFloat(leaveBalance?.available || 0).toFixed(1),     color: '#22c55e', icon: <FaCheckCircle /> },
                 { label: 'Pending',       value: parseFloat(leaveBalance?.pending || 0).toFixed(1),       color: '#f97316', icon: <FaHourglassHalf /> },
@@ -851,7 +852,7 @@ const EmployeeProfileView = () => {
 
             <Row className="g-3">
               <Col md={4}>
-                <Section title="Leave Status Breakdown" icon={<FaChartBar />} color="#6366f1">
+                <Section title="Leave Status Breakdown" icon={<FaChartBar />} color="#1f4e79">
                   <div style={{ height: 200 }}>
                     <Doughnut data={leaveStats.chart} options={{
                       responsive: true, maintainAspectRatio: false,
@@ -865,7 +866,7 @@ const EmployeeProfileView = () => {
               <Col md={8}>
                 <Section title={`Leave History (${leaveHistory.length})`} icon={<FaHistory />} color="#0ea5e9">
                   <div style={{ overflowX: 'auto', maxHeight: 280, overflowY: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                    <PaginatedTable style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                       <thead>
                         <tr style={{ background: '#f9fafb', position: 'sticky', top: 0 }}>
                           {['Type','Duration','Start','End','Days','Status'].map(h => (
@@ -892,7 +893,7 @@ const EmployeeProfileView = () => {
                           );
                         })}
                       </tbody>
-                    </table>
+                    </PaginatedTable>
                   </div>
                 </Section>
               </Col>
@@ -905,13 +906,13 @@ const EmployeeProfileView = () => {
           <>
             <Row className="g-3 mb-3">
               {[
-                { label: 'Manager Avg Rating', value: ratings.manager_average ?? '—', color: '#6366f1', icon: <FaStar />, sub: `${ratings.manager_ratings?.length || 0} reviews` },
+                { label: 'Manager Avg Rating', value: ratings.manager_average ?? '—', color: "#1f4e79", icon: <FaStar />, sub: `${ratings.manager_ratings?.length || 0} reviews` },
                 { label: 'Admin Avg Rating',   value: ratings.admin_average   ?? '—', color: '#22c55e', icon: <FaStar />, sub: `${ratings.admin_ratings?.length || 0} reviews` },
               ].map(s => <Col xs={12} md={6} key={s.label}><StatCard {...s} /></Col>)}
             </Row>
 
             {[
-              { title: 'TL Ratings', data: ratings.manager_ratings || [], color: '#6366f1' },
+              { title: 'TL Ratings', data: ratings.manager_ratings || [], color: "#1f4e79" },
               { title: 'Admin Ratings',   data: ratings.admin_ratings   || [], color: '#22c55e' },
             ].map(({ title, data, color }) => (
               <Section key={title} title={title} icon={<FaStar />} color={color}>
@@ -919,7 +920,7 @@ const EmployeeProfileView = () => {
                   <p style={{ color: '#9ca3af', textAlign: 'center', padding: 20, fontSize: 13 }}>No {title.toLowerCase()} available</p>
                 ) : (
                   <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                    <PaginatedTable style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                       <thead>
                         <tr style={{ background: '#f9fafb' }}>
                           {['Period','Rating','Label','Rated By','Comments'].map(h => (
@@ -946,7 +947,7 @@ const EmployeeProfileView = () => {
                           );
                         })}
                       </tbody>
-                    </table>
+                    </PaginatedTable>
                   </div>
                 )}
               </Section>
@@ -957,7 +958,7 @@ const EmployeeProfileView = () => {
         {/* ═══════════════════════ DOCUMENTS TAB ═══════════════════════════════ */}
         {activeTab === 'documents' && (
           <>
-            <Section title="Employee Documents" icon={<FaFileContract />} color="#6366f1">
+            <Section title="Employee Documents" icon={<FaFileContract />} color="#1f4e79">
               {documents.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>
                   <FaFileAlt style={{ fontSize: 40, marginBottom: 12, opacity: 0.3 }} />
@@ -981,7 +982,7 @@ const EmployeeProfileView = () => {
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-                        <button style={{ flex: 1, background: '#6366f1', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 8px', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                        <button style={{ flex: 1, background: "#1f4e79", color: '#fff', border: 'none', borderRadius: 6, padding: '6px 8px', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                           <FaEye size={10} /> View
                         </button>
                         <button style={{ flex: 1, background: '#e5e7eb', color: '#374151', border: 'none', borderRadius: 6, padding: '6px 8px', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
@@ -1023,7 +1024,7 @@ const EmployeeProfileView = () => {
         {/* ═══════════════════════ TIMELINE TAB ════════════════════════════════ */}
         {activeTab === 'timeline' && (
           <>
-            <Section title="Employee Activity Timeline" icon={<FaHistory />} color="#6366f1">
+            <Section title="Employee Activity Timeline" icon={<FaHistory />} color="#1f4e79">
               <div style={{ position: 'relative', padding: '20px 0' }}>
                 {activities.length === 0 ? (
                   <div style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>
@@ -1035,7 +1036,7 @@ const EmployeeProfileView = () => {
                     {/* Timeline line */}
                     <div style={{
                       position: 'absolute', left: '20px', top: '20px', bottom: '20px',
-                      width: '2px', background: 'linear-gradient(to bottom, #6366f1, #0ea5e9, #22c55e)', opacity: 0.2
+                      width: '2px', background: "#1f4e79", opacity: 0.2
                     }} />
                     
                     {/* Timeline items */}
@@ -1111,7 +1112,7 @@ const EmployeeProfileView = () => {
         {/* Export Options Footer */}
         <div style={{ background: '#fff', borderRadius: 12, padding: '16px 20px', marginTop: 24, boxShadow: '0 1px 8px rgba(0,0,0,0.06)', display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: '#374151', marginRight: 10 }}>Quick Export:</div>
-          <button onClick={exportAttendance} style={{ background: '#6366f1', color: '#fff', border: 'none', borderRadius: 8, padding: '7px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.2s' }}>
+          <button onClick={exportAttendance} style={{ background: "#1f4e79", color: '#fff', border: 'none', borderRadius: 8, padding: '7px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.2s' }}>
             <FaDownload size={10} /> Attendance
           </button>
           <button onClick={exportLeaves} style={{ background: '#0ea5e9', color: '#fff', border: 'none', borderRadius: 8, padding: '7px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.2s' }}>

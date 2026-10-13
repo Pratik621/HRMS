@@ -12,7 +12,7 @@ test('Basic/HRA/Variable sum back to monthly gross with no rounding drift', () =
 });
 
 test('annual figures are always exactly 12x the monthly figures', () => {
-    const { monthly, annual } = calculateSalaryBreakdown({ grossMonthly: 85000, pfAmount: 1800, ptAmount: 200 });
+    const { monthly, annual } = calculateSalaryBreakdown({ grossMonthly: 85000, pfAmount: 1800, professionalTaxAmount: 200 });
     for (const key of ['gross', 'basic', 'hra', 'variable', 'pf', 'pt', 'totalDeductions', 'net']) {
         assert.equal(annual[key], monthly[key] * 12);
     }
@@ -27,16 +27,16 @@ test('PF/PT default exactly like salaryController.js when unset (PF 1800, PT 0)'
 test('PF/PT/professional tax use the employee-specific values (including explicit 0) when provided', () => {
     const { monthly } = calculateSalaryBreakdown({ grossMonthly: 50000, pfAmount: 0, ptAmount: 200, professionalTaxAmount: 300 });
     assert.equal(monthly.pf, 0);
-    assert.equal(monthly.pt, 500); // pt + professional_tax combined into one annexure row
+    assert.equal(monthly.pt, 300); // Only Professional Tax is charged; legacy PT is ignored.
 });
 
 test('net salary equals gross minus total deductions', () => {
-    const { monthly } = calculateSalaryBreakdown({ grossMonthly: 85000, pfAmount: 1800, ptAmount: 200 });
+    const { monthly } = calculateSalaryBreakdown({ grossMonthly: 85000, pfAmount: 1800, professionalTaxAmount: 200 });
     assert.equal(monthly.net, monthly.gross - monthly.totalDeductions);
 });
 
 test('reference example (₹85,000/month, ₹10,20,000/year) reproduces the supplied annexure', () => {
-    const { monthly, annual } = calculateSalaryBreakdown({ grossMonthly: 85000, pfAmount: 1800, ptAmount: 200 });
+    const { monthly, annual } = calculateSalaryBreakdown({ grossMonthly: 85000, pfAmount: 1800, professionalTaxAmount: 200 });
     assert.equal(monthly.basic, 42500);
     assert.equal(monthly.hra, 25500);
     assert.equal(monthly.variable, 17000);

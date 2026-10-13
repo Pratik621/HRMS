@@ -719,7 +719,9 @@ exports.updateLeaveStatus = async (req, res) => {
         // - Regular employee's leave: their reporting manager or admin can approve/reject
         // - Employee can cancel their own leave
         if (status === 'cancelled') {
-            // Employee cancelling own leave - allow
+            if (leave.employee_id !== approver_id && !['admin', 'sub_admin', 'hr'].includes(userRole)) {
+                return res.status(403).json({ success: false, message: 'You can only cancel your own leave' });
+            }
         } else if (userRole === 'admin' || userRole === 'hr') {
             // Admin/HR can approve/reject any leave request
         } else {
@@ -745,6 +747,10 @@ exports.updateLeaveStatus = async (req, res) => {
             }
         }
 
+        if (leave.status === status) {
+            if (status === 'approved') await syncAttendanceForApprovedLeave(leave);
+            return res.json({ success: true, message: 'Leave already has this status', leave });
+        }
         const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
         const nowIST = new Date(Date.now() + IST_OFFSET_MS);
         const updatedAtIST = `${nowIST.getUTCFullYear()}-${String(nowIST.getUTCMonth()+1).padStart(2,'0')}-${String(nowIST.getUTCDate()).padStart(2,'0')} ${String(nowIST.getUTCHours()).padStart(2,'0')}:${String(nowIST.getUTCMinutes()).padStart(2,'0')}:${String(nowIST.getUTCSeconds()).padStart(2,'0')}`;

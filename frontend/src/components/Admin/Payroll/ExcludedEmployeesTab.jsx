@@ -1,3 +1,4 @@
+import PaginatedTable from '../../Common/PaginatedTable';
 // src/components/Admin/Payroll/ExcludedEmployeesTab.jsx
 // Permanent payroll-exclusion flag (test/demo accounts) — persisted on the employee record
 // via the existing generic PUT /api/employees/:id, same pattern as pf_amount/pt_amount.
@@ -71,7 +72,7 @@ const ExcludedEmployeesTab = ({ records, refetch }) => {
         {excluded.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 30, color: '#94a3b8', fontSize: 13 }}>No employees are currently excluded from payroll.</div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+          <PaginatedTable style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <tbody>
               {excluded.map(rec => (
                 <tr key={rec.employee_id} style={{ borderBottom: '1px solid #f1f5f9' }}>
@@ -90,7 +91,7 @@ const ExcludedEmployeesTab = ({ records, refetch }) => {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </PaginatedTable>
         )}
       </div>
     </div>

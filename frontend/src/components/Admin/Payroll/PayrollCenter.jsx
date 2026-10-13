@@ -1,5 +1,5 @@
 // src/components/Admin/Payroll/PayrollCenter.jsx
-// Centralized Admin Payroll module — PF/PT/Professional Tax, attendance-driven salary
+// Centralized Admin Payroll module — PF / Professional Tax, attendance-driven salary
 // preview, attendance correction, generation, history and exclusions in one place.
 // Visual language copied from AttendanceReports.jsx (gradient hero header, pill tabs,
 // stat pills) so this page reads as part of the same app, not a bolted-on tool.
@@ -57,7 +57,7 @@ const localDateStr = (d) => {
 };
 
 const TABS = [
-  { key: 'pfpt', label: 'PF / PT', icon: FaMoneyCheckAlt },
+  { key: 'pfpt', label: 'PF / Professional Tax', icon: FaMoneyCheckAlt },
   { key: 'preview', label: 'Payroll Preview', icon: FaClipboardCheck },
   { key: 'attendance', label: 'Attendance Review', icon: FaCalendarCheck },
   { key: 'generate', label: 'Generate Salary', icon: FaFileInvoiceDollar },
@@ -181,7 +181,7 @@ const PayrollCenter = () => {
     const excluded = records.filter(r => r.exclude_from_payroll).length;
     const eligible = total - excluded;
     const pfPtDone = records.filter(r =>
-      !r.exclude_from_payroll && r.pf_amount != null && r.pt_amount != null && r.professional_tax_amount != null
+      !r.exclude_from_payroll && r.pf_amount != null && r.professional_tax_amount != null
     ).length;
     const generated = records.filter(r => r.has_slip).length;
     return {
@@ -390,7 +390,6 @@ const PayrollCenter = () => {
           'Earned Salary (₹)':      r.basic_salary != null ? Number(r.basic_salary).toFixed(2) : '',
           'Overtime (₹)':           Number(r.overtime_amount || 0).toFixed(2),
           'PF Amount (₹)':          r.pf_amount != null ? Number(r.pf_amount).toFixed(2) : '',
-          'PT Amount (₹)':          r.pt_amount != null ? Number(r.pt_amount).toFixed(2) : '',
           'Professional Tax (₹)':   r.professional_tax_amount != null ? Number(r.professional_tax_amount).toFixed(2) : '',
           'Other Deduction (₹)':    Number(r.custom_deduction || 0).toFixed(2),
           'Deduction Details':      (r.deduction_items && r.deduction_items.length)
@@ -448,21 +447,21 @@ const PayrollCenter = () => {
   };
 
   return (
-    <div className="p-2 p-md-3 p-lg-4" style={{ background: '#f5f7fb', minHeight: '100vh' }}>
+    <div className="p-2 p-md-3 p-lg-4" style={{ background: "#f5f7fa", minHeight: '100vh' }}>
 
       {/* ── Hero header ──────────────────────────────────────────────────────── */}
       <div style={{
-        background: 'linear-gradient(135deg, #f8fbff 0%, #f1f5ff 100%)',
+        background: "#eef4fb",
         border: '1px solid #e2e8f0', borderRadius: 20, padding: '18px 20px',
         marginBottom: 16, boxShadow: '0 10px 30px rgba(15, 23, 42, 0.05)',
       }}>
         <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3">
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#6366f1', marginBottom: 4 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: "#1f4e79", marginBottom: 4 }}>
               Payroll Workspace
             </div>
             <h4 className="mb-1 fw-bold" style={{ color: '#0f172a', margin: 0 }}>
-              PF/PT, attendance-driven salary, and generated slips — one place
+              PF / Professional Tax, attendance-driven salary, and generated slips — one place
             </h4>
             <div style={{ color: '#64748b', fontSize: 13 }}>
               Cycle: <b>{cycleLabel}</b>
@@ -535,7 +534,7 @@ const PayrollCenter = () => {
                   border: 'none', borderRadius: 12, padding: '10px 14px', fontSize: 13, fontWeight: 700,
                   cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8,
                   color: isActive ? '#fff' : '#334155',
-                  background: isActive ? 'linear-gradient(135deg, #4f46e5 0%, #2563eb 100%)' : '#f8fafc',
+                  background: isActive ? "#1f4e79" : '#f8fafc',
                   boxShadow: isActive ? '0 8px 20px rgba(79, 70, 229, 0.18)' : 'none',
                   transition: 'all 0.2s ease',
                 }}
@@ -553,11 +552,11 @@ const PayrollCenter = () => {
       {/* ── Summary pills ────────────────────────────────────────────────────── */}
       <div className="d-flex flex-wrap gap-2 mb-3">
         {[
-          { label: 'Total Employees', value: summary.total, bg: '#eef2ff', color: '#6366f1' },
+          { label: 'Total Employees', value: summary.total, bg: "#eef4fb", color: "#1f4e79" },
           { label: 'Eligible', value: summary.eligible, bg: 'rgba(22,163,74,.1)', color: '#16a34a' },
           { label: 'Excluded', value: summary.excluded, bg: 'rgba(239,68,68,.1)', color: '#ef4444' },
-          { label: 'PF/PT/Tax Completed', value: summary.pfPtDone, bg: 'rgba(3,105,161,.1)', color: '#0369a1' },
-          { label: 'PF/PT/Tax Remaining', value: summary.pfPtRemaining, bg: 'rgba(245,158,11,.12)', color: '#d97706' },
+          { label: 'PF / Professional Tax Completed', value: summary.pfPtDone, bg: 'rgba(3,105,161,.1)', color: '#0369a1' },
+          { label: 'PF / Professional Tax Remaining', value: summary.pfPtRemaining, bg: 'rgba(245,158,11,.12)', color: '#d97706' },
           { label: 'Slips Generated', value: summary.generated, bg: 'rgba(139,92,246,.1)', color: '#7c3aed' },
         ].map(p => (
           <div key={p.label} style={{ background: p.bg, color: p.color, borderRadius: 999, padding: '10px 18px', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -570,7 +569,7 @@ const PayrollCenter = () => {
       {/* ── Active tab ───────────────────────────────────────────────────────── */}
       {loading && records.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 60, background: '#fff', borderRadius: 16 }}>
-          <Spinner animation="border" style={{ color: '#6366f1' }} />
+          <Spinner animation="border" style={{ color: "#1f4e79" }} />
           <div style={{ marginTop: 14, fontSize: 13, color: '#94a3b8' }}>Loading payroll data…</div>
         </div>
       ) : (

@@ -9,7 +9,7 @@ const {
     getEffectiveShiftTiming, istStringToUTCISO, computeAttendanceFromClockTimes,
 } = require('../controllers/attendanceController')._shared;
 const { isFlexibleShiftEnabled } = require('../utils/flexibleShift');
-const { CYCLE_START_DAY } = require('../config/payrollCycle');
+const { CYCLE_END_DAY, getCycleDates } = require('../config/payrollCycle');
 
 // Fixes a real bug in the old implementation: only literal role === 'admin' bypassed
 // hierarchy checks there — sub_admin/hr did not, despite needing full access.
@@ -144,11 +144,10 @@ async function recalculateAttendanceForApprovedRequest(attendanceId, requestType
 }
 
 // ── 5. Payroll cycle / lock check ──────────────────────────────────────────────
-// Cycle = CYCLE_START_DAY of (month-1) → CYCLE_START_DAY-1 of (month) — shared with
-// salaryController.getCycleDates via backend/config/payrollCycle.js.
+// Default cycle assignment uses the current cycle through its inclusive end day.
 function getPayrollCycleForDate(dateStr) {
     const [y, m, d] = String(dateStr).substring(0, 10).split('-').map(Number);
-    if (d <= CYCLE_START_DAY - 1) return { month: m, year: y };
+    if (d <= CYCLE_END_DAY) return { month: m, year: y };
     return m === 12 ? { month: 1, year: y + 1 } : { month: m + 1, year: y };
 }
 
@@ -156,13 +155,17 @@ async function isPayrollLocked(employeeId, attendanceDate) {
     const { month, year } = getPayrollCycleForDate(attendanceDate);
     const { data } = await supabase
         .from('salary_slips')
-        .select('id')
+        .select('id, month, year, cycle_start_date, cycle_end_date')
         .eq('employee_id', employeeId)
-        .eq('month', month)
-        .eq('year', year)
-        .eq('is_paid', true)
-        .limit(1);
-    return { locked: !!(data && data.length), month, year };
+        .eq('is_paid', true);
+    // Use stored ranges so historical paid slips remain locked under their original dates.
+    const date = String(attendanceDate).slice(0, 10);
+    const paidSlip = (data || []).find(slip => {
+        const cycle = getCycleDates(Number(slip.month), Number(slip.year));
+        return date >= (slip.cycle_start_date || cycle.startDateStr)
+            && date <= (slip.cycle_end_date || cycle.endDateStr);
+    });
+    return { locked: !!paidSlip, month: paidSlip?.month ?? month, year: paidSlip?.year ?? year };
 }
 
 module.exports = {

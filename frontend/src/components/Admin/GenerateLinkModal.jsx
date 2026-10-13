@@ -171,7 +171,7 @@ export default function GenerateLinkModal({ show, onHide, onGenerated }) {
     return (
         <>
         <Modal show={show} onHide={onHide} size="lg" centered>
-            <Modal.Header style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', border: 'none' }}>
+            <Modal.Header style={{ background: "#1f4e79", color: '#fff', border: 'none' }}>
                 <Modal.Title style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
                     <Link size={20} /> Generate Employee Offer Link
                 </Modal.Title>
@@ -190,7 +190,7 @@ export default function GenerateLinkModal({ show, onHide, onGenerated }) {
                         <p style={{ color: '#6b7280', fontSize: 14, marginBottom: 20 }}>
                             Share this secure link with the candidate. It will guide them through the onboarding process.
                         </p>
-                        <div style={{ background: '#f8f9ff', border: '1px solid #e0e7ff', borderRadius: 10, padding: '12px 16px', marginBottom: 16, wordBreak: 'break-all', fontSize: 13, color: '#4338ca', textAlign: 'left' }}>
+                        <div style={{ background: '#f8f9ff', border: '1px solid #e0e7ff', borderRadius: 10, padding: '12px 16px', marginBottom: 16, wordBreak: 'break-all', fontSize: 13, color: "#173a5c", textAlign: 'left' }}>
                             {generated.link}
                         </div>
                         {error && <Alert variant="danger" className="py-2 text-start" style={{ fontSize: 13 }}>{error}</Alert>}
@@ -198,7 +198,7 @@ export default function GenerateLinkModal({ show, onHide, onGenerated }) {
                             <Alert variant={sendEmailResult.type} className="py-2 text-start" style={{ fontSize: 13 }}>{sendEmailResult.text}</Alert>
                         )}
                         <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                            <button onClick={copyLink} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8, background: copied ? '#d1fae5' : '#6366f1', color: copied ? '#065f46' : '#fff', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14, transition: 'background 0.2s' }}>
+                            <button onClick={copyLink} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8, background: copied ? '#d1fae5' : "#1f4e79", color: copied ? '#065f46' : '#fff', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14, transition: 'background 0.2s' }}>
                                 {copied ? <><CheckCircle size={16} /> Copied!</> : <><Copy size={16} /> Copy Link</>}
                             </button>
                             <button onClick={handleOpenSendEmail} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8, background: '#10b981', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14 }}>
@@ -300,7 +300,7 @@ export default function GenerateLinkModal({ show, onHide, onGenerated }) {
                             <Button type="button" onClick={handleOpenSendEmail} style={{ borderRadius: 8, background: '#10b981', border: 'none', fontWeight: 600, padding: '8px 20px', display: 'flex', alignItems: 'center', gap: 6 }}>
                                 <Mail size={15} /> Send Email
                             </Button>
-                            <Button type="submit" disabled={saving} style={{ borderRadius: 8, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', border: 'none', fontWeight: 600, padding: '8px 24px' }}>
+                            <Button type="submit" disabled={saving} style={{ borderRadius: 8, background: "#1f4e79", border: 'none', fontWeight: 600, padding: '8px 24px' }}>
                                 {saving ? <><Spinner size="sm" animation="border" className="me-2" />Generating…</> : 'Generate Link'}
                             </Button>
                         </div>

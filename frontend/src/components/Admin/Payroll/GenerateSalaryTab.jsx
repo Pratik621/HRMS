@@ -1,3 +1,4 @@
+import PaginatedTable from '../../Common/PaginatedTable';
 // src/components/Admin/Payroll/GenerateSalaryTab.jsx
 // Salary generation with confirmation. "All Employees / TL Team / Manager Team / Department"
 // selection is the shared filter bar in PayrollCenter (applies consistently across every tab,
@@ -123,7 +124,7 @@ const GenerateSalaryTab = ({ month, year, cycleLabel, records, refetch }) => {
           <div style={{ textAlign: 'center', padding: 40, color: '#94a3b8', fontSize: 13 }}>No eligible employees match the current filters.</div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+            <PaginatedTable style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
                 <tr style={{ background: '#1e3a5f', color: '#fff' }}>
                   <th style={{ padding: '11px 12px', textAlign: 'center', width: 36 }}>
@@ -153,7 +154,7 @@ const GenerateSalaryTab = ({ month, year, cycleLabel, records, refetch }) => {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </PaginatedTable>
           </div>
         )}
       </div>

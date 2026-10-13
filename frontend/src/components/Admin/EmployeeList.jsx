@@ -1,3 +1,5 @@
+import PaginatedTable from '../Common/PaginatedTable';
+import './EmployeeList.css';
 // components/Admin/EmployeeList.jsx
 import React, { useState, useEffect } from 'react';
 import { Spinner, Modal, Table, Button, Form } from 'react-bootstrap';
@@ -48,7 +50,7 @@ const getProfilePct = (emp) => {
   return Math.round((fields.filter(Boolean).length / fields.length) * 100);
 };
 
-const AVATAR_COLORS = ['#6366f1', '#0ea5e9', '#22c55e', '#f97316', '#8b5cf6', '#ec4899', '#14b8a6'];
+const AVATAR_COLORS = ["#1f4e79", '#0ea5e9', '#22c55e', '#f97316', '#8b5cf6', '#ec4899', '#14b8a6'];
 const getAvatarColor = (emp) =>
   AVATAR_COLORS[(emp?.first_name || 'A').charCodeAt(0) % AVATAR_COLORS.length];
 
@@ -82,7 +84,7 @@ const CompletionRing = ({ pct = 0, size = 52 }) => {
 const InfoRow = ({ icon: Icon, label, value, badge, badgeColor }) => (
   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '7px 0', borderBottom: '1px solid #f8fafc' }}>
     <div style={{ width: 28, height: 28, borderRadius: 7, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-      <Icon size={11} color="#6366f1" />
+      <Icon size={11} color="#1f4e79" />
     </div>
     <div style={{ flex: 1, minWidth: 0 }}>
       <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3 }}>{label}</div>
@@ -278,7 +280,7 @@ const EmpQuickView = ({ emp, onClose, navigate, user, onToggleStatus, togglingSt
     return (
       <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#fff' }}>
         <div style={{ padding: '18px 16px', borderBottom: '1px solid #e5e7eb', position: 'relative', flexShrink: 0 }}>
-          <button onClick={onClose} style={{
+          <button aria-label="Back to employee directory" onClick={onClose} style={{
             position: 'absolute', top: 12, right: 12, background: '#f1f5f9',
             border: 'none', color: '#6b7280', borderRadius: 6, width: 26, height: 26,
             cursor: 'pointer', fontSize: 16, lineHeight: '24px', textAlign: 'center', padding: 0,
@@ -354,7 +356,7 @@ const EmpQuickView = ({ emp, onClose, navigate, user, onToggleStatus, togglingSt
 
       {/* ── Header ── */}
       <div style={{
-        background: 'linear-gradient(135deg,#1e1b4b 0%,#312e81 60%,#4338ca 100%)',
+        background: "#1f4e79",
         padding: '16px 16px 16px', position: 'relative', flexShrink: 0,
       }}>
         <button onClick={onClose} style={{
@@ -383,7 +385,7 @@ const EmpQuickView = ({ emp, onClose, navigate, user, onToggleStatus, togglingSt
               <span style={{ fontSize: 10, opacity: 0.7, fontWeight: 400 }}>↗</span>
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
-              <span style={{ background: 'rgba(255,255,255,0.15)', color: '#e0e7ff', borderRadius: 20, padding: '1px 8px', fontSize: 9, fontWeight: 600 }}>{emp.employee_id}</span>
+              <span style={{ background: 'rgba(255,255,255,0.15)', color: "#dce3eb", borderRadius: 20, padding: '1px 8px', fontSize: 9, fontWeight: 600 }}>{emp.employee_id}</span>
               <span style={{ background: isActive ? '#22c55e' : '#ef4444', color: '#fff', borderRadius: 20, padding: '1px 8px', fontSize: 9, fontWeight: 700 }}>
                 {isActive ? '● Active' : '● Inactive'}
               </span>
@@ -398,8 +400,8 @@ const EmpQuickView = ({ emp, onClose, navigate, user, onToggleStatus, togglingSt
           <button key={t.id} onClick={() => setTab(t.id)} style={{
             border: 'none', background: 'none', cursor: 'pointer',
             padding: '9px 14px', fontSize: 11, fontWeight: 600,
-            color: tab === t.id ? '#6366f1' : '#6b7280',
-            borderBottom: tab === t.id ? '2px solid #6366f1' : '2px solid transparent',
+            color: tab === t.id ? "#1f4e79" : '#6b7280',
+            borderBottom: tab === t.id ? '2px solid #1f4e79' : '2px solid transparent',
             whiteSpace: 'nowrap', transition: 'all 0.15s',
           }}>{t.label}</button>
         ))}
@@ -448,7 +450,7 @@ const EmpQuickView = ({ emp, onClose, navigate, user, onToggleStatus, togglingSt
               <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 10 }}>Quick Actions</div>
               <div style={{ display: 'flex', gap: 5 }}>
                 {user?.role !== 'desktop_support' && (
-                  <QuickActionBtn icon={FaEye} label="View Full Profile" color="#6366f1" onClick={() => navigate(`/admin/employees/${emp.employee_id}`)} />
+                  <QuickActionBtn icon={FaEye} label="View Full Profile" color="#1f4e79" onClick={() => navigate(`/admin/employees/${emp.employee_id}`)} />
                 )}
                 {(user?.role === 'admin' || user?.role === 'sub_admin' || user?.role === 'hr') && (
                   <QuickActionBtn icon={FaEdit} label="Edit Details" color="#0ea5e9" onClick={() => navigate(`/admin/edit-employee/${emp.id}`)} />
@@ -478,7 +480,7 @@ const EmpQuickView = ({ emp, onClose, navigate, user, onToggleStatus, togglingSt
             <div style={{ background: '#fff', borderRadius: 12, padding: '12px 14px', marginBottom: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 8 }}>Account Info</div>
               {[
-                { label: 'Company', value: emp.pf_amount != null && parseInt(emp.pf_amount) === 0 ? 'PropCulture' : 'B2B InDemand', color: '#6366f1' },
+                { label: 'Company', value: emp.pf_amount != null && parseInt(emp.pf_amount) === 0 ? 'PropCulture' : 'B2B InDemand', color: "#1f4e79" },
                 { label: 'Profile Status', value: emp.profile_completed ? 'Completed' : 'Pending', color: emp.profile_completed ? '#22c55e' : '#f97316' },
                 { label: 'Account Status', value: isActive ? 'Active' : 'Inactive', color: isActive ? '#22c55e' : '#ef4444' },
                 { label: 'Profile Form', value: emp.require_profile_completion ? 'Required' : 'Not Required', color: emp.require_profile_completion ? '#0ea5e9' : '#9ca3af' },
@@ -522,7 +524,7 @@ const EmpQuickView = ({ emp, onClose, navigate, user, onToggleStatus, togglingSt
                   <StatMini label="Present" value={attSummary.present} color="#22c55e" />
                   <StatMini label="Absent" value={attSummary.absent} color="#ef4444" />
                   <StatMini label="Late Arrivals" value={attSummary.late} color="#f97316" />
-                  <StatMini label="Total Hours" value={`${attSummary.totalHours}h`} color="#6366f1" />
+                  <StatMini label="Total Hours" value={`${attSummary.totalHours}h`} color="#1f4e79" />
                 </div>
                 <div style={{ background: '#fff', borderRadius: 12, padding: '14px', marginBottom: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', textAlign: 'center' }}>
                   <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>Attendance Rate (Current Cycle)</div>
@@ -535,7 +537,7 @@ const EmpQuickView = ({ emp, onClose, navigate, user, onToggleStatus, togglingSt
             ) : (
               <div style={{ textAlign: 'center', padding: 40, color: '#9ca3af', fontSize: 12 }}>No attendance data for current cycle</div>
             )}
-            <button onClick={() => navigate(`/admin/employees/${emp.employee_id}`)} style={{ width: '100%', background: '#6366f1', color: '#fff', border: 'none', borderRadius: 8, padding: '10px', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <button onClick={() => navigate(`/admin/employees/${emp.employee_id}`)} style={{ width: '100%', background: "#1f4e79", color: '#fff', border: 'none', borderRadius: 8, padding: '10px', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
               <FaEye size={12} /> View Full Attendance History
             </button>
           </>
@@ -548,7 +550,7 @@ const EmpQuickView = ({ emp, onClose, navigate, user, onToggleStatus, togglingSt
               <div style={{ textAlign: 'center', padding: 40 }}><Spinner animation="border" size="sm" /></div>
             ) : leaveBalance ? (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-                <StatMini label="Total Accrued" value={parseFloat(leaveBalance.total_accrued || 0).toFixed(1)} color="#6366f1" />
+                <StatMini label="Total Accrued" value={parseFloat(leaveBalance.total_accrued || 0).toFixed(1)} color="#1f4e79" />
                 <StatMini label="Used" value={parseFloat(leaveBalance.used || 0).toFixed(1)} color="#ef4444" />
                 <StatMini label="Available" value={parseFloat(leaveBalance.available || 0).toFixed(1)} color="#22c55e" />
                 <StatMini label="Comp-Off" value={parseFloat(leaveBalance.comp_off_balance || 0).toFixed(1)} color="#8b5cf6" />
@@ -556,7 +558,7 @@ const EmpQuickView = ({ emp, onClose, navigate, user, onToggleStatus, togglingSt
             ) : (
               <div style={{ textAlign: 'center', padding: 40, color: '#9ca3af', fontSize: 12 }}>No leave data available</div>
             )}
-            <button onClick={() => navigate(`/admin/employees/${emp.employee_id}`)} style={{ width: '100%', background: '#6366f1', color: '#fff', border: 'none', borderRadius: 8, padding: '10px', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <button onClick={() => navigate(`/admin/employees/${emp.employee_id}`)} style={{ width: '100%', background: "#1f4e79", color: '#fff', border: 'none', borderRadius: 8, padding: '10px', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
               <FaEye size={12} /> View Full Leave History
             </button>
           </>
@@ -575,7 +577,7 @@ const EmpQuickView = ({ emp, onClose, navigate, user, onToggleStatus, togglingSt
                 <div style={{ fontSize: 22, fontWeight: 800, color: '#111827', marginTop: 2 }}>{fmtCurrency(emp.in_hand_salary)}</div>
               </div>
             </div>
-            <button onClick={() => navigate('/admin/payroll')} style={{ width: '100%', background: '#6366f1', color: '#fff', border: 'none', borderRadius: 8, padding: '10px', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <button onClick={() => navigate('/admin/payroll')} style={{ width: '100%', background: "#1f4e79", color: '#fff', border: 'none', borderRadius: 8, padding: '10px', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
               <FaEye size={12} /> View Full Payroll & Salary Slips
             </button>
           </>
@@ -584,10 +586,10 @@ const EmpQuickView = ({ emp, onClose, navigate, user, onToggleStatus, togglingSt
         {/* ═══ DOCUMENTS ═══ */}
         {tab === 'documents' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <button onClick={() => onViewDocs(emp)} style={{ width: '100%', background: '#6366f1', color: '#fff', border: 'none', borderRadius: 8, padding: '10px', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <button onClick={() => onViewDocs(emp)} style={{ width: '100%', background: "#1f4e79", color: '#fff', border: 'none', borderRadius: 8, padding: '10px', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
               <FaFileAlt size={12} /> View Documents
             </button>
-            <button onClick={() => navigate(`/admin/employees/${emp.employee_id}`)} style={{ width: '100%', background: '#fff', color: '#6366f1', border: '1px solid #6366f1', borderRadius: 8, padding: '10px', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <button onClick={() => navigate(`/admin/employees/${emp.employee_id}`)} style={{ width: '100%', background: '#fff', color: "#1f4e79", border: '1px solid #6366f1', borderRadius: 8, padding: '10px', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
               <FaEye size={12} /> Full Profile Documents
             </button>
           </div>
@@ -611,12 +613,12 @@ const EmpListItem = ({ emp, selected, onClick }) => {
   const ini = getInitials(emp);
   const isActive = emp.is_active !== false;
   return (
-    <div
+    <button type="button" className="emp-directory-item" aria-pressed={selected} aria-label={name + ' (' + emp.employee_id + ')'}
       onClick={onClick}
       style={{
         padding: '9px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 9,
         background: selected ? '#eff0ff' : 'transparent',
-        borderLeft: `3px solid ${selected ? '#6366f1' : 'transparent'}`,
+        borderLeft: `3px solid ${selected ? "#1f4e79" : 'transparent'}`,
         borderBottom: '1px solid #f1f5f9',
         opacity: isActive ? 1 : 0.65,
         transition: 'background 0.12s, border-color 0.12s',
@@ -631,7 +633,7 @@ const EmpListItem = ({ emp, selected, onClick }) => {
         fontSize: 11, fontWeight: 800, color: '#fff', flexShrink: 0,
       }}>{ini}</div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12, fontWeight: 600, color: selected ? '#4338ca' : '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: selected ? "#173a5c" : '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {name}
         </div>
         <div style={{ fontSize: 10, color: '#9ca3af', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -641,7 +643,7 @@ const EmpListItem = ({ emp, selected, onClick }) => {
       {!isActive && (
         <span style={{ fontSize: 8, background: '#fee2e2', color: '#ef4444', borderRadius: 4, padding: '1px 4px', fontWeight: 700, flexShrink: 0 }}>OFF</span>
       )}
-    </div>
+    </button>
   );
 };
 
@@ -676,6 +678,14 @@ const EmployeeList = () => {
   const [profileFilter, setProfileFilter] = useState('all');
   const [activeTab, setActiveTab] = useState('active');
   const [selectedEmpId, setSelectedEmpId] = useState(null);
+  const [directoryPageState, setDirectoryPageState] = useState({ key: '', page: 1 });
+  const [directoryPageSize, setDirectoryPageSize] = useState(20);
+  const directoryKey = [searchTerm, profileFilter, activeTab, employees.length, directoryPageSize].join('|');
+  const directoryPageCount = Math.max(1, Math.ceil(filteredEmployees.length / directoryPageSize));
+  const directoryPage = directoryPageState.key === directoryKey ? Math.min(directoryPageState.page, directoryPageCount) : 1;
+  const directoryStart = (directoryPage - 1) * directoryPageSize;
+  const directoryRows = filteredEmployees.slice(directoryStart, directoryStart + directoryPageSize);
+  const setDirectoryPage = page => setDirectoryPageState({ key: directoryKey, page });
 
   // onboarding
   const [showGenLink, setShowGenLink] = useState(false);
@@ -921,26 +931,26 @@ const EmployeeList = () => {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, gap: 12, flexWrap: 'wrap',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ width: 44, height: 44, borderRadius: 12, background: "#1f4e79", display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <FaUsers size={18} color="#fff" />
           </div>
           <div>
-            <h5 style={{ margin: 0, fontWeight: 800, fontSize: 17, color: '#111827' }}>Employee Management</h5>
-            <p style={{ margin: '2px 0 0', fontSize: 12, color: '#6b7280' }}>Manage your organization and team</p>
+            <h5 style={{ margin: 0, fontWeight: 800, fontSize: 17, color: '#111827' }}>Employees</h5>
+            <p style={{ margin: '2px 0 0', fontSize: 12, color: '#6b7280' }}>Employee records, profile status, and onboarding in one place</p>
           </div>
         </div>
         <div className="emp-mgmt-header-actions" style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           {error && <span style={{ fontSize: 11, color: '#ef4444' }}>{error}</span>}
-          <select value={profileFilter} onChange={e => setProfileFilter(e.target.value)}
+          <select aria-label="Profile completion filter" value={profileFilter} onChange={e => setProfileFilter(e.target.value)}
             style={{ fontSize: 12, fontWeight: 500, padding: '8px 14px', border: '1px solid #e5e7eb', borderRadius: 20, background: '#fff', color: '#374151', cursor: 'pointer' }}>
             <option value="all">All Profiles</option>
-            <option value="completed">✅ Completed</option>
-            <option value="incomplete">⚠️ Incomplete</option>
+            <option value="completed">Completed profiles</option>
+            <option value="incomplete">Incomplete profiles</option>
           </select>
           {(user?.role === 'admin' || user?.role === 'sub_admin' || user?.role === 'desktop_support' || user?.role === 'hr') && (
             <>
               <button onClick={() => setShowGenLink(true)} style={{
-                background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', border: 'none', borderRadius: 20,
+                background: "#1f4e79", color: '#fff', border: 'none', borderRadius: 20,
                 padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
                 display: 'flex', alignItems: 'center', gap: 6,
               }}>
@@ -951,9 +961,9 @@ const EmployeeList = () => {
                 padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
                 display: 'flex', alignItems: 'center', gap: 6,
               }}>
-                <FaUsers size={11} /> Form
+                <FaUsers size={11} /> Profile Forms
               </button>
-              <button onClick={() => navigate('/admin/add-employee')} style={{
+              <button className="emp-add-primary" onClick={() => navigate('/admin/add-employee')} style={{
                 background: '#111827', color: '#fff', border: 'none', borderRadius: 20,
                 padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
                 display: 'flex', alignItems: 'center', gap: 6,
@@ -998,13 +1008,24 @@ const EmployeeList = () => {
         </div>
       </div>
 
+      {view === 'employees' && <div className="emp-directory-summary">
+        {[
+          { label: 'Total employees', value: employees.length, note: 'Across your organization' },
+          { label: 'Active employees', value: activeCount, note: 'Current team members' },
+          { label: 'Inactive employees', value: inactiveCount, note: 'Inactive accounts' },
+          { label: 'Profiles to complete', value: employees.filter(emp => emp.profile_completed !== true).length, note: 'Require profile information' },
+        ].map(stat => <div className="emp-summary-card" key={stat.label}>
+          <span>{stat.label}</span><strong>{stat.value}</strong><small>{stat.note}</small>
+        </div>)}
+      </div>}
+
       {/* ── View Toggle ── */}
-      <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb', background: '#fff', flexShrink: 0 }}>
+      <div className="emp-view-tabs" style={{ display: 'flex', borderBottom: '1px solid #e5e7eb', background: '#fff', flexShrink: 0 }}>
         {[
           { key: 'employees', label: 'Employees' },
           { key: 'offerLinks', label: 'Offer Links' },
         ].map(v => (
-          <button key={v.key} onClick={() => setView(v.key)} style={{ padding: '8px 18px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, fontWeight: view === v.key ? 700 : 500, color: view === v.key ? '#6366f1' : '#6b7280', borderBottom: view === v.key ? '2px solid #6366f1' : '2px solid transparent' }}>
+          <button key={v.key} aria-pressed={view === v.key} onClick={() => setView(v.key)} style={{ padding: '8px 18px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, fontWeight: view === v.key ? 700 : 500, color: view === v.key ? "#1f4e79" : '#6b7280', borderBottom: view === v.key ? '2px solid #1f4e79' : '2px solid transparent' }}>
             {v.label}
           </button>
         ))}
@@ -1026,7 +1047,7 @@ const EmployeeList = () => {
             <div style={{ position: 'relative' }}>
               <FaSearch size={11} style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', pointerEvents: 'none' }} />
               <input
-                type="text"
+                type="text" aria-label="Search employees"
                 placeholder="Search by name, ID, department..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
@@ -1067,13 +1088,13 @@ const EmployeeList = () => {
           </div>
 
           {/* Scrollable employee list */}
-          <div style={{ flex: 1, overflowY: 'auto' }}>
+          <div className="emp-directory-list" style={{ flex: 1, overflowY: 'auto' }}>
             {filteredEmployees.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '30px 16px', color: '#9ca3af' }}>
                 <FaUsers size={30} style={{ marginBottom: 8, opacity: 0.4 }} />
                 <div style={{ fontSize: 12 }}>{searchTerm ? 'No employees found' : `No ${activeTab} employees`}</div>
               </div>
-            ) : filteredEmployees.map(emp => (
+            ) : directoryRows.map(emp => (
               <EmpListItem
                 key={emp.id}
                 emp={emp}
@@ -1083,21 +1104,17 @@ const EmployeeList = () => {
             ))}
           </div>
 
-          {/* Build your dream team promo */}
-          {(user?.role === 'admin' || user?.role === 'sub_admin' || user?.role === 'desktop_support' || user?.role === 'hr') && (
-            <div style={{ margin: 10, padding: 16, borderRadius: 14, background: 'linear-gradient(135deg,#eef2ff,#f5f3ff)', border: '1px solid #e0e7ff', flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'relative', fontSize: 13, fontWeight: 800, color: '#111827', marginBottom: 4 }}>Build your dream team</div>
-              <div style={{ position: 'relative', fontSize: 11, color: '#6b7280', marginBottom: 16, maxWidth: 165 }}>Invite new members and grow your organization</div>
-              <button onClick={() => navigate('/admin/add-employee')} style={{ position: 'relative', background: '#fff', color: '#4f46e5', border: 'none', borderRadius: 8, padding: '7px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
-                <FaPlus size={10} /> Add Employee
-              </button>
-              <div style={{ position: 'absolute', right: -6, bottom: -10, display: 'flex', pointerEvents: 'none' }}>
-                <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#a5b4fc', opacity: 0.7 }} />
-                <div style={{ width: 46, height: 46, borderRadius: '50%', background: '#818cf8', marginLeft: -14, opacity: 0.85 }} />
-                <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#c4b5fd', marginLeft: -12, marginTop: 18, opacity: 0.7 }} />
-              </div>
+          <nav className="emp-directory-pagination" aria-label="Employee directory pagination">
+            <div><span>{filteredEmployees.length ? directoryStart + 1 : 0}–{Math.min(directoryStart + directoryPageSize, filteredEmployees.length)} of {filteredEmployees.length}</span>
+              <select aria-label="Employees per page" value={directoryPageSize} onChange={event => setDirectoryPageSize(Number(event.target.value))}>
+                {[10,20,50].map(size => <option key={size} value={size}>{size} per page</option>)}
+              </select>
             </div>
-          )}
+            <div><button type="button" disabled={directoryPage === 1} onClick={() => setDirectoryPage(directoryPage - 1)}>Previous</button>
+              <span>{directoryPage} / {directoryPageCount}</span>
+              <button type="button" disabled={directoryPage === directoryPageCount} onClick={() => setDirectoryPage(directoryPage + 1)}>Next</button>
+            </div>
+          </nav>
         </div>
 
         {/* ── Right Panel ── */}
@@ -1114,14 +1131,8 @@ const EmployeeList = () => {
               onViewDocs={fetchEmployeeDocuments}
             />
           ) : (
-            <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', color: '#9ca3af', padding: 24, overflow: 'hidden' }}>
-              {/* decorative dot grid */}
-              <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(#c7d2fe 1.5px, transparent 1.5px)', backgroundSize: '22px 22px', opacity: 0.35, pointerEvents: 'none' }} />
-              {/* decorative blobs */}
-              <div style={{ position: 'absolute', top: -60, right: -60, width: 260, height: 260, borderRadius: '50%', background: 'radial-gradient(circle,#c4b5fd,transparent 70%)', filter: 'blur(10px)', opacity: 0.5, pointerEvents: 'none' }} />
-              <div style={{ position: 'absolute', bottom: -80, left: -40, width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle,#a7f3d0,transparent 70%)', filter: 'blur(10px)', opacity: 0.4, pointerEvents: 'none' }} />
-
-              <div style={{ position: 'relative', width: 96, height: 96, borderRadius: '50%', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20, boxShadow: '0 8px 24px rgba(99,102,241,0.25)' }}>
+            <div className="emp-directory-empty" style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', color: '#9ca3af', padding: 24, overflow: 'hidden' }}>
+              <div style={{ position: 'relative', width: 96, height: 96, borderRadius: '50%', background: "#1f4e79", display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20, boxShadow: '0 8px 24px rgba(99,102,241,0.25)' }}>
                 <FaUser size={36} color="#fff" />
               </div>
               <div style={{ position: 'relative', fontSize: 18, fontWeight: 800, color: '#111827', marginBottom: 8 }}>Select an Employee</div>
@@ -1132,7 +1143,7 @@ const EmployeeList = () => {
                 {[
                   { label: 'Active', value: activeCount, color: '#16a34a' },
                   { label: 'Inactive', value: inactiveCount, color: '#dc2626' },
-                  { label: 'Total', value: employees.length, color: '#4f46e5' },
+                  { label: 'Total', value: employees.length, color: "#1f4e79" },
                 ].map((s, i) => (
                   <div key={s.label} style={{ textAlign: 'center', padding: '16px 28px', borderLeft: i > 0 ? '1px solid #f1f5f9' : 'none' }}>
                     <div style={{ fontSize: 26, fontWeight: 800, color: s.color }}>{s.value}</div>
@@ -1235,7 +1246,7 @@ const EmployeeList = () => {
             <div className="text-center py-4"><Spinner animation="border" variant="info" size="sm" /></div>
           ) : employeeDocuments.length > 0 ? (
             <div className="table-responsive">
-              <Table striped hover size="sm" className="mb-0">
+              <PaginatedTable as={Table} striped hover size="sm" className="mb-0">
                 <thead className="bg-light">
                   <tr>
                     <th className="small">Document Type</th>
@@ -1257,7 +1268,7 @@ const EmployeeList = () => {
                     </tr>
                   ))}
                 </tbody>
-              </Table>
+              </PaginatedTable>
             </div>
           ) : (
             <div className="text-center py-4">

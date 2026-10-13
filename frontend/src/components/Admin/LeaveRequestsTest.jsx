@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 // Test component to debug leave requests API
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Alert, Spinner, Table, Badge } from 'react-bootstrap';
@@ -53,7 +54,7 @@ const LeaveRequestsTest = () => {
             </Alert>
             
             <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-              <Table size="sm" striped>
+              <PaginatedTable as={Table} size="sm" striped>
                 <thead>
                   <tr>
                     <th>#</th>
@@ -82,7 +83,7 @@ const LeaveRequestsTest = () => {
                     </tr>
                   )}
                 </tbody>
-              </Table>
+              </PaginatedTable>
             </div>
             
             <details className="mt-3">

@@ -53,27 +53,21 @@ export const isPFApplicablePeriod = (month, year) => {
 export const getDeductionBreakdown = (slip, emp) => {
   const isPFApplicable = isPFApplicablePeriod(slip?.month, slip?.year);
   if (isPFApplicable) {
-    // PT no longer auto-defaults to ₹200 — admin must explicitly set it; unset = 0.
-    const pt = emp?.pt_amount != null ? parseInt(emp.pt_amount) : 0;
-    const professionalTax = emp?.professional_tax_amount != null ? parseInt(emp.professional_tax_amount) : 0;
-    if (emp?.pf_amount != null) {
-      return { pf: parseInt(emp.pf_amount), pt, professionalTax, dt: 0 };
-    }
-    const totalFixed = Number(slip?.dt) || (1800 + pt + professionalTax);
-    return { pf: totalFixed - pt - professionalTax, pt, professionalTax, dt: 0 };
+    const configuredPF = Number(emp?.pf_amount ?? 1800);
+    const configuredTax = Number(emp?.professional_tax_amount ?? 0);
+    const totalFixed = Number(slip?.dt ?? (configuredPF + configuredTax));
+    const pf = Math.min(Math.max(0, configuredPF), Math.max(0, totalFixed));
+    // Preserve saved totals for historical slips; new slips use one tax field.
+    return { pf, pt: 0, professionalTax: Math.max(0, totalFixed - pf), dt: 0 };
   }
   return { pf: 0, pt: 0, professionalTax: 0, dt: null }; // dt: null = use a.deduction from slip
 };
 
 export const getAmounts = (slip, emp) => {
   const monthlySalary = Number(slip?.monthly_salary) || Number(emp?.in_hand_salary) || Number(emp?.gross_salary) || 0;
-  const basicSalaryRaw = Number(slip?.basic_salary) || 0;
-  const netSalaryRaw = slip?.net_salary != null ? Number(slip.net_salary) : 0;
-  // Old stub fix: basic_salary=0 but net>0 means manual adjustment slip — treat net as earned base
-  const basicSalary = basicSalaryRaw > 0 ? basicSalaryRaw : (netSalaryRaw > 0 ? netSalaryRaw : monthlySalary);
-  const hasEarnings = basicSalary > 0;
-  const deduction = hasEarnings ? (Number(slip?.dt) || 200) : 0; // DT only
-  const netSalary = netSalaryRaw > 0 ? netSalaryRaw : Math.max(0, basicSalary - deduction);
+  const basicSalary = Number(slip?.basic_salary ?? slip?.net_salary ?? monthlySalary);
+  const deduction = Number(slip?.dt ?? 0);
+  const netSalary = Number(slip?.net_salary ?? Math.max(0, basicSalary + Number(slip?.overtime_amount ?? 0) - deduction - Number(slip?.unpaid_deduction ?? 0) - Number(slip?.custom_deduction ?? 0)));
   const overtimeAmount = Number(slip?.overtime_amount) || 0;
   const overtimeHours = Number(slip?.overtime_hours) || 0;
   const presentDays = Number(slip?.present_days) || 0;
@@ -81,10 +75,13 @@ export const getAmounts = (slip, emp) => {
   const paidLeaveDays = Number(slip?.paid_leave_days) || 0;
   const unpaidLeaveDays = Number(slip?.unpaid_leave_days) || 0;
   const halfDays = Number(slip?.half_days) || 0;
-  const totalWorkingDays = Number(slip?.total_working_days) || 22;
+  const totalWorkingDays = Number(slip?.total_working_days ?? 0);
   const perDaySalary = Number(slip?.per_day_salary) || 0;
   const unpaidDeduction = Number(slip?.unpaid_deduction) || 0;
+  const eligibleStart = [slip?.cycle_start_date, emp?.joining_date?.slice(0, 10)].filter(Boolean).sort().at(-1);
+  const paymentScheduled = slip?.month && slip?.year ? new Date(Number(slip.year), Number(slip.month), 6).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
   return {
+    eligibleStart, paymentScheduled,
     monthlySalary, basicSalary, deduction, netSalary,
     overtimeAmount, overtimeHours,
     presentDays, absentDays, paidLeaveDays, unpaidLeaveDays, halfDays,
@@ -121,8 +118,7 @@ export const COMPANY = {
 export const buildPDFHTML = (slip, emp, a, monthName, logoBase64, companyOverride) => {
   const bd = getDeductionBreakdown(slip, emp);
   const pfAmt = bd.pf;
-  const ptAmt = bd.pt;
-  const professionalTaxAmt = bd.professionalTax || 0;
+  const professionalTaxAmt = (bd.professionalTax || 0) + bd.pt;
   const dtAmt = bd.dt !== null ? bd.dt : a.deduction;
   const customDed = parseFloat(slip?.custom_deduction || 0);
   const coCode = resolveCompanyCode(emp, companyOverride);
@@ -148,6 +144,10 @@ export const buildPDFHTML = (slip, emp, a, monthName, logoBase64, companyOverrid
         </div>
       </div>
 
+      <div style="background:#f0f9ff;padding:12px 16px;margin-bottom:16px;font-size:12px;">
+        Eligible from: ${a.eligibleStart || 'N/A'} · Scheduled payment: ${a.paymentScheduled}<br/>
+        Daily rate: ₹${fmtNum(a.perDaySalary)} · Full-cycle weekdays: ${a.totalWorkingDays}
+      </div>
       <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:12.5px;background:#f8fafc;border-radius:8px;">
         <tr>
           <td style="padding:8px 14px;width:50%;"><span style="color:#64748b;">Employee Name</span><br/><b style="color:#1e293b;">${(emp?.first_name || '')} ${(emp?.last_name || '')}</b></td>
@@ -168,12 +168,12 @@ export const buildPDFHTML = (slip, emp, a, monthName, logoBase64, companyOverrid
       </table>
 
       <div style="background:#f1f5f9;border-radius:8px;padding:14px 18px;margin-bottom:20px;">
-        <div style="font-weight:700;font-size:12px;color:#475569;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Attendance Summary</div>
+        <div style="font-weight:700;font-size:12px;color:#475569;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Attendance Summary · Saturdays and Sundays excluded</div>
         <table style="width:100%;border-collapse:collapse;text-align:center;font-size:12px;">
           <tr>
             <th style="padding:6px;color:#64748b;font-weight:600;">Working Days</th>
             <th style="padding:6px;color:#64748b;font-weight:600;">Present</th>
-            <th style="padding:6px;color:#64748b;font-weight:600;">Paid Leave</th>
+            <th style="padding:6px;color:#64748b;font-weight:600;">Paid Leave / Holidays</th>
             <th style="padding:6px;color:#64748b;font-weight:600;">Unpaid Leave</th>
             <th style="padding:6px;color:#64748b;font-weight:600;">Half Days</th>
             <th style="padding:6px;color:#64748b;font-weight:600;">Absent</th>
@@ -194,8 +194,8 @@ export const buildPDFHTML = (slip, emp, a, monthName, logoBase64, companyOverrid
           <td style="width:49%;">
             <div style="font-weight:700;font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Earnings</div>
             <table style="width:100%;border-collapse:collapse;font-size:12.5px;">
-              <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:7px 0;color:#475569;">Monthly Salary (CTC)</td><td style="padding:7px 0;text-align:right;">₹${fmtNum(a.monthlySalary)}</td></tr>
-              <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:7px 0;color:#475569;">Earned Salary (${a.presentDays + a.paidLeaveDays} paid days)</td><td style="padding:7px 0;text-align:right;">₹${fmtNum(a.basicSalary)}</td></tr>
+              <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:7px 0;color:#475569;">Monthly Salary Reference</td><td style="padding:7px 0;text-align:right;">₹${fmtNum(a.monthlySalary)}</td></tr>
+              <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:7px 0;color:#475569;">Prorated Salary Before Loss of Pay</td><td style="padding:7px 0;text-align:right;">₹${fmtNum(a.basicSalary)}</td></tr>
               ${a.overtimeAmount > 0 ? `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:7px 0;color:#16a34a;">Overtime (${a.overtimeHours}h @ ₹150/h)</td><td style="padding:7px 0;text-align:right;color:#16a34a;font-weight:700;">+₹${fmtNum(a.overtimeAmount)}</td></tr>` : ''}
               <tr style="background:#f8fafc;"><td style="padding:8px 4px;font-weight:700;color:#1e293b;">Gross Earnings</td><td style="padding:8px 4px;text-align:right;font-weight:700;color:#1e293b;">₹${fmtNum(a.basicSalary + a.overtimeAmount)}</td></tr>
             </table>
@@ -205,13 +205,12 @@ export const buildPDFHTML = (slip, emp, a, monthName, logoBase64, companyOverrid
             <div style="font-weight:700;font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Deductions</div>
             <table style="width:100%;border-collapse:collapse;font-size:12.5px;">
               ${pfAmt > 0 ? `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:7px 0;color:#475569;">Provident Fund (PF)</td><td style="padding:7px 0;text-align:right;">₹${fmtNum(pfAmt)}</td></tr>` : ''}
-              <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:7px 0;color:#475569;">PT</td><td style="padding:7px 0;text-align:right;">₹${fmtNum(ptAmt)}</td></tr>
               ${professionalTaxAmt > 0 ? `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:7px 0;color:#475569;">Professional Tax</td><td style="padding:7px 0;text-align:right;">₹${fmtNum(professionalTaxAmt)}</td></tr>` : ''}
               <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:7px 0;color:#475569;">TDS</td><td style="padding:7px 0;text-align:right;">₹0</td></tr>
               ${a.unpaidDeduction > 0 ? `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:7px 0;color:#dc2626;font-weight:600;">Absent Deduction (${a.absentDays > 0 ? a.absentDays + ' absent' : ''}${a.unpaidLeaveDays > 0 ? (a.absentDays > 0 ? ' + ' : '') + a.unpaidLeaveDays + ' unpaid leave' : ''} × ₹${fmtNum(a.perDaySalary)}/day)</td><td style="padding:7px 0;text-align:right;color:#dc2626;font-weight:700;">₹${fmtNum(a.unpaidDeduction)}</td></tr>` : ''}
               ${dtAmt > 0 ? `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:7px 0;color:#b45309;font-weight:600;">DT (Fixed Deduction)</td><td style="padding:7px 0;text-align:right;color:#b45309;font-weight:700;">₹${fmtNum(dtAmt)}</td></tr>` : ''}
               ${customDed > 0 ? `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:7px 0;color:#dc2626;font-weight:600;">Other Deduction</td><td style="padding:7px 0;text-align:right;color:#dc2626;font-weight:700;">₹${fmtNum(customDed)}</td></tr>` : ''}
-              <tr style="background:#f8fafc;"><td style="padding:8px 4px;font-weight:700;color:#dc2626;">Total Deductions</td><td style="padding:8px 4px;text-align:right;font-weight:700;color:#dc2626;">₹${fmtNum(pfAmt + ptAmt + professionalTaxAmt + dtAmt + a.unpaidDeduction + customDed)}</td></tr>
+              <tr style="background:#f8fafc;"><td style="padding:8px 4px;font-weight:700;color:#dc2626;">Total Deductions</td><td style="padding:8px 4px;text-align:right;font-weight:700;color:#dc2626;">₹${fmtNum(pfAmt + professionalTaxAmt + dtAmt + a.unpaidDeduction + customDed)}</td></tr>
             </table>
           </td>
         </tr>
@@ -226,8 +225,8 @@ export const buildPDFHTML = (slip, emp, a, monthName, logoBase64, companyOverrid
       </div>
 
       <div style="display:flex;justify-content:space-between;margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;font-size:12px;">
-        <div style="text-align:center;"><div style="border-top:1px solid #94a3b8;width:160px;margin-bottom:8px;"></div><div style="color:#64748b;">Employee Signature</div></div>
-        <div style="text-align:center;"><div style="border-top:1px solid #94a3b8;width:160px;margin-bottom:8px;"></div><div style="color:#64748b;">Authorized Signatory</div></div>
+        <div style="text-align:center;"><div style="border-top:1px solid #94a3b8;width:160px;margin-bottom:8px;"></div><div style="color:#64748b;">Payroll Department</div></div>
+        <div style="text-align:center;"><div style="border-top:1px solid #94a3b8;width:160px;margin-bottom:8px;"></div><div style="color:#64748b;">Payment via bank transfer</div></div>
       </div>
       <div style="text-align:center;margin-top:16px;font-size:10px;color:#94a3b8;">
         This is a computer-generated salary slip. No physical signature required. | Generated: ${new Date().toLocaleString('en-IN')}

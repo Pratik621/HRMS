@@ -74,7 +74,7 @@ export default function EmailCenter() {
   return (
     <Container fluid className="py-4">
       <div className="d-flex align-items-center gap-3 mb-4">
-        <div style={{ background: 'linear-gradient(135deg,#1e3a5f,#3b6ea5)', borderRadius: 14, padding: '12px 14px', boxShadow: '0 10px 24px rgba(30,58,95,0.18)' }}>
+        <div style={{ background: "#1f4e79", borderRadius: 14, padding: '12px 14px', boxShadow: '0 10px 24px rgba(30,58,95,0.18)' }}>
           <FaEnvelope color="#fff" size={22} />
         </div>
         <div>

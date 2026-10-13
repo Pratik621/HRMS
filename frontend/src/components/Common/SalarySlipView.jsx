@@ -46,8 +46,7 @@ const SalarySlipView = ({ slip, employee, companyOverride }) => {
   const a = getAmounts(slip, employee);
   const bd = getDeductionBreakdown(slip, employee);
   const pfAmt = bd.pf;
-  const ptAmt = bd.pt;
-  const professionalTaxAmt = bd.professionalTax || 0;
+  const professionalTaxAmt = (bd.professionalTax || 0) + bd.pt;
   const dtAmt = bd.dt !== null ? bd.dt : a.deduction;
   const monthName = MONTHS[Number(slip.month) - 1];
   const cycleLabel = slip.cycle_start_date && slip.cycle_end_date
@@ -81,6 +80,10 @@ const SalarySlipView = ({ slip, employee, companyOverride }) => {
         </div>
       </div>
 
+      <div style={{ background: '#f0f9ff', padding: '12px 16px', borderRadius: 8, marginBottom: 16, fontSize: 12, color: '#0369a1' }}>
+        Eligible from: {fmtDate(a.eligibleStart)} · Scheduled payment: {a.paymentScheduled}<br />
+        Saturdays and Sundays excluded. Daily rate uses all weekdays in the cycle.
+      </div>
       {/* Employee Info */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 24px', marginBottom: 20, background: '#f8fafc', borderRadius: 10, padding: '14px 16px' }}>
         {[
@@ -107,7 +110,7 @@ const SalarySlipView = ({ slip, employee, companyOverride }) => {
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <StatPill label="Working Days" value={a.totalWorkingDays} color="#1e3a5f" />
           <StatPill label="Present"      value={a.presentDays}      color="#16a34a" />
-          <StatPill label="Paid Leave"   value={a.paidLeaveDays}    color="#0369a1" />
+          <StatPill label="Paid Leave / Holidays"   value={a.paidLeaveDays}    color="#0369a1" />
           <StatPill label="Unpaid Leave" value={a.unpaidLeaveDays}  color="#d97706" />
           <StatPill label="Half Days"    value={a.halfDays}         color="#7c3aed" />
           <StatPill label="Absent"       value={a.absentDays}       color="#dc2626" />
@@ -121,8 +124,8 @@ const SalarySlipView = ({ slip, employee, companyOverride }) => {
             <div style={{ background: co.accent, color: '#fff', padding: '9px 14px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
               Earnings
             </div>
-            <SalaryRow label="Monthly Salary (CTC)" value={a.monthlySalary} />
-            <SalaryRow label={`Earned Salary (${a.presentDays + a.paidLeaveDays} days)`} value={a.basicSalary} />
+            <SalaryRow label="Monthly Salary Reference" value={a.monthlySalary} />
+            <SalaryRow label="Prorated Salary Before Loss of Pay" value={a.basicSalary} />
             {a.overtimeAmount > 0 && (
               <SalaryRow label={`Overtime (${a.overtimeHours}h @ ₹150/h)`} value={a.overtimeAmount} accent="#16a34a" />
             )}
@@ -135,8 +138,7 @@ const SalarySlipView = ({ slip, employee, companyOverride }) => {
               Deductions
             </div>
             {pfAmt > 0 && <SalaryRow label="Provident Fund (PF)" value={pfAmt} />}
-            <SalaryRow label="PT"                    value={ptAmt} />
-            {professionalTaxAmt > 0 && <SalaryRow label="Professional Tax" value={professionalTaxAmt} />}
+            <SalaryRow label="Professional Tax" value={professionalTaxAmt} />
             <SalaryRow label="TDS"                   value={0} />
             {a.unpaidDeduction > 0 && (
               <SalaryRow
@@ -149,7 +151,7 @@ const SalarySlipView = ({ slip, employee, companyOverride }) => {
             {parseFloat(slip?.custom_deduction || 0) > 0 && (
               <SalaryRow label="Other Deduction" value={parseFloat(slip.custom_deduction)} accent="#dc2626" />
             )}
-            <SalaryRow label="Total Deductions" value={pfAmt + ptAmt + professionalTaxAmt + dtAmt + a.unpaidDeduction + parseFloat(slip?.custom_deduction || 0)} bold accent="#dc2626" last />
+            <SalaryRow label="Total Deductions" value={pfAmt + professionalTaxAmt + dtAmt + a.unpaidDeduction + parseFloat(slip?.custom_deduction || 0)} bold accent="#dc2626" last />
           </div>
         </Col>
       </Row>

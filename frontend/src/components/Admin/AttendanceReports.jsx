@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 // src/components/Admin/AttendanceReports.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import {
@@ -1421,7 +1422,7 @@ const AttendanceReports = () => {
 
         {/* ── Date grid ── */}
         <div style={{ overflowX: 'auto', maxHeight: '460px' }}>
-          <table style={{ borderCollapse: 'collapse', fontSize: 11 }}>
+          <PaginatedTable paginate={false} style={{ borderCollapse: 'collapse', fontSize: 11 }}>
             <thead>
               <tr>
                 <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 700, color: '#374151', borderBottom: '2px solid #e5e7eb', borderRight: '2px solid #d1d5db', position: 'sticky', left: 0, top: 0, background: '#f9fafb', zIndex: 3, minWidth: 160, whiteSpace: 'nowrap' }}>
@@ -1520,7 +1521,7 @@ const AttendanceReports = () => {
                 </tr>
               )}
             </tbody>
-          </table>
+          </PaginatedTable>
         </div>
       </>
     );
@@ -1540,7 +1541,7 @@ const AttendanceReports = () => {
     >
       <div
         style={{
-          background: 'linear-gradient(135deg, #f8fbff 0%, #f1f5ff 100%)',
+          background: "#eef4fb",
           border: '1px solid #e2e8f0',
           borderRadius: 20,
           padding: '18px 20px',
@@ -1550,7 +1551,7 @@ const AttendanceReports = () => {
       >
         <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3">
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#6366f1', marginBottom: 4 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: "#1f4e79", marginBottom: 4 }}>
               Attendance Workspace
             </div>
             <h4 className="mb-1 fw-bold" style={{ color: '#0f172a', margin: 0 }}>
@@ -1611,7 +1612,7 @@ const AttendanceReports = () => {
                   alignItems: 'center',
                   gap: 8,
                   color: isActive ? '#fff' : '#334155',
-                  background: isActive ? 'linear-gradient(135deg, #4f46e5 0%, #2563eb 100%)' : '#f8fafc',
+                  background: isActive ? "#1f4e79" : '#f8fafc',
                   boxShadow: isActive ? '0 8px 20px rgba(79, 70, 229, 0.18)' : 'none',
                   transition: 'all 0.2s ease',
                 }}
@@ -1880,7 +1881,7 @@ const AttendanceReports = () => {
             style={{ maxHeight: 560, overflow: 'auto' }}
             onScroll={handleDailyTableScroll}
           >
-            <Table className="mb-0 da-table">
+            <PaginatedTable as={Table} paginate={false} className="mb-0 da-table">
               <thead className="sticky-top" style={{ top: 0, zIndex: 10 }}>
                 <tr>
                   <th style={{ ...DA_TH_STYLE, textAlign: 'center', width: 60 }}>Sr No</th>
@@ -2059,7 +2060,7 @@ const AttendanceReports = () => {
                   </tr>
                 )}
               </tbody>
-            </Table>
+            </PaginatedTable>
           </div>
 
           {/* Footer: entries summary — scrolling to the bottom loads more automatically */}

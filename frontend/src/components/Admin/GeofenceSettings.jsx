@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 // src/components/Admin/GeofenceSettings.jsx
 import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, Alert, Modal, Spinner, Badge, Row, Col } from 'react-bootstrap';
@@ -215,7 +216,7 @@ const GeofenceSettings = () => {
             </div>
           ) : (
             <div className="table-responsive" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-              <Table hover striped className="mb-0 small">
+              <PaginatedTable as={Table} hover striped className="mb-0 small">
                 <thead className="bg-light sticky-top" style={{ top: 0, zIndex: 10 }}>
                   <tr>
                     <th className="text-nowrap text-dark fw-normal text-center">#</th>
@@ -293,7 +294,7 @@ const GeofenceSettings = () => {
                     </tr>
                   )}
                 </tbody>
-              </Table>
+              </PaginatedTable>
             </div>
           )}
         </Card.Body>

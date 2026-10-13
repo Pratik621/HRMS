@@ -1,3 +1,4 @@
+import PaginatedTable from './PaginatedTable';
 // src/components/Common/ApplyEarlyLogoutModal.jsx
 // Shared by TeamAttendanceReport.jsx (TL/Manager "My Team" — own team only) and Admin's
 // AttendanceReports.jsx (Admin/HR — company-wide) so the picker + save flow only exists once.
@@ -110,7 +111,7 @@ const ApplyEarlyLogoutModal = ({ show, onClose, date, candidates, onSuccess }) =
         </div>
 
         <div style={{ maxHeight: 380, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 8 }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <PaginatedTable style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead style={{ position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1 }}>
               <tr>
                 <th style={{ padding: '8px 12px', width: 32 }}></th>
@@ -142,7 +143,7 @@ const ApplyEarlyLogoutModal = ({ show, onClose, date, candidates, onSuccess }) =
                 );
               })}
             </tbody>
-          </table>
+          </PaginatedTable>
         </div>
       </Modal.Body>
       <Modal.Footer>

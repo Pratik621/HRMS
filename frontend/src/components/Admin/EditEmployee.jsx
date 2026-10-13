@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 // components/Admin/EditEmployee.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -1356,7 +1357,7 @@ const EditEmployee = () => {
                         </div>
                     ) : employeeDocuments.length > 0 ? (
                         <div className="table-responsive">
-                            <Table striped hover size="sm" className="mb-0">
+                            <PaginatedTable as={Table} striped hover size="sm" className="mb-0">
                                 <thead className="bg-light">
                                     <tr>
                                         <th className="small text-dark">Document Type</th>
@@ -1414,7 +1415,7 @@ const EditEmployee = () => {
                                         </tr>
                                     ))}
                                 </tbody>
-                            </Table>
+                            </PaginatedTable>
                         </div>
                     ) : (
                         <div className="text-center py-4">

@@ -21,7 +21,7 @@ const STATUSES = [
   { code: 'present',    label: 'Present',              short: 'P',  color: '#16a34a', bg: '#dcfce7', dbStatus: 'present',  isHoliday: false, holidayName: null,   attType: null },
   { code: 'absent',     label: 'Absent',               short: 'A',  color: '#dc2626', bg: '#fee2e2', dbStatus: 'absent',   isHoliday: false, holidayName: null,   attType: null },
   { code: 'week_off',   label: 'Weekly Off',           short: 'WO', color: '#6b7280', bg: '#f3f4f6', dbStatus: 'absent',   isHoliday: true,  holidayName: 'Week Off', attType: null },
-  { code: 'holiday',    label: 'Holiday',               short: 'H',  color: '#2563eb', bg: '#dbeafe', dbStatus: 'absent',   isHoliday: true,  holidayName: 'Holiday',  attType: null },
+  { code: 'holiday',    label: 'Holiday',               short: 'H',  color: "#1f4e79", bg: '#dbeafe', dbStatus: 'absent',   isHoliday: true,  holidayName: 'Holiday',  attType: null },
   { code: 'half_day',   label: 'Half Day',              short: 'HD', color: '#d97706', bg: '#fef3c7', dbStatus: 'half_day', isHoliday: false, holidayName: null,   attType: null },
   { code: 'leave',      label: 'Leave',                 short: 'L',  color: '#7c3aed', bg: '#ede9fe', dbStatus: 'absent',   isHoliday: false, holidayName: 'Leave', attType: null },
   { code: 'paid_leave', label: 'Present (Paid Leave)',  short: 'PL', color: '#0891b2', bg: '#cffafe', dbStatus: 'present',  isHoliday: false, holidayName: null,   attType: 'paid_leave', requiresBalance: 'paidLeave' },
@@ -281,7 +281,7 @@ const AttendanceCalendar = ({ employee, onAttendanceSaved, initialMonth, initial
     { label: 'Present',    value: summary.present,    color: '#16a34a', bg: '#dcfce7', icon: <FaCheckCircle size={14} /> },
     { label: 'Absent',     value: summary.absent,     color: '#dc2626', bg: '#fee2e2', icon: <FaTimesCircle size={14} /> },
     { label: 'Weekly Off', value: summary.week_off,   color: '#6b7280', bg: '#f3f4f6', icon: <FaSun size={14} /> },
-    { label: 'Holiday',    value: summary.holiday,    color: '#2563eb', bg: '#dbeafe', icon: <FaCalendarAlt size={14} /> },
+    { label: 'Holiday',    value: summary.holiday,    color: "#1f4e79", bg: '#dbeafe', icon: <FaCalendarAlt size={14} /> },
     { label: 'Half Day',   value: summary.half_day,   color: '#d97706', bg: '#fef3c7', icon: <FaStopwatch size={14} /> },
     { label: 'Leave',      value: summary.leave,      color: '#7c3aed', bg: '#ede9fe', icon: <FaUmbrellaBeach size={14} /> },
     { label: 'Paid Leave', value: summary.paid_leave, color: '#0891b2', bg: '#cffafe', icon: <FaGift size={14} />, sub: `Bal: ${paidLeaveBalance.toFixed(1)}` },
@@ -308,8 +308,8 @@ const AttendanceCalendar = ({ employee, onAttendanceSaved, initialMonth, initial
         }}>
           {/* Icon + title */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FaCalendarAlt size={14} color="#6366f1" />
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: "#dce3eb", display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <FaCalendarAlt size={14} color="#1f4e79" />
             </div>
             <span style={{ fontWeight: 700, fontSize: 14, color: '#111827' }}>Attendance Calendar</span>
           </div>
@@ -358,7 +358,7 @@ const AttendanceCalendar = ({ employee, onAttendanceSaved, initialMonth, initial
               <button
                 onClick={saveAll}
                 disabled={saveAllLoading}
-                style={{ background: '#6366f1', color: '#fff', border: 'none', borderRadius: 7, padding: '6px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
+                style={{ background: "#1f4e79", color: '#fff', border: 'none', borderRadius: 7, padding: '6px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
               >
                 {saveAllLoading ? <Spinner animation="border" size="sm" style={{ width: 10, height: 10 }} /> : <FaSave size={10} />}
                 Save All
@@ -441,7 +441,7 @@ const AttendanceCalendar = ({ employee, onAttendanceSaved, initialMonth, initial
                     {/* Date number */}
                     <div style={{
                       width: 22, height: 22, borderRadius: '50%',
-                      background: isToday ? '#6366f1' : 'transparent',
+                      background: isToday ? "#1f4e79" : 'transparent',
                       color: isToday ? '#fff' : isWeekend ? '#9ca3af' : '#374151',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: 11, fontWeight: isToday ? 800 : 600,
@@ -451,7 +451,7 @@ const AttendanceCalendar = ({ employee, onAttendanceSaved, initialMonth, initial
 
                     {/* Status badge */}
                     {isSaving ? (
-                      <Spinner animation="border" size="sm" style={{ width: 14, height: 14, color: '#6366f1' }} />
+                      <Spinner animation="border" size="sm" style={{ width: 14, height: 14, color: "#1f4e79" }} />
                     ) : st ? (
                       <span style={{
                         fontSize: 10, fontWeight: 800, color: st.color,

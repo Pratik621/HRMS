@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 import React, { useState, useEffect } from 'react';
 import {
   Card, Button, Alert, Spinner, Badge,
@@ -2437,7 +2438,7 @@ const Attendance = () => {
                     style={{ maxHeight: 560, overflowY: 'auto' }}
                     ref={tableScrollRef}
                   >
-                    <Table className="mb-0">
+                    <PaginatedTable as={Table} paginate={false} className="mb-0">
                       <thead className="sticky-top" style={{ top: 0, zIndex: 10 }}>
                         <tr>
                           <th style={{ ...DA_TH_STYLE, width: '13%' }}>Date</th>
@@ -2564,7 +2565,7 @@ const Attendance = () => {
                           );
                         })}
                       </tbody>
-                    </Table>
+                    </PaginatedTable>
                   </div>
                   <div className="d-flex align-items-center justify-content-between mt-2">
                     <div className="text-muted small">

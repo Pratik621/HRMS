@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 // src/components/Admin/LeaveRequests.jsx
 import React, { useState, useEffect } from 'react';
 import {
@@ -40,7 +41,7 @@ import * as XLSX from 'xlsx';
 
 // ── Design tokens (local to this page — indigo/enterprise palette per spec) ───
 const LR = {
-  primary: '#4F46E5',
+  primary: "#1f4e79",
   success: '#10B981',
   warning: '#F59E0B',
   danger: '#EF4444',
@@ -68,7 +69,7 @@ const STATUS_STYLES = {
   rejected: { background: 'rgba(239,68,68,.14)', color: '#b91c1c', border: '1px solid rgba(239,68,68,.3)', icon: <FaTimesCircle size={10} /> },
 };
 
-const AVATAR_COLORS = ['#4F46E5', '#059669', '#d97706', '#dc2626', '#0891b2', '#7c3aed', '#db2777'];
+const AVATAR_COLORS = ["#1f4e79", '#059669', '#d97706', '#dc2626', '#0891b2', '#7c3aed', '#db2777'];
 const avatarColor = (str) => AVATAR_COLORS[((str || '').charCodeAt(0) || 0) % AVATAR_COLORS.length];
 
 // Shows the employee's uploaded profile photo when available, falling back to the
@@ -624,7 +625,7 @@ const LeaveRequests = () => {
       {/* Table */}
       <div className="lr-card">
         <div className="table-responsive">
-          <Table className="lr-table mb-0">
+          <PaginatedTable as={Table} paginate={false} className="lr-table mb-0">
             <thead>
               <tr>
                 <th className="text-center">Sr No.</th>
@@ -717,7 +718,7 @@ const LeaveRequests = () => {
                 </tr>
               )}
             </tbody>
-          </Table>
+          </PaginatedTable>
         </div>
 
         {/* Pagination footer */}

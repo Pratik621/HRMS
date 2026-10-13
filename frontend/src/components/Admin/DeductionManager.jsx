@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Container, Row, Col, Card, Table, Button, Form, Modal,
@@ -314,7 +315,7 @@ export default function DeductionManager() {
     <Container fluid className="py-4">
       <div className="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
         <div className="d-flex align-items-center gap-3">
-          <div style={{ background: 'linear-gradient(135deg,#2563eb,#3b82f6)', borderRadius: 14, padding: '12px 14px', boxShadow: '0 10px 24px rgba(37,99,235,0.18)' }}>
+          <div style={{ background: "#1f4e79", borderRadius: 14, padding: '12px 14px', boxShadow: '0 10px 24px rgba(37,99,235,0.18)' }}>
             <FaReceipt color="#fff" size={22} />
           </div>
           <div>
@@ -379,10 +380,10 @@ export default function DeductionManager() {
 
       <Row className="g-3 mb-4">
         {[
-          { label: 'Total Employees', value: filteredRows.length, sub: 'Active employees in view', icon: <FaUsers />, bg: 'linear-gradient(135deg,#eff6ff,#dbeafe)' },
-          { label: 'Employees with Deductions', value: employeesWithDeductions, sub: 'Affected in selected month', icon: <FaReceipt />, bg: 'linear-gradient(135deg,#ecfeff,#cffafe)' },
-          { label: 'Total Deduction Amount', value: fmtCurrency(totalDeducted), sub: 'Collected from this month', icon: <FaWallet />, bg: 'linear-gradient(135deg,#fef2f2,#fee2e2)' },
-          { label: 'Average Deduction', value: fmtCurrency(averageDeduction), sub: 'Per employee with deduction', icon: <FaChartBar />, bg: 'linear-gradient(135deg,#f5f3ff,#ede9fe)' }
+          { label: 'Total Employees', value: filteredRows.length, sub: 'Active employees in view', icon: <FaUsers />, bg: "#eef4fb" },
+          { label: 'Employees with Deductions', value: employeesWithDeductions, sub: 'Affected in selected month', icon: <FaReceipt />, bg: "#eef4fb" },
+          { label: 'Total Deduction Amount', value: fmtCurrency(totalDeducted), sub: 'Collected from this month', icon: <FaWallet />, bg: "#eef4fb" },
+          { label: 'Average Deduction', value: fmtCurrency(averageDeduction), sub: 'Per employee with deduction', icon: <FaChartBar />, bg: "#eef4fb" }
         ].map((card, index) => (
           <Col xs={12} sm={6} xl={3} key={card.label}>
             <Card className="border-0 shadow-sm h-100 hover-card" style={{ borderRadius: 18, background: card.bg, transition: 'transform .2s ease, box-shadow .2s ease' }}>
@@ -420,7 +421,7 @@ export default function DeductionManager() {
               const monthNumber = idx + 1;
               const active = monthNumber === filterMonth;
               return (
-                <button key={m} type="button" onClick={() => setFilterMonth(monthNumber)} style={{ border: active ? '1px solid #2563eb' : '1px solid #e5e7eb', background: active ? '#eff6ff' : '#fff', color: active ? '#2563eb' : '#6b7280', borderRadius: 999, padding: '6px 10px', fontSize: 12, fontWeight: 600 }}>
+                <button key={m} type="button" onClick={() => setFilterMonth(monthNumber)} style={{ border: active ? '1px solid #2563eb' : '1px solid #e5e7eb', background: active ? '#eff6ff' : '#fff', color: active ? "#1f4e79" : '#6b7280', borderRadius: 999, padding: '6px 10px', fontSize: 12, fontWeight: 600 }}>
                   {m.slice(0, 3)}
                 </button>
               );
@@ -443,7 +444,7 @@ export default function DeductionManager() {
           ) : (
             <>
               <div style={{ overflowX: 'auto' }}>
-                <Table hover className="mb-0 align-middle" style={{ minWidth: 980 }}>
+                <PaginatedTable as={Table} paginate={false} hover className="mb-0 align-middle" style={{ minWidth: 980 }}>
                   <thead className="bg-light" style={{ position: 'sticky', top: 0, zIndex: 1 }}>
                     <tr>
                       <th className="ps-4">Employee</th>
@@ -462,7 +463,7 @@ export default function DeductionManager() {
                       <tr key={row.employee_id} style={{ transition: 'background .2s ease' }}>
                         <td className="ps-4">
                           <div className="d-flex align-items-center gap-3">
-                            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg,#2563eb,#60a5fa)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+                            <div style={{ width: 40, height: 40, borderRadius: '50%', background: "#1f4e79", color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
                               {getInitials(row.name)}
                             </div>
                             <div>
@@ -484,7 +485,7 @@ export default function DeductionManager() {
                       </tr>
                     ))}
                   </tbody>
-                </Table>
+                </PaginatedTable>
               </div>
               <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 px-4 py-3 border-top bg-light">
                 <div className="small text-muted">Showing {paginatedRows.length} of {sortedRows.length} employees</div>
@@ -595,7 +596,7 @@ export default function DeductionManager() {
             <Card className="border-0 shadow-sm mb-3" style={{ borderRadius: 16 }}>
               <Card.Body>
                 <div className="d-flex align-items-center gap-3 mb-3">
-                  <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'linear-gradient(135deg,#2563eb,#60a5fa)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+                  <div style={{ width: 52, height: 52, borderRadius: '50%', background: "#1f4e79", color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
                     {getInitials(selectedRow.name)}
                   </div>
                   <div>

@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 // Admin Attendance Import & Export Panel
 // Placed above the employee table on /admin/employees
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -54,11 +55,11 @@ const SectionHeader = ({ icon, title, badge, actions }) => (
   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #f3f4f6' }}>
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       <div style={{ width: 28, height: 28, borderRadius: 7, background: '#6366f118', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {React.cloneElement(icon, { size: 13, color: '#6366f1' })}
+        {React.cloneElement(icon, { size: 13, color: "#1f4e79" })}
       </div>
       <span style={{ fontWeight: 700, fontSize: 14, color: '#111827' }}>{title}</span>
       {badge && (
-        <span style={{ background: '#6366f118', color: '#6366f1', borderRadius: 10, padding: '1px 8px', fontSize: 11, fontWeight: 700 }}>{badge}</span>
+        <span style={{ background: '#6366f118', color: "#1f4e79", borderRadius: 10, padding: '1px 8px', fontSize: 11, fontWeight: 700 }}>{badge}</span>
       )}
     </div>
     {actions}
@@ -559,7 +560,7 @@ const AttendanceImportPanel = ({ employees = [], onMonthYearChange, onImportSucc
                   <button
                     onClick={handleExportExisting}
                     disabled={isExporting}
-                    style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 8, border: '1px solid #6366f1', background: '#eef2ff', color: '#6366f1', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 8, border: '1px solid #6366f1', background: "#eef4fb", color: "#1f4e79", fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
                   >
                     {isExporting
                       ? <><Spinner size="sm" style={{ width: 10, height: 10 }} animation="border" /> Exporting…</>
@@ -594,11 +595,11 @@ const AttendanceImportPanel = ({ employees = [], onMonthYearChange, onImportSucc
               onDrop={handleDrop}
               onClick={() => !uploadedFile && fileInputRef.current?.click()}
               style={{
-                border: `2px dashed ${dragOver ? '#6366f1' : '#d1d5db'}`,
+                border: `2px dashed ${dragOver ? "#1f4e79" : '#d1d5db'}`,
                 borderRadius: 10,
                 padding: '20px 16px',
                 textAlign: 'center',
-                background: dragOver ? '#eef2ff' : '#fafafa',
+                background: dragOver ? "#eef4fb" : '#fafafa',
                 cursor: uploadedFile ? 'default' : 'pointer',
                 transition: 'all 0.15s',
                 marginBottom: 12,
@@ -666,7 +667,7 @@ const AttendanceImportPanel = ({ employees = [], onMonthYearChange, onImportSucc
                 {validationResult && (
                   <button
                     onClick={() => setShowPreviewModal(true)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #6366f1', background: '#eef2ff', color: '#6366f1', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #6366f1', background: "#eef4fb", color: "#1f4e79", fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
                   >
                     <FaEye size={11} /> Preview ({validationResult.valid_count})
                   </button>
@@ -676,7 +677,7 @@ const AttendanceImportPanel = ({ employees = [], onMonthYearChange, onImportSucc
                   <button
                     onClick={handleImport}
                     disabled={isImporting}
-                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: 'none', background: isImporting ? '#e5e7eb' : '#6366f1', color: isImporting ? '#9ca3af' : '#fff', fontSize: 12, fontWeight: 700, cursor: isImporting ? 'not-allowed' : 'pointer' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: 'none', background: isImporting ? '#e5e7eb' : "#1f4e79", color: isImporting ? '#9ca3af' : '#fff', fontSize: 12, fontWeight: 700, cursor: isImporting ? 'not-allowed' : 'pointer' }}
                   >
                     {isImporting
                       ? <><Spinner size="sm" style={{ width: 12, height: 12 }} animation="border" /> Importing…</>
@@ -742,7 +743,7 @@ const AttendanceImportPanel = ({ employees = [], onMonthYearChange, onImportSucc
               <div style={{ marginTop: 16, borderTop: '1px solid #f3f4f6', paddingTop: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                   <span style={{ fontWeight: 700, fontSize: 13, color: '#374151', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <FaHistory size={12} color="#6366f1" /> Import History
+                    <FaHistory size={12} color="#1f4e79" /> Import History
                   </span>
                   <button
                     onClick={fetchHistory}
@@ -757,7 +758,7 @@ const AttendanceImportPanel = ({ employees = [], onMonthYearChange, onImportSucc
                   <p style={{ color: '#9ca3af', fontSize: 12, textAlign: 'center', padding: '12px 0' }}>No import history yet</p>
                 ) : (
                   <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+                    <PaginatedTable style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
                       <thead>
                         <tr style={{ background: '#f9fafb' }}>
                           {['Month','Year','File','Inserted','Updated','Failed','Imported By','Date'].map(h => (
@@ -781,7 +782,7 @@ const AttendanceImportPanel = ({ employees = [], onMonthYearChange, onImportSucc
                           </tr>
                         ))}
                       </tbody>
-                    </table>
+                    </PaginatedTable>
                   </div>
                 )}
               </div>
@@ -845,7 +846,7 @@ const AttendanceImportPanel = ({ employees = [], onMonthYearChange, onImportSucc
 
                 return (
                   <div style={{ overflowX: 'auto', maxHeight: 440, border: '1px solid #e5e7eb', borderRadius: 8 }}>
-                    <table style={{ borderCollapse: 'collapse', fontSize: 11 }}>
+                    <PaginatedTable style={{ borderCollapse: 'collapse', fontSize: 11 }}>
                       <thead>
                         <tr>
                           <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 700, color: '#374151', borderBottom: '2px solid #e5e7eb', borderRight: '2px solid #d1d5db', position: 'sticky', left: 0, top: 0, background: '#f9fafb', zIndex: 3, minWidth: 155, whiteSpace: 'nowrap' }}>
@@ -885,7 +886,7 @@ const AttendanceImportPanel = ({ employees = [], onMonthYearChange, onImportSucc
                           </tr>
                         ))}
                       </tbody>
-                    </table>
+                    </PaginatedTable>
                   </div>
                 );
               })()}
@@ -925,7 +926,7 @@ const AttendanceImportPanel = ({ employees = [], onMonthYearChange, onImportSucc
             size="sm"
             onClick={handleImport}
             disabled={!canImport || isImporting}
-            style={{ fontSize: 12, borderRadius: 8, background: '#6366f1', border: 'none', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}
+            style={{ fontSize: 12, borderRadius: 8, background: "#1f4e79", border: 'none', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}
           >
             {isImporting
               ? <><Spinner size="sm" style={{ width: 12, height: 12 }} animation="border" /> Importing…</>

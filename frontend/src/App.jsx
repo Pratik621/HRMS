@@ -1,9 +1,10 @@
 // src/App.jsx
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import './index.css';
+import './components/Layout/ManagementTheme.css';
 
 // Layout & Auth — always needed, load eagerly
 import Navbar from './components/Layout/Navbar';
@@ -126,6 +127,11 @@ function AppContent() {
   const isUnauthorizedPage = location.pathname === '/unauthorized';
   const isNetworkBlockedPage = location.pathname === '/network-blocked';
   const isOnboardingPage = location.pathname.startsWith('/onboarding/');
+  const managementTheme = ['admin', 'sub_admin', 'hr'].includes(user?.role) && !isLoginPage && !isUnauthorizedPage && !isNetworkBlockedPage && !isOnboardingPage;
+  useEffect(() => {
+    document.body.classList.toggle('hrms-management-session', managementTheme);
+    return () => document.body.classList.remove('hrms-management-session');
+  }, [managementTheme]);
 
   // Public onboarding pages — render immediately, no auth check needed
   if (isOnboardingPage) {
@@ -186,7 +192,7 @@ function AppContent() {
         {user && <Navbar />}
 
         {/* Page Content */}
-        <div style={{
+        <div className={managementTheme ? 'hrms-management-theme' : undefined} style={{
           flex: 1,
           overflowY: 'auto',
           padding: '28px',

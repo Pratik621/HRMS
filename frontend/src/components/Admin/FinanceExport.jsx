@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Form, Button, Spinner, Alert, Table, Badge } from 'react-bootstrap';
 import { FaFileExcel, FaSyncAlt, FaMoneyBillWave, FaUsers, FaCheckCircle } from 'react-icons/fa';
@@ -237,7 +238,7 @@ export default function FinanceExport() {
         <>
           <Row className="g-3 mb-4">
             {[
-              { label: 'Total Employees', value: rows.length, icon: <FaUsers />, color: '#6366f1' },
+              { label: 'Total Employees', value: rows.length, icon: <FaUsers />, color: "#1f4e79" },
               { label: 'Total Payable', value: `₹${totalNet.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`, icon: <FaMoneyBillWave />, color: '#22c55e' },
               { label: 'Active Employees', value: rows.filter(r => r.emp.is_active !== false).length, icon: <FaCheckCircle />, color: '#0ea5e9' },
             ].map(s => (
@@ -264,7 +265,7 @@ export default function FinanceExport() {
               </div>
             </Card.Header>
             <div style={{ overflowX: 'auto' }}>
-              <Table hover size="sm" className="mb-0" style={{ fontSize: 12 }}>
+              <PaginatedTable as={Table} hover size="sm" className="mb-0" style={{ fontSize: 12 }}>
                 <thead style={{ background: '#f8fafc' }}>
                   <tr>
                     <th>#</th>
@@ -321,7 +322,7 @@ export default function FinanceExport() {
                     <td colSpan={3} />
                   </tr>
                 </tfoot>
-              </Table>
+              </PaginatedTable>
             </div>
           </Card>
         </>

@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 // src/components/Admin/LeftEmployeesModal.jsx
 // Admin/HR tool: lists employees a TL/Manager/Admin/HR has marked as "Left" — their account
 // is still active (paid through the current salary cycle) and will auto-deactivate on the
@@ -78,7 +79,7 @@ const LeftEmployeesModal = ({ show, onClose, employees, onSuccess }) => {
         </InputGroup>
 
         <div style={{ maxHeight: 420, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 8 }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <PaginatedTable style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead style={{ position: 'sticky', top: 0, background: '#f8fafc', zIndex: 1 }}>
               <tr>
                 <th style={{ padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb', color: '#6b7280', fontSize: 11, textTransform: 'uppercase' }}>Name</th>
@@ -114,7 +115,7 @@ const LeftEmployeesModal = ({ show, onClose, employees, onSuccess }) => {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </PaginatedTable>
         </div>
       </Modal.Body>
       <Modal.Footer>

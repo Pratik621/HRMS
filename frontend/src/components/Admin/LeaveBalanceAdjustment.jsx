@@ -1,3 +1,4 @@
+import PaginatedTable from '../Common/PaginatedTable';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Container, Row, Col, Card, Table, Button, Form,
@@ -162,7 +163,7 @@ export default function LeaveBalanceAdjustment() {
     <Container fluid className="py-4">
       <div className="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
         <div className="d-flex align-items-center gap-3">
-          <div style={{ background: 'linear-gradient(135deg,#7c3aed,#a78bfa)', borderRadius: 14, padding: '12px 14px', boxShadow: '0 10px 24px rgba(124,58,237,0.18)' }}>
+          <div style={{ background: "#7c3aed", borderRadius: 14, padding: '12px 14px', boxShadow: '0 10px 24px rgba(124,58,237,0.18)' }}>
             <FaCoins color="#fff" size={22} />
           </div>
           <div>
@@ -223,7 +224,7 @@ export default function LeaveBalanceAdjustment() {
           ) : (
             <>
               <div style={{ overflowX: 'auto' }}>
-                <Table hover className="mb-0 align-middle" style={{ minWidth: 760 }}>
+                <PaginatedTable as={Table} paginate={false} hover className="mb-0 align-middle" style={{ minWidth: 760 }}>
                   <thead className="bg-light">
                     <tr>
                       <th className="ps-4">Employee</th>
@@ -238,7 +239,7 @@ export default function LeaveBalanceAdjustment() {
                       <tr key={row.employee_id}>
                         <td className="ps-4">
                           <div className="d-flex align-items-center gap-3">
-                            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg,#7c3aed,#a78bfa)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+                            <div style={{ width: 40, height: 40, borderRadius: '50%', background: "#7c3aed", color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
                               {getInitials(row.name)}
                             </div>
                             <div>
@@ -258,7 +259,7 @@ export default function LeaveBalanceAdjustment() {
                       </tr>
                     ))}
                   </tbody>
-                </Table>
+                </PaginatedTable>
               </div>
               <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 px-4 py-3 border-top bg-light">
                 <div className="small text-muted">Showing {paginatedRows.length} of {rows.length} employees</div>
@@ -287,7 +288,7 @@ export default function LeaveBalanceAdjustment() {
             <Card className="border-0 shadow-sm mb-3" style={{ borderRadius: 16 }}>
               <Card.Body>
                 <div className="d-flex align-items-center gap-3 mb-3">
-                  <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'linear-gradient(135deg,#7c3aed,#a78bfa)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+                  <div style={{ width: 52, height: 52, borderRadius: '50%', background: "#7c3aed", color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
                     {getInitials(buildName(selectedEmp))}
                   </div>
                   <div>

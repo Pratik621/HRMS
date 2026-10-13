@@ -1,3 +1,4 @@
+import PaginatedTable from '../../Common/PaginatedTable';
 // src/components/Admin/Payroll/GeneratedSlipsTab.jsx
 // History of generated salary slips for the selected period. View/Download reuse the exact
 // same amount calculation + PDF template as SalarySlipManager.jsx (src/utils/salarySlipTemplate.js)
@@ -155,8 +156,8 @@ const GeneratedSlipsTab = ({ month, year, cycleLabel, records, refetch }) => {
             key={s}
             onClick={() => setStatusFilter(s)}
             style={{
-              border: `1.5px solid ${statusFilter === s ? '#6366f1' : '#e2e8f0'}`, borderRadius: 8, padding: '6px 14px',
-              background: statusFilter === s ? '#eef2ff' : '#fff', color: statusFilter === s ? '#4f46e5' : '#64748b',
+              border: `1.5px solid ${statusFilter === s ? "#1f4e79" : '#e2e8f0'}`, borderRadius: 8, padding: '6px 14px',
+              background: statusFilter === s ? "#eef4fb" : '#fff', color: statusFilter === s ? "#1f4e79" : '#64748b',
               fontSize: 12, fontWeight: 600, textTransform: 'capitalize', cursor: 'pointer',
             }}
           >
@@ -185,7 +186,7 @@ const GeneratedSlipsTab = ({ month, year, cycleLabel, records, refetch }) => {
           <div style={{ textAlign: 'center', padding: 40, color: '#94a3b8', fontSize: 13 }}>No salary slips generated for this period yet.</div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+            <PaginatedTable style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
                 <tr style={{ background: '#1e3a5f', color: '#fff' }}>
                   {['Employee', 'Employee ID', 'Payroll Period', 'Generated Date', 'Gross Salary', 'Net Salary', 'Status', 'Actions'].map(h => (
@@ -212,7 +213,7 @@ const GeneratedSlipsTab = ({ month, year, cycleLabel, records, refetch }) => {
                       </td>
                       <td style={{ padding: '8px 12px' }}>
                         <div className="d-flex gap-1">
-                          <button title="View" disabled={busy} onClick={() => handleView(rec)} style={btnStyle('#6366f1')}>
+                          <button title="View" disabled={busy} onClick={() => handleView(rec)} style={btnStyle("#1f4e79")}>
                             {busy ? <Spinner size="sm" animation="border" style={{ width: 10, height: 10 }} /> : <FaEye size={11} />}
                           </button>
                           <button title="Download PDF" disabled={busy} onClick={() => handleDownload(rec)} style={btnStyle('#0369a1')}><FaDownload size={11} /></button>
@@ -224,7 +225,7 @@ const GeneratedSlipsTab = ({ month, year, cycleLabel, records, refetch }) => {
                   );
                 })}
               </tbody>
-            </table>
+            </PaginatedTable>
           </div>
         )}
       </div>

@@ -1,3 +1,4 @@
+import PaginatedTable from './PaginatedTable';
 import React from 'react';
 import { Card, Table, Badge, Button } from 'react-bootstrap';
 import { FaArrowRight, FaHistory, FaUmbrellaBeach } from 'react-icons/fa';
@@ -39,7 +40,7 @@ export default function RecentLeaveRequestsCard({ leaveRequests = [], onViewAll,
       </Card.Header>
       <Card.Body className="p-0">
         <div className="table-responsive">
-          <Table hover className="mb-0" size="sm">
+          <PaginatedTable as={Table} hover className="mb-0" size="sm">
             <thead className="bg-light">
               <tr>
                 <th className="small text-dark">Leave Type</th>
@@ -79,7 +80,7 @@ export default function RecentLeaveRequestsCard({ leaveRequests = [], onViewAll,
                 </tr>
               )}
             </tbody>
-          </Table>
+          </PaginatedTable>
         </div>
       </Card.Body>
     </Card>

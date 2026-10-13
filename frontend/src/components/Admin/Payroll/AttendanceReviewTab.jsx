@@ -40,11 +40,11 @@ const AttendanceReviewTab = ({ records, refetch, month, year, cycleLabel }) => {
               onClick={() => setSelectedId(rec.employee_id)}
               style={{
                 width: '100%', textAlign: 'left', border: 'none', borderBottom: '1px solid #f8fafc',
-                background: selectedId === rec.employee_id ? '#eef2ff' : '#fff',
+                background: selectedId === rec.employee_id ? "#eef4fb" : '#fff',
                 padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
               }}
             >
-              <div style={{ width: 30, height: 30, borderRadius: '50%', background: '#e0e7ff', color: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
+              <div style={{ width: 30, height: 30, borderRadius: '50%', background: "#dce3eb", color: "#1f4e79", display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
                 {(rec.first_name?.[0] || '') + (rec.last_name?.[0] || '')}
               </div>
               <div style={{ minWidth: 0 }}>
