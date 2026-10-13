@@ -1,0 +1,34 @@
+/* Shared responsive layout for every authenticated role. */
+.hrms-app-shell { height:100dvh !important; width:100%; min-width:0; }
+#main-content-wrapper { min-width:0; min-height:0; }
+.hrms-page-content { min-width:0; min-height:0; scrollbar-gutter:stable; overflow-x:auto; padding:clamp(12px,2vw,28px) !important; }
+.hrms-page-content > * { min-width:0; max-width:100%; }
+.hrms-page-content :is(.row > *, .card, .card-body, .hrms-table-frame) { min-width:0; }
+.hrms-page-content :is(.card-body, .alert, .modal-body) { overflow-wrap:anywhere; }
+.hrms-page-content :is(img,video,canvas,iframe) { max-width:100%; }
+.hrms-page-content :is(input,select,textarea) { max-width:100%; }
+.hrms-app-navbar { min-width:0; }
+.hrms-app-navbar > div:first-child { min-width:0; }
+.hrms-responsive-toolbar { flex-wrap:wrap !important; }
+.hrms-fluid-panel { max-width:100%; box-sizing:border-box; }
+.modal-dialog { max-width:calc(100vw - 24px); }
+.modal-content { max-height:calc(100dvh - 24px); min-width:0; }
+.modal-body { overflow-y:auto; min-height:0; }
+.modal-footer { flex-wrap:wrap; gap:8px; }
+.table-responsive,.hrms-table-scroll { max-width:100%; overscroll-behavior-x:contain; }
+@media(max-width:1024px) { .hrms-page-content { padding:20px !important; } .hrms-responsive-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; } }
+@media(max-width:767px) {
+  .hrms-page-content { padding:14px !important; }
+  .hrms-app-navbar { padding-left:68px !important; padding-right:12px !important; gap:8px !important; }
+  .hrms-app-navbar > div:first-child { flex-shrink:1 !important; overflow:hidden; }
+  .hrms-app-navbar > div:first-child > div { white-space:nowrap; text-overflow:ellipsis; overflow:hidden; }
+  .hrms-fluid-panel { min-width:0 !important; width:100% !important; }
+  .hrms-responsive-grid { grid-template-columns:minmax(0,1fr) !important; }
+  .hrms-page-content .btn-group { flex-wrap:wrap; }
+  .hrms-page-content .nav-tabs { flex-wrap:nowrap; overflow-x:auto; white-space:nowrap; }
+  .hrms-page-content .nav-tabs .nav-link { flex-shrink:0; }
+  .modal-dialog { margin:12px auto; width:calc(100% - 24px); }
+  .modal-header,.modal-body,.modal-footer { padding:16px; }
+}
+@media(max-width:380px) { .hrms-page-content { padding:10px !important; } .hrms-app-navbar > div:first-child > div:last-child { font-size:13px !important; } }
+@media print { .hrms-app-shell { height:auto !important; overflow:visible !important; } .hrms-page-content { padding:0 !important; overflow:visible; } .modal-content { max-height:none; } }

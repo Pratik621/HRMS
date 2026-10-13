@@ -315,7 +315,7 @@ const AttendanceCalendar = ({ employee, onAttendanceSaved, initialMonth, initial
           </div>
 
           {/* Month navigator */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
+          <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
             <button onClick={prevMonth} style={navBtn}>
               <FaChevronLeft size={10} />
             </button>
@@ -351,7 +351,7 @@ const AttendanceCalendar = ({ employee, onAttendanceSaved, initialMonth, initial
 
           {/* Unsaved indicator + Save All */}
           {unsavedCount > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#d97706', fontWeight: 600 }}>
                 <FaExclamationCircle size={11} /> {unsavedCount} unsaved
               </span>

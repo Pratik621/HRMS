@@ -100,7 +100,7 @@ export default function PollWidget({ post, onVote, onViewDetails }) {
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 6, gap: 8 }}>
+      <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 6, gap: 8 }}>
         <span style={{ fontSize: 11, color: QA.textMuted }}>
           {justVoted
             ? <span style={{ color: QA.success, fontWeight: 700 }}>✓ Vote recorded</span>

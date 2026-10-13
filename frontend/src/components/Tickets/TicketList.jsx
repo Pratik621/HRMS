@@ -342,7 +342,7 @@ function TicketForm({ show, onHide, onCreated, userEmail, userName, userEmployee
             )}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+          <div className="hrms-responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
             {/* Department */}
             <div>
               <label style={labelStyle}>Department <span style={{ color: '#c53030' }}>*</span></label>
@@ -364,7 +364,7 @@ function TicketForm({ show, onHide, onCreated, userEmail, userName, userEmployee
           {/* Priority */}
           <div style={{ marginBottom: 16 }}>
             <label style={labelStyle}>Priority</label>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className="hrms-responsive-toolbar" style={{ display: 'flex', gap: 8 }}>
               {PRIORITIES.map(p => (
                 <button key={p} type="button" onClick={() => setPriority(p)} style={{
                   padding: '5px 14px', borderRadius: 99, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700,
@@ -447,7 +447,7 @@ function TicketForm({ show, onHide, onCreated, userEmail, userName, userEmployee
             )}
           </div>
 
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+          <div className="hrms-responsive-toolbar" style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
             <button type="button" onClick={() => { reset(); onHide(); }} style={cancelBtnStyle}>Cancel</button>
             <button type="submit" disabled={submitting} style={submitBtnStyle}>
               {submitting ? 'Submitting…' : '🎫 Submit Ticket'}
@@ -694,7 +694,7 @@ function TicketDetail({ ticketId, show, onHide, onUpdated, userRole, userEmploye
 
             {/* ── Sticky header ── */}
             <div style={{ flexShrink: 0, background: '#1f4e79', color: '#fff' }}>
-              <div style={{ padding: '16px 22px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div className="hrms-responsive-toolbar" style={{ padding: '16px 22px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', minWidth: 0 }}>
                   <div style={{ width: 34, height: 34, borderRadius: 9, background: 'rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <FaFileAlt size={14} />
@@ -709,7 +709,7 @@ function TicketDetail({ ticketId, show, onHide, onUpdated, userRole, userEmploye
                     </div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                <div className="hrms-responsive-toolbar" style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                   <DrawerKebabMenu ticket={t} />
                   <button
                     onClick={requestClose}
@@ -745,7 +745,7 @@ function TicketDetail({ ticketId, show, onHide, onUpdated, userRole, userEmploye
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#52718c', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Request Summary</div>
                 {employeeDetails ? (
                   <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.7fr) 220px', gap: 18, alignItems: 'start' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '10px 14px' }}>
+                    <div className="hrms-responsive-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '10px 14px' }}>
                       {[
                         ['Employee Name', employeeDetails.employeeName],
                         ['Employee Number', employeeDetails.employeeNumber],
@@ -796,7 +796,7 @@ function TicketDetail({ ticketId, show, onHide, onUpdated, userRole, userEmploye
                   kept as three visually distinct fields per the routing fix — never merged, since
                   they can be three different people (creator, subject, and handler). Older tickets
                   created before the raised_for column existed fall back to showing the raiser. */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
+              <div className="hrms-responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
                 <QuickInfoCard icon={FaUser} label="Raised By" value={t.raised_by_name} />
                 <QuickInfoCard icon={FaUserCheck} label="Raised For" value={t.raised_for_name || t.raised_by_name} />
                 <QuickInfoCard icon={FaUserCheck} label="Assigned To" value={t.assigned_to_name || `${t.department} Team Queue`} />
@@ -820,7 +820,7 @@ function TicketDetail({ ticketId, show, onHide, onUpdated, userRole, userEmploye
               {/* Status & SLA Card */}
               <div style={{ background: '#fff', borderRadius: 16, padding: '14px 18px', marginBottom: 16, border: '1px solid #eef0f3', boxShadow: '0 1px 3px rgba(15,23,42,0.04)' }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#52718c', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Time & SLA</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div className="hrms-responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                   <div>
                     <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 4 }}>
                       {t.status === 'closed' ? 'Resolution Time' : 'Time Pending'}
@@ -981,7 +981,7 @@ function TicketDetail({ ticketId, show, onHide, onUpdated, userRole, userEmploye
                 {showResolve ? (
                   <div className="td-fade-in">
                     <AutoGrowTextarea value={resolveNote} onChange={setResolveNote} placeholder="Resolution note (optional)" style={{ fontSize: 12.5, marginBottom: 8 }} minRows={2} />
-                    <div style={{ display: 'flex', gap: 8 }}>
+                    <div className="hrms-responsive-toolbar" style={{ display: 'flex', gap: 8 }}>
                       <button onClick={() => act('resolve')} disabled={!!acting} className="td-hover-lift" style={{ ...DRAWER_BTN.success, flex: 1 }}>
                         {acting === 'resolve' ? 'Confirming…' : '✓ Confirm Resolved'}
                       </button>
@@ -991,7 +991,7 @@ function TicketDetail({ ticketId, show, onHide, onUpdated, userRole, userEmploye
                 ) : showDecline ? (
                   <div className="td-fade-in">
                     <AutoGrowTextarea value={declineNote} onChange={setDeclineNote} placeholder="Why is it not resolved? (optional)" style={{ fontSize: 12.5, marginBottom: 8 }} minRows={2} />
-                    <div style={{ display: 'flex', gap: 8 }}>
+                    <div className="hrms-responsive-toolbar" style={{ display: 'flex', gap: 8 }}>
                       <button onClick={() => act('decline')} disabled={!!acting} className="td-hover-lift" style={{ ...DRAWER_BTN.danger, flex: 1, background: '#c53030', color: '#fff', border: 'none' }}>
                         {acting === 'decline' ? 'Sending…' : '✕ Confirm Reopen'}
                       </button>
@@ -1331,9 +1331,9 @@ export default function TicketList() {
 
       {/* ── Bulk-select action bar ── */}
       {canResolve && selectedIds.size > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, background: '#eef4fb', border: '1px solid #dce3eb', borderRadius: 12, padding: '10px 16px', marginBottom: 12 }}>
+        <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, background: '#eef4fb', border: '1px solid #dce3eb', borderRadius: 12, padding: '10px 16px', marginBottom: 12 }}>
           <span style={{ fontSize: 13, fontWeight: 700, color: '#1f4e79' }}>{selectedIds.size} ticket{selectedIds.size > 1 ? 's' : ''} selected</span>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className="hrms-responsive-toolbar" style={{ display: 'flex', gap: 8 }}>
             <button onClick={clearSelection} style={cancelBtnStyle}>Clear</button>
             <button onClick={() => setShowBulkResolve(true)} style={{ ...submitBtnStyle, background: TK.success, display: 'flex', alignItems: 'center', gap: 6 }}>
               <FaCheckCircle size={12} /> Resolve Selected ({selectedIds.size})
@@ -1465,7 +1465,7 @@ export default function TicketList() {
             <span style={{ fontSize: 12, color: TK.textMuted }}>
               Showing {filtered.length === 0 ? 0 : (pageSafe - 1) * rowsPerPage + 1} to {Math.min(pageSafe * rowsPerPage, filtered.length)} of {filtered.length} tickets
             </span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <button disabled={pageSafe === 1} onClick={() => setPage(p => Math.max(1, p - 1))} style={{ ...pagerBtnStyle, opacity: pageSafe === 1 ? 0.4 : 1 }}>
                 <FaChevronLeft size={10} />
               </button>
@@ -1481,7 +1481,7 @@ export default function TicketList() {
                 <FaChevronRight size={10} />
               </button>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: TK.textMuted }}>
+            <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: TK.textMuted }}>
               Rows per page:
               <select value={rowsPerPage} onChange={e => setRowsPerPage(Number(e.target.value))} style={{ ...inputStyle, width: 'auto', padding: '4px 8px', fontSize: 12 }}>
                 {[5, 10, 20, 50].map(n => <option key={n} value={n}>{n}</option>)}

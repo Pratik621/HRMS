@@ -283,8 +283,7 @@ const Navbar = () => {
   // ─────────────────────────────────────────────────────────────
   return (
     <>
-    <nav
-      style={{
+    <nav className="hrms-app-navbar" style={{
         height: '60px',
         padding: '0 24px',
         position: 'sticky',

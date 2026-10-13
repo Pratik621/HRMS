@@ -23,6 +23,8 @@ import API_ENDPOINTS from '../../config/api';
 import { useNavigate, useParams } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import AttendanceCalendar from './AttendanceCalendar';
+import EmployeeAccountActions from './EmployeeAccountActions';
+import { useNotification } from '../../context/NotificationContext';
 import { useAuth } from '../../context/AuthContext';
 
 ChartJS.register(
@@ -177,6 +179,8 @@ const EmployeeProfileView = () => {
 
   // documents
   const [documents, setDocuments] = useState([]);
+  const [documentBusy, setDocumentBusy] = useState(false);
+  const { showNotification } = useNotification();
 
   // activities/timeline
   const [activities, setActivities] = useState([]);
@@ -205,7 +209,7 @@ const EmployeeProfileView = () => {
         }
         setEmployee(emp);
         if (emp) {
-          loadAttendanceSummary(emp.employee_id);
+          loadAttendanceSummary(emp.employee_id, emp.joining_date);
           loadLeaveBalance(emp.employee_id);
           loadRatings(emp.employee_id);
           loadDocuments(emp.employee_id);
@@ -222,7 +226,7 @@ const EmployeeProfileView = () => {
           const emp = all.find(e => e.employee_id === employeeId || String(e.id) === String(employeeId));
           if (emp) {
             setEmployee(emp);
-            loadAttendanceSummary(emp.employee_id);
+            loadAttendanceSummary(emp.employee_id, emp.joining_date);
             loadLeaveBalance(emp.employee_id);
             loadRatings(emp.employee_id);
             loadDocuments(emp.employee_id);
@@ -240,7 +244,7 @@ const EmployeeProfileView = () => {
   }, [employeeId]);
 
   // ── attendance summary (current cycle) ─────────────────────────────────────
-  const loadAttendanceSummary = async (empId) => {
+  const loadAttendanceSummary = async (empId, joiningDate) => {
     try {
       const today = new Date();
       const year  = today.getFullYear();
@@ -251,16 +255,20 @@ const EmployeeProfileView = () => {
       const cycleEnd = today.getDate() >= 26
         ? new Date(year, month + 1, 25)
         : new Date(year, month, 25);
-      const start = cycleStart.toISOString().split('T')[0];
-      const end   = (today < cycleEnd ? today : cycleEnd).toISOString().split('T')[0];
+      const localDate = date => [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
+      const join = joiningDate ? new Date(String(joiningDate).slice(0, 10) + 'T00:00:00') : null;
+      const employedStart = join && join > cycleStart ? join : cycleStart;
+      const start = localDate(employedStart);
+      const end = localDate(today < cycleEnd ? today : cycleEnd);
+      if (employedStart > today) { setAttSummary({ present: 0, absent: 0, late: 0, totalHours: 0, wOff: 0, workingDays: 0, pct: 0 }); setAttHistory([]); return; }
 
       const res = await axios.get(API_ENDPOINTS.ATTENDANCE_EMPLOYEE_REPORT(empId, start, end));
       const recs = res.data.attendance || [];
 
       let present = 0, absent = 0, late = 0, totalHours = 0, wOff = 0;
-      let d = new Date(cycleStart);
+      let d = new Date(employedStart);
       while (d <= today) {
-        const ds = d.toISOString().split('T')[0];
+        const ds = localDate(d);
         const dow = d.getDay();
         if (dow === 0 || dow === 6) { wOff++; }
         else {
@@ -325,18 +333,26 @@ const EmployeeProfileView = () => {
   };
 
   // ── load documents (mock or API) ─────────────────────────────────────────
-  const loadDocuments = async (empId) => {
+  const loadDocuments = async empId => {
     try {
-      // Mock documents - replace with actual API endpoint if available
-      const mockDocs = [
-        { id: 1, name: 'Employee Agreement', type: 'PDF', uploadDate: employee.joining_date, size: '2.4 MB' },
-        { id: 2, name: 'NDA Signed', type: 'PDF', uploadDate: employee.joining_date, size: '1.8 MB' },
-        { id: 3, name: 'Bank Details', type: 'PDF', uploadDate: employee.joining_date, size: '0.5 MB' },
-        { id: 4, name: 'Passport Copy', type: 'PDF', uploadDate: employee.joining_date, size: '3.2 MB' },
-        { id: 5, name: 'Aadhar Card', type: 'PDF', uploadDate: employee.joining_date, size: '2.1 MB' },
-      ];
-      setDocuments(mockDocs);
-    } catch { /* non-fatal */ }
+      const { data } = await axios.get(API_ENDPOINTS.EMPLOYEE_DOCUMENTS(empId));
+      setDocuments(Object.entries(data).filter(([, value]) => typeof value === 'string' && value && value !== 'null').map(([type, filename]) => ({
+        id: type, type, filename, name: type.replaceAll('_', ' ').replace(/\b\w/g, letter => letter.toUpperCase()),
+        fileType: filename.toLowerCase().endsWith('.pdf') ? 'PDF' : 'File',
+      })));
+    } catch (error) { setDocuments([]); showNotification(error.response?.data?.message || 'Unable to load employee documents', 'danger'); }
+  };
+  const openDocument = async (doc, inline) => {
+    setDocumentBusy(true);
+    const preview = inline ? window.open('', '_blank') : null;
+    try {
+      const response = await axios.get(API_ENDPOINTS.EMPLOYEE_DOCUMENT_BY_TYPE(employee.employee_id, doc.type), { responseType: 'blob', params: { inline } });
+      const url = URL.createObjectURL(new Blob([response.data], { type: response.headers['content-type'] || 'application/octet-stream' }));
+      if (inline) { if (preview) preview.location.href = url; else showNotification('Allow pop-ups to view this document', 'warning'); }
+      else { const link = document.createElement('a'); link.href = url; link.download = doc.filename; document.body.appendChild(link); link.click(); link.remove(); }
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (error) { preview?.close(); showNotification(error.response?.data?.message || 'Unable to open document', 'danger'); }
+    finally { setDocumentBusy(false); }
   };
 
   // ── load activity timeline ──────────────────────────────────────────────
@@ -617,6 +633,8 @@ const EmployeeProfileView = () => {
         </div>
       </div>
 
+      <EmployeeAccountActions key={employee.employee_id} employee={employee} onEmployeeChange={setEmployee} />
+
       {/* ── Quick stat row ─────────────────────────────────────────────────── */}
       <div style={{ padding: '0 24px', marginTop: 44, marginBottom: 8 }}>
         <Row className="g-3">
@@ -762,14 +780,14 @@ const EmployeeProfileView = () => {
               </Col>
             </Row>
  <div style={{ margin: '12px', display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <label style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>Year</label>
                   <select value={attFilter.year} onChange={e => setAttFilter(f => ({ ...f, year: +e.target.value }))}
                     style={{ fontSize: 12, padding: '6px 10px', borderRadius: 7, border: '1px solid #e5e7eb', background: '#f9fafb', cursor: 'pointer' }}>
                     {[2020, 2021, 2022, 2023, 2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
                   </select>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <label style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>Month</label>
                   <select value={attFilter.month} onChange={e => setAttFilter(f => ({ ...f, month: e.target.value }))}
                     style={{ fontSize: 12, padding: '6px 10px', borderRadius: 7, border: '1px solid #e5e7eb', background: '#f9fafb', cursor: 'pointer' }}>
@@ -965,7 +983,7 @@ const EmployeeProfileView = () => {
                   <p>No documents uploaded yet</p>
                 </div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>
+                <div className="hrms-responsive-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>
                   {documents.map(doc => (
                     <div key={doc.id} style={{
                       background: '#fafafa', borderRadius: 10, padding: 16, border: '1px solid #e5e7eb',
@@ -974,50 +992,29 @@ const EmployeeProfileView = () => {
                     }} className="hoverable">
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
                         <div style={{ width: 40, height: 40, borderRadius: 8, background: '#fef08a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          {doc.type === 'PDF' ? <FaFilePdf color="#dc2626" size={18} /> : <FaFileAlt color="#666" size={18} />}
+                          {doc.fileType === 'PDF' ? <FaFilePdf color="#dc2626" size={18} /> : <FaFileAlt color="#666" size={18} />}
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 13, fontWeight: 700, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{doc.name}</div>
-                          <div style={{ fontSize: 11, color: '#9ca3af' }}>{doc.size}</div>
+                          <div style={{ fontSize: 11, color: '#9ca3af' }}>{doc.filename}</div>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-                        <button style={{ flex: 1, background: "#1f4e79", color: '#fff', border: 'none', borderRadius: 6, padding: '6px 8px', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                      <div className="hrms-responsive-toolbar" style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                        <button onClick={() => openDocument(doc, true)} disabled={documentBusy} style={{ flex: 1, background: "#1f4e79", color: '#fff', border: 'none', borderRadius: 6, padding: '6px 8px', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                           <FaEye size={10} /> View
                         </button>
-                        <button style={{ flex: 1, background: '#e5e7eb', color: '#374151', border: 'none', borderRadius: 6, padding: '6px 8px', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                        <button onClick={() => openDocument(doc, false)} disabled={documentBusy} style={{ flex: 1, background: '#e5e7eb', color: '#374151', border: 'none', borderRadius: 6, padding: '6px 8px', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                           <FaDownload size={10} /> Download
                         </button>
                       </div>
-                      <div style={{ fontSize: 10, color: '#9ca3af' }}>Uploaded: {fmtDate(doc.uploadDate)}</div>
+                      <div style={{ fontSize: 10, color: '#9ca3af' }}>{doc.fileType} document</div>
                     </div>
                   ))}
                 </div>
               )}
             </Section>
 
-            <Section title="Compliance Documents" icon={<FaClipboardList />} color="#0ea5e9">
-              <Row className="g-3">
-                {[
-                  { doc: 'Employee Agreement', status: 'completed', icon: <FaCheckCircle /> },
-                  { doc: 'NDA Agreement', status: 'completed', icon: <FaCheckCircle /> },
-                  { doc: 'Confidentiality Form', status: 'completed', icon: <FaCheckCircle /> },
-                  { doc: 'Code of Conduct', status: 'pending', icon: <FaHourglassHalf /> },
-                ].map((item, i) => (
-                  <Col md={6} key={i}>
-                    <div style={{ background: '#f9fafb', borderRadius: 10, padding: 14, border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: 8, background: item.status === 'completed' ? '#dcfce7' : '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.status === 'completed' ? '#22c55e' : '#f59e0b', fontSize: 16 }}>
-                        {item.icon}
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{item.doc}</div>
-                        <div style={{ fontSize: 11, color: '#9ca3af', textTransform: 'capitalize' }}>{item.status}</div>
-                      </div>
-                    </div>
-                  </Col>
-                ))}
-              </Row>
-            </Section>
+
           </>
         )}
 

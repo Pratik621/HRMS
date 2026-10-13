@@ -96,7 +96,7 @@ function PostCard({ post, onLikeToggle, onVote, onViewPollDetails }) {
           </div>
           <div style={{ fontSize: 13, color: QA.textDark, lineHeight: 1.5 }}>{post.content}</div>
           <PollWidget post={post} onVote={(index) => onVote(post.id, index)} onViewDetails={() => onViewPollDetails(post.id)} />
-          <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
+          <div className="hrms-responsive-toolbar" style={{ display: 'flex', gap: 16, marginTop: 8 }}>
             <button className={`post-social-action${post.liked_by_me ? ' is-active' : ''}`} onClick={() => onLikeToggle(post.id)}
               style={{ border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: post.liked_by_me ? QA.textDark : QA.textMuted, fontSize: 11, padding: '5px 8px' }}>
               {post.liked_by_me ? <FaHeart size={11} /> : <FaRegHeart size={11} />} {post.like_count > 0 ? post.like_count : 'Like'}
@@ -113,7 +113,7 @@ function PostCard({ post, onLikeToggle, onVote, onViewPollDetails }) {
                   <strong>{c.commenter_name}</strong> {c.comment}
                 </div>
               ))}
-              <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+              <div className="hrms-responsive-toolbar" style={{ display: 'flex', gap: 6, marginTop: 4 }}>
                 <input
                   value={commentInput}
                   onChange={e => setCommentInput(e.target.value)}
@@ -268,9 +268,9 @@ export default function PostComposerCard() {
           />
 
           {tab === 'poll' && (
-            <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div className="" style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
               {pollOptions.map((opt, i) => (
-                <div key={i} style={{ display: 'flex', gap: 6 }}>
+                <div className="hrms-responsive-toolbar" key={i} style={{ display: 'flex', gap: 6 }}>
                   <input
                     value={opt}
                     onChange={e => setPollOptions(prev => prev.map((o, idx) => idx === i ? e.target.value : o))}
@@ -305,7 +305,7 @@ export default function PostComposerCard() {
 
           {error && <div style={{ fontSize: 11, color: QA.danger, marginTop: 8 }}>{error}</div>}
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
+          <div className="hrms-responsive-toolbar" style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
             <button onClick={submit} disabled={posting}
               style={{ padding: '7px 18px', borderRadius: 8, border: 'none', background: QA.primary, color: '#fff', fontSize: 12, fontWeight: 700, cursor: posting ? 'not-allowed' : 'pointer', opacity: posting ? 0.6 : 1 }}>
               {posting ? 'Posting…' : 'Post'}

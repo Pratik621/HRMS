@@ -72,7 +72,7 @@ export default function PollDetailsDrawer({ show, onHide, postId }) {
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
           {/* Header */}
           <div style={{ flexShrink: 0, background: '#1e2a3e', color: '#fff', padding: '16px 22px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+            <div className="hrms-responsive-toolbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.7, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 4 }}>Poll Results</div>
                 <div style={{ fontSize: 15.5, fontWeight: 700, wordBreak: 'break-word' }}>{poll?.question || '…'}</div>

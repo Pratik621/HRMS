@@ -488,7 +488,7 @@ const AttendanceImportPanel = ({ employees = [], onMonthYearChange, onImportSucc
     <div style={{ marginBottom: 20 }}>
       <Card>
         {/* ── Panel header ──────────────────────────────────────────────────── */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isCollapsed ? 0 : 16, paddingBottom: isCollapsed ? 0 : 12, borderBottom: isCollapsed ? 'none' : '1px solid #f3f4f6' }}>
+        <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isCollapsed ? 0 : 16, paddingBottom: isCollapsed ? 0 : 12, borderBottom: isCollapsed ? 'none' : '1px solid #f3f4f6' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ width: 28, height: 28, borderRadius: 7, background: '#6366f118', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <FaFileExcel size={13} color="#16a34a" />
@@ -624,7 +624,7 @@ const AttendanceImportPanel = ({ employees = [], onMonthYearChange, onImportSucc
                   </div>
                 </>
               ) : (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+                <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
                   <FaFileExcel size={22} color="#16a34a" />
                   <div style={{ textAlign: 'left' }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{uploadedFile.name}</div>
@@ -741,7 +741,7 @@ const AttendanceImportPanel = ({ employees = [], onMonthYearChange, onImportSucc
             {/* ── Import history section ───────────────────────────────────── */}
             {showHistory && (
               <div style={{ marginTop: 16, borderTop: '1px solid #f3f4f6', paddingTop: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                   <span style={{ fontWeight: 700, fontSize: 13, color: '#374151', display: 'flex', alignItems: 'center', gap: 6 }}>
                     <FaHistory size={12} color="#1f4e79" /> Import History
                   </span>

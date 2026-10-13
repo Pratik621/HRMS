@@ -276,7 +276,7 @@ export default function ProfileCompletion({ employee, onSkip }) {
           </div>
         )}
         {/* Nav row */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="hrms-responsive-toolbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Button
             variant="outline-secondary"
             onClick={back}
@@ -449,7 +449,7 @@ const StepEmployment = ({ employee }) => {
       <Alert variant="info" className="py-2 small mb-4">
         These details are set by the admin. Contact HR if any information is incorrect.
       </Alert>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 24px' }}>
+      <div className="hrms-responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 24px' }}>
         {rows.map(([label, value]) => value ? (
           <div key={label}>
             <div style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>{label}</div>

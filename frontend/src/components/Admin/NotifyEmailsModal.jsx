@@ -163,11 +163,11 @@ const NotifyEmailsModal = ({ show, onClose }) => {
                         <div style={{ marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                             Notification Email Addresses ({emails.length})
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}>
+                        <div className="" style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}>
                             {emails.length === 0 ? (
                                 <div style={{ fontSize: 13, color: '#9ca3af', fontStyle: 'italic', padding: '6px 0' }}>No notification emails added yet</div>
                             ) : emails.map(email => (
-                                <div key={email} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 8, padding: '6px 10px' }}>
+                                <div className="hrms-responsive-toolbar" key={email} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 8, padding: '6px 10px' }}>
                                     <span style={{ flex: 1, fontSize: 13, color: '#111827' }}>{email}</span>
                                     <button
                                         onClick={() => removeEmail(email)}

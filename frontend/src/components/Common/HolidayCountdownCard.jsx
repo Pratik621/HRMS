@@ -40,7 +40,7 @@ export default function HolidayCountdownCard({ limit = 3 }) {
       }}
     >
       {/* Header */}
-      <div
+      <div className="hrms-responsive-toolbar"
         style={{
           display: 'flex',
           justifyContent: 'space-between',

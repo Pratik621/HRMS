@@ -213,7 +213,7 @@ export default function GenerateLinkModal({ show, onHide, onGenerated }) {
                     <Form onSubmit={handleSubmit}>
                         {error && <Alert variant="danger" className="py-2" style={{ fontSize: 13 }}>{error}</Alert>}
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                        <div className="hrms-responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                             <Form.Group>
                                 <Form.Label style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>Candidate Full Name <span style={{ color: '#ef4444' }}>*</span></Form.Label>
                                 <Form.Control size="sm" value={form.employee_name} onChange={e => set('employee_name', e.target.value)} placeholder="e.g. Rahul Sharma" required style={{ borderRadius: 8 }} />

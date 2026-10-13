@@ -511,7 +511,7 @@ const EditSlip = () => {
           {/* Editor */}
           <div style={cardStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <label style={{ ...labelStyle, marginBottom: 0 }}>Select Salary Month</label>
                 <input
                   type="month"
@@ -657,7 +657,7 @@ const EditSlip = () => {
                       <span style={{ background: "#eef4fb", color: "#1f4e79", borderRadius: 10, padding: '2px 9px', fontSize: 10, fontWeight: 700 }}>Draft</span>
                     </td>
                     <td style={{ padding: '10px 12px' }}>
-                      <div style={{ display: 'flex', gap: 4 }}>
+                      <div className="hrms-responsive-toolbar" style={{ display: 'flex', gap: 4 }}>
                         <button onClick={() => openDraftFromList(d)} title="Edit" style={smallBtnStyle('#0ea5e9', '#f0f9ff')}><FaEdit size={9} /></button>
                         <button onClick={() => generateFromList(d)} title="Generate" style={smallBtnStyle('#1e3a5f', "#eef4fb")}><FaEye size={9} /></button>
                         <button onClick={() => deleteDraftFromList(d)} title="Delete" style={smallBtnStyle('#dc2626', '#fef2f2')}><FaTrash size={9} /></button>
@@ -697,7 +697,7 @@ const EditSlip = () => {
             <>
               {/* Company template toggle — overrides the auto-detected branding (see
                   resolveCompanyCode in salarySlipTemplate.js) for this manual/local slip. */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
                 <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                   Company Format:
                 </span>

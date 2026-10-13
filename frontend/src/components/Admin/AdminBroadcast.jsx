@@ -99,7 +99,7 @@ const NoticeBoardManager = () => {
   return (
     <div>
       {/* Header row */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+      <div className="hrms-responsive-toolbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <div>
           <div style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)' }}>Notice Board</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
@@ -191,7 +191,7 @@ const NoticeBoardManager = () => {
               </div>
 
               {/* Actions */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+              <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                 <button
                   onClick={() => toggleActive(n)}
                   title={n.is_active ? 'Deactivate' : 'Activate'}
@@ -242,7 +242,7 @@ const NoticeBoardManager = () => {
         </Modal.Header>
         <Modal.Body style={{ padding: '24px' }}>
           <Form onSubmit={handleSave}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="hrms-responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
 
               {/* Title */}
               <Form.Group style={{ gridColumn: '1 / -1' }}>
@@ -315,7 +315,7 @@ const NoticeBoardManager = () => {
                 <Form.Label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
                   Text Color
                 </Form.Label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <input type="color" value={form.text_color}
                     onChange={e => set('text_color', e.target.value)}
                     style={{ width: '40px', height: '36px', border: '1px solid var(--border)', borderRadius: '6px', cursor: 'pointer', padding: '2px' }}
@@ -332,7 +332,7 @@ const NoticeBoardManager = () => {
                 <Form.Label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
                   Background Color
                 </Form.Label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <input type="color" value={form.background_color}
                     onChange={e => set('background_color', e.target.value)}
                     style={{ width: '40px', height: '36px', border: '1px solid var(--border)', borderRadius: '6px', cursor: 'pointer', padding: '2px' }}
@@ -419,7 +419,7 @@ const NoticeBoardManager = () => {
               </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '24px' }}>
+            <div className="hrms-responsive-toolbar" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '24px' }}>
               <Button variant="light" size="sm" onClick={() => setShowModal(false)}
                 style={{ fontSize: '13px', borderRadius: 'var(--radius-sm)' }}>
                 <FaTimes size={10} className="me-1" /> Cancel
@@ -467,7 +467,7 @@ const AdminBroadcast = () => {
       </div>
 
       {/* Tab Bar */}
-      <div style={{ display: 'flex', borderBottom: '2px solid var(--border)', marginBottom: '24px', gap: '2px' }}>
+      <div className="hrms-responsive-toolbar" style={{ display: 'flex', borderBottom: '2px solid var(--border)', marginBottom: '24px', gap: '2px' }}>
         {TABS.map(tab => (
           <button
             key={tab.key}

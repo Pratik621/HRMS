@@ -50,7 +50,7 @@ const ExcludedEmployeesTab = ({ records, refetch }) => {
             {candidates.length === 0 ? (
               <div style={{ fontSize: 12, color: '#94a3b8' }}>No matching active employees.</div>
             ) : candidates.slice(0, 8).map(rec => (
-              <div key={rec.employee_id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', background: '#f8fafc', borderRadius: 8 }}>
+              <div className="hrms-responsive-toolbar" key={rec.employee_id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', background: '#f8fafc', borderRadius: 8 }}>
                 <span style={{ fontSize: 12 }}>{rec.first_name} {rec.last_name} <span style={{ color: '#94a3b8', fontFamily: 'monospace', fontSize: 11 }}>{rec.employee_id}</span></span>
                 <button
                   disabled={busyId === rec.employee_id}
