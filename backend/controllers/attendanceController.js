@@ -513,6 +513,20 @@ exports.autoCloseStaleSessions = async () => {
     }
 };
 
+// Clock-in/out, missed clock-out and heartbeat are self-service punches: the body's
+// employee_id must be the caller's own (from the verified JWT). Without this, any logged-in
+// user could punch in or out, or close a missed clock-out, for any colleague just by sending
+// their ID. Every frontend caller already sends the user's own ID. Corrections for someone
+// else go through the admin-only /admin/mark route or the regularization workflow, which
+// this doesn't touch. Sends the 403 and returns true when the request must stop.
+const rejectUnlessOwnAttendance = (req, res, employeeId) => {
+    const callerEmployeeId = req.user?.employeeId;
+    if (callerEmployeeId && employeeId && String(employeeId) === String(callerEmployeeId)) return false;
+    console.warn(`⛔ [attendance] ${req.method} ${req.originalUrl} rejected — caller ${callerEmployeeId || '(none)'} tried to act for ${employeeId || '(none)'}`);
+    res.status(403).json({ success: false, message: 'You can only record your own attendance', code: 'NOT_OWN_ATTENDANCE' });
+    return true;
+};
+
 // Clock In function - Complete version
 exports.clockIn = async (req, res) => {
     try {
@@ -520,6 +534,7 @@ exports.clockIn = async (req, res) => {
         if (!employee_id) {
             return res.status(400).json({ success: false, message: 'Employee ID is required' });
         }
+        if (rejectUnlessOwnAttendance(req, res, employee_id)) return;
 
         const { data: employees } = await supabase
             .from('employees')
@@ -953,6 +968,7 @@ exports.clockOut = async (req, res) => {
                 message: 'Employee ID is required'
             });
         }
+        if (rejectUnlessOwnAttendance(req, res, employee_id)) return;
 
         let finalSessionId = session_id;
         const now = new Date();
@@ -1246,6 +1262,7 @@ exports.clockOutMissed = async (req, res) => {
         if (!employee_id || !attendance_id) {
             return res.status(400).json({ success: false, message: 'Employee ID and Attendance ID are required' });
         }
+        if (rejectUnlessOwnAttendance(req, res, employee_id)) return;
 
         // Get the attendance record
         const { data: attendance, error: fetchError } = await supabase
@@ -2082,6 +2099,7 @@ exports.getMissedClockOuts = async (req, res) => {
 exports.heartbeat = async (req, res) => {
     try {
         const { employee_id, session_id, latitude, longitude } = req.body;
+        if (rejectUnlessOwnAttendance(req, res, employee_id)) return;
         await supabase
             .from('attendance_sessions')
             .update({ last_heartbeat: new Date().toISOString(), latitude, longitude })

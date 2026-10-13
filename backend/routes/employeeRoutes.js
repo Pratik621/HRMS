@@ -6,10 +6,13 @@ const path = require('path');
 const { verifyToken, isAdmin, isAdminOrManager, isAdminOrDesktopSupport } = require('../middleware/auth');
 const { uploadFile, deleteFile, folderForField } = require('../lib/supabaseStorage');
 const { sendShiftChangeEmail } = require('../services/emailService');
-const { createOnboardingTickets } = require('../utils/onboardingTickets');
+const { createOnboardingTickets, ONBOARDING_DEPARTMENTS } = require('../utils/onboardingTickets');
 const { createProfilePhotoPost } = require('../utils/profilePhotoPost');
 const { getTeamEmployeeIdsByEmployeeId } = require('../utils/employeeLookup');
 const { generateNextEmployeeId } = require('../utils/employeeId');
+const { SECRET_EMPLOYEE_COLUMNS, omitSecretEmployeeFields, omitSecretEmployeeFieldsFromAll, safeDbErrorDetails } = require('../utils/employeeFields');
+const { resolveNewEmployeeRole } = require('../utils/employeeRoles');
+const { isDefiniteDbError, duplicateKeyTarget, ONBOARDING_TICKET_EMPLOYEE_COLUMNS } = require('../utils/employeeCreation');
 
 // Memory storage — files are uploaded to Supabase Storage (no local disk in serverless)
 const upload = multer({
@@ -492,166 +495,266 @@ router.post('/', verifyToken, isAdminOrDesktopSupport, async (req, res) => {
             }
         }
 
+        // The "Initial Password" HR sets in Add Employee (a required field there). It used to be
+        // dropped here, leaving the account with no hash, which the removed Welcome@123 login
+        // fallback then accepted. Required server-side too, with the same 6-character minimum as
+        // the form and the reset routes, so an account can never be created without a working
+        // password. Hashed with bcrypt cost 10, like every other password route. Removed from
+        // employeeData so the request-body log below never contains it.
+        const initialPassword = employeeData.password;
+        delete employeeData.password;
+        if (typeof initialPassword !== 'string' || initialPassword === '') {
+            return res.status(400).json({ success: false, message: 'Initial password is required', field: 'password' });
+        }
+        if (initialPassword.length < 6) {
+            return res.status(400).json({ success: false, message: 'Password must be at least 6 characters', field: 'password' });
+        }
+        // Role is decided server-side (see utils/employeeRoles.js): only admin/sub_admin/hr may
+        // create anything other than a standard 'employee' account. Checked before hashing or
+        // any database work, and rejected rather than silently downgraded.
+        const roleDecision = resolveNewEmployeeRole(employeeData.role, req.user?.role);
+        if (!roleDecision.role) {
+            console.warn(`⛔ [CREATE EMPLOYEE] role '${String(employeeData.role)}' refused for caller ${req.user?.employeeId || '(unknown)'} (${req.user?.role || 'no role'})`);
+            return res.status(roleDecision.status).json({ success: false, message: roleDecision.message, field: 'role' });
+        }
+        const assignedRole = roleDecision.role;
+
+        const initialPasswordHash = await require('bcryptjs').hash(initialPassword, 10);
+
         // The server is the single authoritative source of employee_id — always generate it
         // here and ignore/overwrite anything the client sent. A generation failure (e.g. a
         // transient DB error) fails the request via the outer catch below, same as any other
         // error in this handler.
         employeeData.employee_id = await generateEmployeeIdBasedOnJoiningDate(employeeData.joining_date);
 
-        let retryCount = 0;
-        const maxRetries = 5;
+        console.log('='.repeat(50));
+        console.log('📝 CREATE EMPLOYEE REQUEST');
+        console.log('Request body:', JSON.stringify(employeeData, null, 2));
+        console.log('='.repeat(50));
 
-        while (retryCount < maxRetries) {
-            try {
-                console.log('='.repeat(50));
-                console.log('📝 CREATE EMPLOYEE REQUEST (Attempt', retryCount + 1, ')');
-                console.log('Request body:', JSON.stringify(employeeData, null, 2));
-                console.log('='.repeat(50));
+        // "Email already exists" always names the account that holds it, so HR can tell whether
+        // it's the employee they just added, e.g. when re-submitting after a timeout. The unique
+        // email constraint means a re-submission can never create a second account for the same
+        // email, so re-submitting is always safe.
+        const respondEmailExists = (existing) => res.status(400).json({
+            success: false,
+            message: 'Email already exists',
+            code: 'EMAIL_EXISTS',
+            field: 'email',
+            value: employeeData.email,
+            existing_employee_id: existing?.employee_id || null,
+            existing_created_at: existing?.created_at || null,
+        });
 
-                // Check if employee_id already exists
-                const { data: existingId, error: idCheckError } = await supabase
-                    .from('employees')
-                    .select('employee_id')
-                    .eq('employee_id', employeeData.employee_id);
-
-                if (idCheckError) throw idCheckError;
-
-                if (existingId && existingId.length > 0) {
-                    console.log('⚠️ Employee ID already exists:', employeeData.employee_id);
-                    console.log('Retrying with new ID...');
-
-                    // Generate new ID
-                    employeeData.employee_id = await generateEmployeeIdBasedOnJoiningDate(employeeData.joining_date);
-                    retryCount++;
-                    continue;
-                }
-
-                // Check if email already exists
-                const { data: existingEmail, error: emailCheckError } = await supabase
-                    .from('employees')
-                    .select('email')
-                    .eq('email', employeeData.email);
-
-                if (emailCheckError) throw emailCheckError;
-
-                if (existingEmail && existingEmail.length > 0) {
-                    console.log('❌ Email already exists:', employeeData.email);
-                    return res.status(400).json({
-                        success: false,
-                        message: 'Email already exists',
-                        field: 'email',
-                        value: employeeData.email
-                    });
-                }
-
-                // ... rest of your validation code ...
-
-                const newEmployee = {
-                    first_name: employeeData.first_name,
-                    middle_name: employeeData.middle_name || null,
-                    last_name: employeeData.last_name,
-                    employee_id: employeeData.employee_id,
-                    email: employeeData.email,
-                    joining_date: employeeData.joining_date,
-                    designation: employeeData.designation,
-                    department: employeeData.department,
-                    reporting_manager: employeeData.reporting_manager || null,
-                    phone: employeeData.phone || null,
-                    employment_type: employeeData.employment_type || 'Full Time',
-                    shift_timing: employeeData.shift_timing || '9:00 AM - 6:00 PM',
-                    isFlexibleShift: employeeData.isFlexibleShift ?? employeeData.is_flexible_shift ?? false,
-                    in_hand_salary: employeeData.in_hand_salary || 0,
-                    gross_salary: employeeData.gross_salary || 0,
-                    pf_amount: employeeData.pf_amount != null && employeeData.pf_amount !== '' ? Number(employeeData.pf_amount) : null,
-                    professional_tax_amount: employeeData.professional_tax_amount != null && employeeData.professional_tax_amount !== '' ? Number(employeeData.professional_tax_amount) : null,
-                    bank_account_name: employeeData.bank_account_name || null,
-                    account_number: employeeData.account_number || null,
-                    ifsc_code: employeeData.ifsc_code || null,
-                    branch_name: employeeData.branch_name || null,
-                    pan_number: employeeData.pan_number || null,
-                    aadhar_number: employeeData.aadhar_number || null,
-                    dob: employeeData.dob || null,
-                    address: employeeData.address || null,
-                    blood_group: employeeData.blood_group || null,
-                    emergency_contact: employeeData.emergency_contact || null,
-                    linkedin_url: employeeData.linkedin_url || null,
-                    contract_policy: employeeData.contract_policy || null,
-                    is_active: true,
-                    role: employeeData.role || 'employee',
-                    joining_month_count: 0,
-                    can_apply_leave: false,
-                    created_at: new Date().toISOString()
-                };
-
-                console.log('📦 Inserting employee with data:', newEmployee);
-
-                let data;
-                let error;
-                try {
-                    ({ data, error } = await supabase
-                        .from('employees')
-                        .insert([newEmployee])
-                        .select());
-                } catch (insertErr) {
-                    error = insertErr;
-                }
-
-                if (error && /isFlexibleShift|does not exist/i.test(error.message || '')) {
-                    const { isFlexibleShift, ...safeEmployee } = newEmployee;
-                    ({ data, error } = await supabase
-                        .from('employees')
-                        .insert([safeEmployee])
-                        .select());
-                }
-
-                if (error && /pf_amount|professional_tax_amount|does not exist|schema cache/i.test(error.message || '')) {
-                    const { pf_amount, professional_tax_amount, ...safeEmployee } = newEmployee;
-                    ({ data, error } = await supabase
-                        .from('employees')
-                        .insert([safeEmployee])
-                        .select());
-                }
-
-                if (error) {
-                    if (error.code === '23505') { // Duplicate key error
-                        console.log('⚠️ Duplicate key error, retrying with new ID...');
-                        employeeData.employee_id = await generateEmployeeIdBasedOnJoiningDate(employeeData.joining_date);
-                        retryCount++;
-                        continue;
-                    }
-                    throw error;
-                }
-
-                console.log('✅ Employee created successfully:', data[0]);
-
-                await createOnboardingTickets(supabase, { employee: data[0], actor: req.user });
-
-                return res.status(201).json({
-                    success: true,
-                    message: 'Employee created successfully',
-                    employee: {
-                        id: data[0].id,
-                        employee_id: data[0].employee_id
-                    }
-                });
-
-            } catch (error) {
-                if (retryCount >= maxRetries - 1) throw error;
-                retryCount++;
-            }
+        // A genuinely pre-existing email is refused before anything is written.
+        const { data: existingEmail, error: emailCheckError } = await supabase
+            .from('employees')
+            .select('employee_id, created_at')
+            .eq('email', employeeData.email);
+        if (emailCheckError) throw emailCheckError;
+        if (existingEmail && existingEmail.length > 0) {
+            console.log('❌ Email already exists:', employeeData.email);
+            return respondEmailExists(existingEmail[0]);
         }
 
-        throw new Error('Failed to create employee after multiple retries');
+        const insertOnce = async (row) => {
+            try {
+                return await supabase.from('employees').insert([row]).select();
+            } catch (insertErr) {
+                return { data: null, error: insertErr };
+            }
+        };
+        // Not-yet-migrated optional columns produce a definite (coded) error, so retrying without
+        // them can never duplicate a row. Ambiguous errors are never handled here.
+        const insertWithColumnFallbacks = async (row) => {
+            let { data, error } = await insertOnce(row);
+            if (error && isDefiniteDbError(error) && /isFlexibleShift|does not exist/i.test(error.message || '')) {
+                const { isFlexibleShift, ...safeEmployee } = row;
+                ({ data, error } = await insertOnce(safeEmployee));
+            }
+            if (error && isDefiniteDbError(error) && /pf_amount|professional_tax_amount|does not exist|schema cache/i.test(error.message || '')) {
+                const { pf_amount, professional_tax_amount, ...safeEmployee } = row;
+                ({ data, error } = await insertOnce(safeEmployee));
+            }
+            return { data, error };
+        };
+
+        // One creation attempt, one account. The insert is repeated only after a definite
+        // duplicate-employee_id error (the row certainly wasn't saved), with a fresh ID. Any
+        // outcome that is unknown (lost response, timeout, gateway error) is verified by reading
+        // the row back, never by inserting again.
+        const MAX_EMPLOYEE_ID_ATTEMPTS = 5;
+        const createdAt = new Date().toISOString();
+        let saved = null;
+        let recoveredAfterLostResponse = false;
+
+        for (let attempt = 1; ; attempt++) {
+            const newEmployee = {
+                first_name: employeeData.first_name,
+                middle_name: employeeData.middle_name || null,
+                last_name: employeeData.last_name,
+                employee_id: employeeData.employee_id,
+                email: employeeData.email,
+                joining_date: employeeData.joining_date,
+                designation: employeeData.designation,
+                department: employeeData.department,
+                reporting_manager: employeeData.reporting_manager || null,
+                phone: employeeData.phone || null,
+                employment_type: employeeData.employment_type || 'Full Time',
+                shift_timing: employeeData.shift_timing || '9:00 AM - 6:00 PM',
+                isFlexibleShift: employeeData.isFlexibleShift ?? employeeData.is_flexible_shift ?? false,
+                in_hand_salary: employeeData.in_hand_salary || 0,
+                gross_salary: employeeData.gross_salary || 0,
+                pf_amount: employeeData.pf_amount != null && employeeData.pf_amount !== '' ? Number(employeeData.pf_amount) : null,
+                professional_tax_amount: employeeData.professional_tax_amount != null && employeeData.professional_tax_amount !== '' ? Number(employeeData.professional_tax_amount) : null,
+                bank_account_name: employeeData.bank_account_name || null,
+                account_number: employeeData.account_number || null,
+                ifsc_code: employeeData.ifsc_code || null,
+                branch_name: employeeData.branch_name || null,
+                pan_number: employeeData.pan_number || null,
+                aadhar_number: employeeData.aadhar_number || null,
+                dob: employeeData.dob || null,
+                address: employeeData.address || null,
+                blood_group: employeeData.blood_group || null,
+                emergency_contact: employeeData.emergency_contact || null,
+                linkedin_url: employeeData.linkedin_url || null,
+                contract_policy: employeeData.contract_policy || null,
+                is_active: true,
+                role: assignedRole,
+                password: initialPasswordHash,
+                joining_month_count: 0,
+                can_apply_leave: false,
+                created_at: createdAt
+            };
+
+            console.log('📦 Inserting employee with data:', { ...newEmployee, password: '[hashed]' });
+
+            const { data, error } = await insertWithColumnFallbacks(newEmployee);
+            if (!error) {
+                saved = data[0];
+                break;
+            }
+
+            if (isDefiniteDbError(error)) {
+                const duplicate = duplicateKeyTarget(error);
+                if (duplicate === 'email') {
+                    // Another request saved this email between the check above and this insert.
+                    const { data: holder } = await supabase.from('employees')
+                        .select('employee_id, created_at').eq('email', employeeData.email).maybeSingle();
+                    return respondEmailExists(holder);
+                }
+                if (duplicate === 'employee_id' && attempt < MAX_EMPLOYEE_ID_ATTEMPTS) {
+                    console.log(`⚠️ Employee ID ${employeeData.employee_id} was taken concurrently; retrying with a new ID`);
+                    employeeData.employee_id = await generateEmployeeIdBasedOnJoiningDate(employeeData.joining_date);
+                    continue;
+                }
+                throw error; // genuine database failure: nothing was saved
+            }
+
+            // Outcome unknown. Look for the row this attempt would have saved.
+            console.warn(`⚠️ [CREATE EMPLOYEE] insert outcome unknown for ${employeeData.employee_id} (${error.message || 'no error message'}); verifying`);
+            const { data: found, error: lookupError } = await supabase.from('employees')
+                .select(ONBOARDING_TICKET_EMPLOYEE_COLUMNS)
+                .eq('email', employeeData.email)
+                .maybeSingle();
+            if (!lookupError && found && found.employee_id === employeeData.employee_id) {
+                saved = found;
+                recoveredAfterLostResponse = true;
+                break;
+            }
+            if (!lookupError && found) return respondEmailExists(found);
+
+            // Not found, or the lookup failed. Absence isn't proof the insert won't still commit,
+            // so don't retry. Tell HR exactly what to check.
+            console.error(`❌ [CREATE EMPLOYEE] outcome still unknown for ${employeeData.employee_id}${lookupError ? ` (lookup failed: ${lookupError.message})` : ' (no row found)'}`);
+            return res.status(503).json({
+                success: false,
+                code: 'CREATE_OUTCOME_UNKNOWN',
+                message: 'The server lost contact with the database while saving this employee, so it is not known whether the employee was created. Check the Employee List for this email before trying again. Re-submitting is safe: if the employee was created, you will be told the email already exists, with their employee ID.',
+                attempted_employee_id: employeeData.employee_id,
+            });
+        }
+
+        console.log('✅ Employee created successfully:', omitSecretEmployeeFields(saved));
+
+        // The employee is saved. Onboarding tickets are a separate step: their outcome is
+        // reported, and a failure is recovered through POST /:id/onboarding-tickets, never by
+        // creating the employee again.
+        let onboardingTickets;
+        try {
+            onboardingTickets = await createOnboardingTickets(supabase, { employee: saved, actor: req.user });
+        } catch (ticketErr) {
+            // createOnboardingTickets is designed never to throw; this is a last line of defence.
+            onboardingTickets = { created: [], failed: [{ department: 'all', reason: ticketErr.message }], skipped: [] };
+        }
+        onboardingTickets = onboardingTickets || { created: [], failed: [], skipped: [] };
+        const ticketsFailed = onboardingTickets.failed.length > 0;
+        if (ticketsFailed) {
+            console.error(`⚠️ [CREATE EMPLOYEE] ${saved.employee_id} saved, but onboarding tickets failed:`, onboardingTickets.failed);
+        }
+
+        return res.status(201).json({
+            success: true,
+            message: ticketsFailed
+                ? `Employee created, but these onboarding tickets could not be raised: ${onboardingTickets.failed.map((f) => f.department).join(', ')}. Retry them from the employee (POST /api/employees/${saved.id}/onboarding-tickets). Do not create the employee again.`
+                : 'Employee created successfully',
+            employee: {
+                id: saved.id,
+                employee_id: saved.employee_id
+            },
+            onboarding_tickets: onboardingTickets,
+            ...(recoveredAfterLostResponse ? { recovered_after_lost_response: true } : {}),
+        });
 
     } catch (error) {
-        console.error('❌ Error creating employee:', error);
+        // Never log or return a Postgres "Failing row contains (...)" detail: for this table it
+        // includes the new password hash and personal data (see safeDbErrorDetails).
+        const details = safeDbErrorDetails(error);
+        console.error('❌ Error creating employee:', { message: error.message, code: error.code, details });
 
         res.status(500).json({
             success: false,
             message: 'Failed to create employee',
             error: error.message,
-            details: error.details || error.hint
+            details
         });
+    }
+});
+
+// Re-raise onboarding tickets for an employee who already exists, e.g. after Add Employee
+// reported that some could not be created. Never creates or modifies the employee. A department
+// that already has an onboarding ticket for this employee is skipped, so repeating the call can't
+// duplicate tickets. Same roles as creating an employee.
+router.post('/:id/onboarding-tickets', verifyToken, isAdminOrDesktopSupport, async (req, res) => {
+    try {
+        // employees.id is an integer: reject anything else before it reaches the database.
+        const employeeDbId = Number(req.params.id);
+        if (!/^[1-9][0-9]{0,9}$/.test(req.params.id) || employeeDbId > 2147483647) {
+            return res.status(400).json({ success: false, message: 'Invalid employee id' });
+        }
+
+        const requested = req.body?.departments;
+        if (requested !== undefined && (!Array.isArray(requested) || requested.some((d) => !ONBOARDING_DEPARTMENTS.includes(d)))) {
+            return res.status(400).json({ success: false, message: `departments must be a list containing only: ${ONBOARDING_DEPARTMENTS.join(', ')}` });
+        }
+
+        const { data: employee, error } = await supabase.from('employees')
+            .select(ONBOARDING_TICKET_EMPLOYEE_COLUMNS)
+            .eq('id', employeeDbId)
+            .maybeSingle();
+        if (error) throw error;
+        if (!employee) return res.status(404).json({ success: false, message: 'Employee not found' });
+
+        const result = await createOnboardingTickets(supabase, { employee, actor: req.user, departments: requested || null, skipExisting: true });
+        const ok = result.failed.length === 0;
+        res.status(ok ? 200 : 502).json({
+            success: ok,
+            message: ok ? 'Onboarding tickets are in place' : `Some onboarding tickets could not be raised: ${result.failed.map((f) => f.department).join(', ')}`,
+            onboarding_tickets: result,
+        });
+    } catch (error) {
+        console.error('❌ Error re-raising onboarding tickets:', { message: error.message, code: error.code });
+        res.status(500).json({ success: false, message: 'Failed to raise onboarding tickets', error: error.message });
     }
 });
 
@@ -757,7 +860,7 @@ router.post('/complete-profile', verifyToken, async (req, res) => {
             .single();
 
         if (error) return res.status(500).json({ success: false, message: error.message });
-        res.json({ success: true, message: 'Profile completed successfully', employee: data });
+        res.json({ success: true, message: 'Profile completed successfully', employee: omitSecretEmployeeFields(data) });
     } catch (err) {
         console.error('complete-profile error:', err);
         res.status(500).json({ success: false, message: err.message });
@@ -776,7 +879,7 @@ router.post('/:id/reset-profile', verifyToken, isAdmin, async (req, res) => {
             .single();
 
         if (error) return res.status(500).json({ success: false, message: error.message });
-        res.json({ success: true, message: 'Profile completion reset. Employee will be prompted to re-complete on next login.', employee: data });
+        res.json({ success: true, message: 'Profile completion reset. Employee will be prompted to re-complete on next login.', employee: omitSecretEmployeeFields(data) });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }
@@ -810,7 +913,7 @@ router.post('/:id/toggle-profile-form', verifyToken, isAdminOrDesktopSupport, as
             .single();
 
         if (error) return res.status(500).json({ success: false, message: error.message });
-        res.json({ success: true, require_profile_completion: newValue, profile_completed: data.profile_completed, employee: data });
+        res.json({ success: true, require_profile_completion: newValue, profile_completed: data.profile_completed, employee: omitSecretEmployeeFields(data) });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }
@@ -1024,6 +1127,18 @@ router.put('/:id', verifyToken, isAdminOrDesktopSupport, async (req, res) => {
         delete updates.employee_id;
         delete updates.created_at;
 
+        // Password/credential columns are never writable through this generic edit. It used to
+        // store `password` raw, so an admin or desktop_support user could set any account's
+        // password, or null it, which the old Welcome@123 login fallback then accepted.
+        // Passwords change only via the dedicated, hashing routes (/:id/reset-password,
+        // /api/auth/*). Ignored rather than rejected: an Edit Employee page from an older build
+        // still sends back the hash it loaded, and that must not break ordinary profile edits.
+        const ignoredSecretFields = SECRET_EMPLOYEE_COLUMNS.filter((column) => column in updates);
+        ignoredSecretFields.forEach((column) => delete updates[column]);
+        if (ignoredSecretFields.length > 0) {
+            console.warn(`⚠️ [PUT /employees/${id}] ignored credential field(s): ${ignoredSecretFields.join(', ')} — by ${req.user?.employeeId} (${req.user?.role})`);
+        }
+
         // Add updated timestamp
         updates.updated_at = new Date().toISOString();
 
@@ -1069,7 +1184,7 @@ router.put('/:id', verifyToken, isAdminOrDesktopSupport, async (req, res) => {
         res.json({
             success: true,
             message: 'Employee updated successfully',
-            employee: data[0]
+            employee: omitSecretEmployeeFields(data[0])
         });
 
     } catch (error) {
@@ -1113,7 +1228,7 @@ router.get('/:id', async (req, res) => {
         }
 
         console.log('📤 Sending employee data:', Object.keys(data));
-        res.json(data);
+        res.json(omitSecretEmployeeFields(data));
 
     } catch (error) {
         console.error('❌ Error fetching employee:', error);
@@ -1145,7 +1260,7 @@ router.get('/profile/:employeeId', async (req, res) => {
             throw error;
         }
 
-        res.json(data);
+        res.json(omitSecretEmployeeFields(data));
 
     } catch (error) {
         console.error('Error fetching employee profile:', error);
@@ -1211,7 +1326,7 @@ router.get('/', async (req, res) => {
         if (error) throw error;
 
         console.log(`📊 Found ${data?.length || 0} employees`);
-        res.json(data || []);
+        res.json(omitSecretEmployeeFieldsFromAll(data || []));
 
     } catch (error) {
         console.error('Error fetching employees:', error);

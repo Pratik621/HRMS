@@ -6,6 +6,12 @@
 // ticket still goes out (clearly marked as pending) instead of being skipped
 // entirely just because the account isn't there yet. Never throws — a failure
 // here must not block or roll back employee creation.
+//
+// Returns { created, failed, skipped } (department names; failed entries carry a reason) so a
+// caller can report a partial outcome instead of a silent success. Existing callers that ignore
+// the return value are unaffected. `departments` limits which tickets are raised. `skipExisting`
+// skips a department that already has an onboarding ticket for this employee, which makes a
+// re-raise (POST /api/employees/:id/onboarding-tickets) safe to repeat.
 
 const generateTicketNumber = async (supabase) => {
     const today = new Date();
@@ -70,9 +76,18 @@ const TICKET_SPECS = [
     },
 ];
 
-async function createOnboardingTickets(supabase, { employee, actor, accountCreationError = null }) {
+const ONBOARDING_DEPARTMENTS = TICKET_SPECS.map((spec) => spec.department);
+
+async function createOnboardingTickets(supabase, { employee, actor, accountCreationError = null, departments = null, skipExisting = false }) {
+    const specs = departments ? TICKET_SPECS.filter((spec) => departments.includes(spec.department)) : TICKET_SPECS;
+    const result = { created: [], failed: [], skipped: [] };
+    const settled = new Set();
+    const fail = (department, reason) => { result.failed.push({ department, reason }); settled.add(department); };
     try {
-        if (!employee || !actor) return;
+        if (!employee || !actor) {
+            specs.forEach((spec) => fail(spec.department, 'missing employee or actor'));
+            return result;
+        }
 
         const { data: actorEmp } = await supabase.from('employees')
             .select('first_name, last_name, email')
@@ -83,7 +98,18 @@ async function createOnboardingTickets(supabase, { employee, actor, accountCreat
         const actorEmail = actorEmp?.email || actor.email || '';
         const empName    = `${employee.first_name} ${employee.last_name}`.trim();
 
-        for (const spec of TICKET_SPECS) {
+        for (const spec of specs) {
+            if (skipExisting && employee.employee_id) {
+                // Every onboarding ticket description contains the employee ID (see TICKET_SPECS).
+                const { data: existing, error: existingErr } = await supabase.from('support_tickets')
+                    .select('id')
+                    .eq('issue_type', spec.issue_type)
+                    .ilike('description', `%${employee.employee_id}%`)
+                    .limit(1);
+                if (existingErr) { fail(spec.department, `could not check for an existing ticket: ${existingErr.message}`); continue; }
+                if (existing && existing.length > 0) { result.skipped.push(spec.department); settled.add(spec.department); continue; }
+            }
+
             const manager = await findDeptManager(supabase, spec.department);
             const ticketNumber = await generateTicketNumber(supabase);
 
@@ -103,10 +129,13 @@ async function createOnboardingTickets(supabase, { employee, actor, accountCreat
                 tagged_employees: [],
             }).select().maybeSingle();
 
-            if (error) {
+            if (error || !ticket) {
                 console.error(`[onboardingTickets] failed to create ${spec.department} ticket:`, error);
+                fail(spec.department, error?.message || 'ticket was not returned');
                 continue;
             }
+            result.created.push(spec.department);
+            settled.add(spec.department);
 
             await supabase.from('ticket_history').insert({
                 ticket_id:         ticket.id,
@@ -120,7 +149,9 @@ async function createOnboardingTickets(supabase, { employee, actor, accountCreat
         }
     } catch (err) {
         console.error('[onboardingTickets] unexpected error:', err);
+        specs.filter((spec) => !settled.has(spec.department)).forEach((spec) => fail(spec.department, err.message));
     }
+    return result;
 }
 
-module.exports = { createOnboardingTickets };
+module.exports = { createOnboardingTickets, ONBOARDING_DEPARTMENTS };

@@ -33,6 +33,10 @@ if (!JWT_SECRET) {
 const ACCESS_TOKEN_EXPIRY = '15m';
 const REFRESH_TOKEN_EXPIRY = '7d';
 
+// bcrypt hash of a random, discarded value. Compared against when an account has no password
+// hash, so that path takes the same time as a real check and can't be told apart by timing.
+const NO_PASSWORD_DUMMY_HASH = '$2b$10$dhPohE3.HY9jbmZnUIR4xuuatUaurH8mI5nD38znHuzD.3ywmloHm';
+
 function generateTokens(payload) {
     const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
     const refreshToken = jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY });
@@ -94,9 +98,13 @@ router.post('/login', loginLimiter, async (req, res) => {
         let isValidPassword = false;
 
         if (!user.password) {
-            // No password in DB — allow Welcome@123 as default
-            isValidPassword = (password === 'Welcome@123');
-            console.log(`🔑 [LOGIN] password check (no hash in DB, default fallback): ${isValidPassword ? 'pass' : 'fail'}`);
+            // No password hash stored. There is deliberately no default password: the old
+            // Welcome@123 fallback let anyone who knew an employee ID log into such accounts.
+            // These users set a password via "Forgot password" (email OTP). Same generic 401
+            // as a wrong password, so the response doesn't reveal which accounts have no hash.
+            await bcrypt.compare(password, NO_PASSWORD_DUMMY_HASH);
+            isValidPassword = false;
+            console.log(`🔑 [LOGIN] no password hash set — rejected (user must use Forgot password) — employeeId=${user.employee_id}`);
         } else {
             isValidPassword = await bcrypt.compare(password, user.password);
             console.log(`🔑 [LOGIN] bcrypt compare: ${isValidPassword ? 'pass' : 'fail'}`);
@@ -356,14 +364,13 @@ router.post('/change-password', passwordLimiter, async (req, res) => {
         const { data: user, error } = await supabase.from('employees').select('*').eq('id', decoded.id).maybeSingle();
         if (error || !user) return res.status(404).json({ success: false, message: 'User not found' });
 
-        let isValid = false;
-        if (user.password) {
-            isValid = await bcrypt.compare(currentPassword, user.password);
-        } else {
-            // Employee has no hash yet — Welcome@123 is their temporary default credential
-            isValid = (currentPassword === 'Welcome@123');
+        if (!user.password) {
+            // No hash means there is no current password to prove — there is deliberately no
+            // default (the old Welcome@123 fallback). Setting one goes through the email-OTP reset.
+            return res.status(400).json({ success: false, message: "No password is set for this account. Use 'Forgot password' on the login page to set one." });
         }
 
+        const isValid = await bcrypt.compare(currentPassword, user.password);
         if (!isValid) return res.status(401).json({ success: false, message: 'Current password is incorrect' });
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
