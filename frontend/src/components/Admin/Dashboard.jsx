@@ -1055,7 +1055,7 @@ const AdminDashboard = () => {
         refreshing={loading}
         onExport={() => setShowExportModal(true)}
         headerExtra={canFilterByTeam && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.15)', borderRadius: 16, padding: '4px 10px 4px 12px' }}>
+          <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.15)', borderRadius: 16, padding: '4px 10px 4px 12px' }}>
             <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.85)', whiteSpace: 'nowrap' }}>View Team:</span>
             <select
               value={selectedManagerId}
@@ -1680,7 +1680,7 @@ const AdminDashboard = () => {
                         </div>
 
                         {/* Badge-style legend grid */}
-                        <div className="dash-legend-grid" style={{
+                        <div className="dash-legend-grid hrms-responsive-grid" style={{
                           display: 'grid',
                           gridTemplateColumns: '1fr 1fr',
                           gap: 8,
@@ -2307,7 +2307,7 @@ const AdminDashboard = () => {
         }
         const willBeHalfDay = clockOutPreview.is_clocked_in && clockOutPreview.status_if_clocked_out_now !== 'present';
         return (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="hrms-responsive-toolbar" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ background: '#fff', borderRadius: 18, padding: '32px 28px', boxShadow: '0 24px 64px rgba(0,0,0,0.22)', textAlign: 'center', maxWidth: 340, width: '90%' }}>
             <div style={{ fontSize: 44, marginBottom: 10 }}>{willBeHalfDay ? '⚠️' : '🕐'}</div>
             <div style={{ fontWeight: 700, fontSize: 18, color: '#111827', marginBottom: 8 }}>
@@ -2326,7 +2326,7 @@ const AdminDashboard = () => {
                 'Are you sure you want to clock out?'
               )}
             </div>
-            <div style={{ display: 'flex', gap: 10 }}>
+            <div className="hrms-responsive-toolbar" style={{ display: 'flex', gap: 10 }}>
               <button
                 onClick={() => { setShowClockOutConfirm(false); handleSubAdminClockOut(); }}
                 style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', background: willBeHalfDay ? '#ea580c' : '#f97316', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}

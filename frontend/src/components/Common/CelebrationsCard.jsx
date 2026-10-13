@@ -178,7 +178,7 @@ function WishThread({ recipientEmployeeId, recipientName, eventType, accent }) {
 
   return (
     <div style={{ marginTop: 14, borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: 12 }}>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+      <div className="hrms-responsive-toolbar" style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
         <input
           value={message}
           onChange={e => setMessage(e.target.value)}
@@ -199,7 +199,7 @@ function WishThread({ recipientEmployeeId, recipientName, eventType, accent }) {
       ) : wishes.map(w => (
         <div key={w.id} style={{ padding: '8px 0', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
           <div style={{ fontSize: 12, color: QA.textDark }}><strong>{w.sender_name}</strong> {w.message}</div>
-          <div style={{ display: 'flex', gap: 14, marginTop: 4 }}>
+          <div className="hrms-responsive-toolbar" style={{ display: 'flex', gap: 14, marginTop: 4 }}>
             <button onClick={() => toggleLike(w.id)}
               style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: w.liked_by_me ? QA.danger : QA.textMuted, fontSize: 11, padding: 0 }}>
               {w.liked_by_me ? <FaHeart size={11} /> : <FaRegHeart size={11} />} {w.like_count > 0 ? w.like_count : 'Like'}
@@ -216,7 +216,7 @@ function WishThread({ recipientEmployeeId, recipientName, eventType, accent }) {
                   <strong>{c.commenter_name}</strong> {c.comment}
                 </div>
               ))}
-              <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+              <div className="hrms-responsive-toolbar" style={{ display: 'flex', gap: 6, marginTop: 4 }}>
                 <input
                   value={commentInput[w.id] || ''}
                   onChange={e => setCommentInput(prev => ({ ...prev, [w.id]: e.target.value }))}
@@ -282,7 +282,7 @@ function HeroCard({ theme, person, eventType, expanded, confetti, onAction, onHi
           <span style={{ fontSize: 11, fontWeight: 600, color: QA.textMuted, background: '#fff', borderRadius: 20, padding: '3px 10px' }}>👤 From {person.department || 'the'} Team</span>
         </div>
 
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', position: 'relative' }}>
+        <div className="hrms-responsive-toolbar" style={{ display: 'flex', gap: 8, alignItems: 'center', position: 'relative' }}>
           {confetti && <ConfettiBurst />}
           <button onClick={onAction}
             style={{
@@ -813,7 +813,7 @@ export default function CelebrationsCard() {
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: theme.accent, display: 'inline-block' }} />
             <span style={{ fontSize: 11, fontWeight: 700, color: QA.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>Today</span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div className="" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <HeroCard
               theme={theme} person={todayPeople[0]} eventType={eventType}
               expanded={expandedId === todayPeople[0].employee_id}
@@ -823,7 +823,7 @@ export default function CelebrationsCard() {
               hiding={hidingId === todayPeople[0].employee_id}
             />
             {todayPeople.slice(1).map(p => (
-              <div key={p.employee_id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 4px' }}>
+              <div className="hrms-responsive-toolbar" key={p.employee_id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 4px' }}>
                 <Avatar photo={p.profile_image} id={p.employee_id} firstName={p.first_name} lastName={p.last_name} size={30} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 12, fontWeight: 600, color: QA.textDark }}>{p.first_name} {p.last_name}</div>

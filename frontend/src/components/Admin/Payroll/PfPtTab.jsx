@@ -233,7 +233,7 @@ const PfPtTab = ({ records, refetch }) => {
           ['PF (₹)', bulkPf, setBulkPf, '1800'],
           ['Professional Tax (₹)', bulkTax, setBulkTax, '0'],
         ].map(([label, val, setter, ph]) => (
-          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="hrms-responsive-toolbar" key={label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <label style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>{label}</label>
             <input
               type="number" min="0" step="1" placeholder={ph} value={val}
@@ -347,7 +347,7 @@ const PfPtTab = ({ records, refetch }) => {
                         )}
                       </td>
                       <td style={{ padding: '8px 10px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <button
                           onClick={() => handleSave(rec)}
                           disabled={isSaving || invalid || (!isDirty && isSaved)}

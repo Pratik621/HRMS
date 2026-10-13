@@ -234,7 +234,7 @@ const HousekeeperNetworkSecurity = () => {
               : 'Temporarily disable enforcement org-wide (e.g. office IP just changed).'}
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div className="hrms-responsive-toolbar" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           {overrideActive ? (
             <Button variant="outline-danger" size="sm" disabled={saving}
               onClick={() => patchPolicy({ stop_override: true }, 'Emergency override ended.')}
@@ -263,7 +263,7 @@ const HousekeeperNetworkSecurity = () => {
             <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>Your current IP</div>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Stand in the office and check this before adding a network below.</div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             {whoami && (
               <code style={{ fontSize: '13px', background: 'var(--body-bg)', border: '1px solid var(--border)', borderRadius: '6px', padding: '4px 10px' }}>
                 {whoami}
@@ -291,7 +291,7 @@ const HousekeeperNetworkSecurity = () => {
       </div>
 
       {/* ── Allowlist ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+      <div className="hrms-responsive-toolbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
         <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>Allowlisted networks</div>
         <button onClick={openNew} style={{
           display: 'flex', alignItems: 'center', gap: '6px',
@@ -348,7 +348,7 @@ const HousekeeperNetworkSecurity = () => {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+              <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                 <button onClick={() => toggleActive(n)} title={n.is_active ? 'Deactivate' : 'Activate'} style={{
                   background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
                   color: n.is_active ? 'var(--success)' : 'var(--text-muted)', fontSize: '20px',
@@ -408,7 +408,7 @@ const HousekeeperNetworkSecurity = () => {
               </Form.Text>
             </Form.Group>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+            <div className="hrms-responsive-toolbar" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
               <Button variant="light" size="sm" onClick={() => setShowModal(false)} style={{ fontSize: '13px', borderRadius: 'var(--radius-sm)' }}>
                 <FaTimes size={10} className="me-1" /> Cancel
               </Button>

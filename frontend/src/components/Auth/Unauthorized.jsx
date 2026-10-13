@@ -7,7 +7,7 @@ import { FaLock, FaArrowLeft } from 'react-icons/fa';
 const Unauthorized = () => {
   const navigate = useNavigate();
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8f9fa' }}>
+    <div className="hrms-responsive-toolbar" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8f9fa' }}>
       <div className="text-center p-4">
         <FaLock size={48} className="text-danger mb-3" />
         <h4 className="fw-bold mb-2">Access Denied</h4>

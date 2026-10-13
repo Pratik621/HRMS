@@ -98,7 +98,7 @@ const InfoRow = ({ label, value }) => (
 // `raw` is the unformatted value (bound to the input + saved to the backend);
 // `display` is only used to render the view-mode text (e.g. a formatted date).
 const FieldRow = ({ label, field, type = 'text', raw, display, editMode, onChange }) => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <div className="" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <span style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: 600 }}>{label}</span>
         {editMode ? (
             <input
@@ -124,7 +124,7 @@ const Section = ({ icon: Icon, title, children }) => (
             </div>
             <span style={{ fontSize: 13, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.6 }}>{title}</span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 20px', background: '#f8fafc', borderRadius: 10, padding: '14px 16px', border: '1px solid #f1f5f9' }}>
+        <div className="hrms-responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 20px', background: '#f8fafc', borderRadius: 10, padding: '14px 16px', border: '1px solid #f1f5f9' }}>
             {children}
         </div>
     </div>
@@ -332,7 +332,7 @@ export default function OfferLinksManager() {
         <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
 
             {/* ── LEFT PANEL ── */}
-            <div style={{ width: 360, flexShrink: 0, borderRight: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#fafafa' }}>
+            <div className="hrms-fluid-panel" style={{ width: 360, flexShrink: 0, borderRight: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#fafafa' }}>
 
                 {/* Search */}
                 <div style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', flexShrink: 0 }}>
@@ -345,7 +345,7 @@ export default function OfferLinksManager() {
                 </div>
 
                 {/* Status tabs */}
-                <div style={{ padding: '0 8px', borderBottom: '1px solid #e5e7eb', display: 'flex', gap: 2, overflowX: 'auto', flexShrink: 0, background: '#fff' }}>
+                <div className="hrms-responsive-toolbar" style={{ padding: '0 8px', borderBottom: '1px solid #e5e7eb', display: 'flex', gap: 2, overflowX: 'auto', flexShrink: 0, background: '#fff' }}>
                     {tabs.map(t => (
                         <button key={t.key} onClick={() => setFilter(t.key)}
                             style={{ padding: '8px 10px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 12, fontWeight: filter === t.key ? 700 : 500, color: filter === t.key ? "#1f4e79" : '#6b7280', borderBottom: filter === t.key ? '2px solid #6366f1' : '2px solid transparent', whiteSpace: 'nowrap' }}>
@@ -356,7 +356,7 @@ export default function OfferLinksManager() {
                 </div>
 
                 {/* Refresh row */}
-                <div style={{ padding: '8px 12px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, background: '#fff' }}>
+                <div className="hrms-responsive-toolbar" style={{ padding: '8px 12px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, background: '#fff' }}>
                     <span style={{ fontSize: 12, color: '#9ca3af' }}>{filtered.length} offer{filtered.length !== 1 ? 's' : ''}</span>
                     <button onClick={load} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', border: '1px solid #e5e7eb', borderRadius: 7, background: '#f9fafb', cursor: 'pointer', fontSize: 12, color: '#374151' }}>
                         <RefreshCw size={12} /> Refresh
@@ -515,7 +515,7 @@ export default function OfferLinksManager() {
                                 </div>
                             </div>
                             {/* Right-panel action buttons */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
+                            <div className="" style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
                                 {['pending', 'accepted'].includes(selSt) && (
                                     <button onClick={e => copyLink(e, selected.token)}
                                         style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid #e5e7eb', borderRadius: 8, background: copied === selected.token ? '#d1fae5' : '#f9fafb', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: copied === selected.token ? '#065f46' : '#374151' }}>
@@ -545,10 +545,10 @@ export default function OfferLinksManager() {
                                     </div>
                                     <span style={{ fontSize: 13, fontWeight: 700, color: '#14532d', textTransform: 'uppercase', letterSpacing: 0.6 }}>Employee Account Created</span>
                                 </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+                                <div className="hrms-responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
                                     <div>
                                         <span style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: 600, display: 'block', marginBottom: 3 }}>Employee ID</span>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                             <span style={{ fontSize: 14, fontWeight: 700, color: '#111827', fontFamily: 'monospace' }}>{selected.created_employee_id}</span>
                                             <button onClick={e => copyValue(e, `empid-${selected.id}`, selected.created_employee_id)} title="Copy" style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied === `empid-${selected.id}` ? '#16a34a' : '#9ca3af', padding: 2 }}>
                                                 {copied === `empid-${selected.id}` ? <CheckCircle size={13} /> : <Copy size={13} />}
@@ -557,7 +557,7 @@ export default function OfferLinksManager() {
                                     </div>
                                     <div>
                                         <span style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: 600, display: 'block', marginBottom: 3 }}>Login Email</span>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                             <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{subData?.email || '—'}</span>
                                             {subData?.email && (
                                                 <button onClick={e => copyValue(e, `email-${selected.id}`, subData.email)} title="Copy" style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied === `email-${selected.id}` ? '#16a34a' : '#9ca3af', padding: 2 }}>
@@ -569,7 +569,7 @@ export default function OfferLinksManager() {
                                     <div>
                                         <span style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: 600, display: 'block', marginBottom: 3 }}>Temporary Password</span>
                                         {selected.temp_password ? (
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                            <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                                 <span style={{ fontSize: 14, fontWeight: 700, color: '#92400e', fontFamily: 'monospace' }}>{selected.temp_password}</span>
                                                 <button onClick={e => copyValue(e, `pwd-${selected.id}`, selected.temp_password)} title="Copy" style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied === `pwd-${selected.id}` ? '#16a34a' : '#9ca3af', padding: 2 }}>
                                                     {copied === `pwd-${selected.id}` ? <CheckCircle size={13} /> : <Copy size={13} />}
@@ -607,7 +607,7 @@ export default function OfferLinksManager() {
                             ) : subData ? (
                                 <>
                                     {/* Edit toolbar */}
-                                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 12 }}>
+                                    <div className="hrms-responsive-toolbar" style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 12 }}>
                                         {editMode ? (
                                             <>
                                                 <button onClick={cancelEdit} disabled={savingEdit}

@@ -324,7 +324,7 @@ const PerformanceReviews = () => {
           <p style={{ fontSize: 13, color: '#64748b', marginBottom: 20 }}>
             Are you sure you want to submit this performance review for <strong>{selected?.full_name}</strong>?
           </p>
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+          <div className="hrms-responsive-toolbar" style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
             <Button variant="light" size="sm" onClick={() => setShowConfirm(false)} style={{ borderRadius: 8 }}>
               Cancel
             </Button>

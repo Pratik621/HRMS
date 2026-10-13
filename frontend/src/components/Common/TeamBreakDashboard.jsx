@@ -142,9 +142,9 @@ export default function TeamBreakDashboard({ managerId } = {}) {
 
         {/* LEFT – Team Break Activity */}
         <div className="role-break-card" style={{ background: '#fff', borderRadius: 14, boxShadow: '0 2px 10px rgba(0,0,0,0.07)', padding: '18px 20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <span style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>Team Break Activity</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <button
                 onClick={fetchStats}
                 disabled={loading}
@@ -267,7 +267,7 @@ export default function TeamBreakDashboard({ managerId } = {}) {
         </Modal.Header>
         <Modal.Body style={{ padding: 0 }}>
           {/* Toggle tabs */}
-          <div style={{ display: 'flex', borderBottom: '1px solid #f3f4f6' }}>
+          <div className="hrms-responsive-toolbar" style={{ display: 'flex', borderBottom: '1px solid #f3f4f6' }}>
             {[
               { id: 'used',   label: `Used (${usedList.length})` },
               { id: 'unused', label: `Not Used Yet (${unusedList.length})` },

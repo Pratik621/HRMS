@@ -36,3 +36,9 @@
 @media(max-width:640px) { .emp-mgmt-header h5 { font-size:24px !important; } .emp-mgmt-header p { display:block !important; } .emp-summary-card { padding:14px; } .emp-summary-card strong { font-size:24px; } .emp-summary-card small { display:none; } .emp-mgmt-header-actions { gap:6px; } }
 
 .emp-mgmt-header-actions select { border-radius:8px !important; min-height:36px; }
+
+.emp-direct-directory .emp-left-panel { width:100% !important; border-right:0 !important; }
+.emp-direct-directory .emp-right-panel { display:none !important; }
+.emp-direct-directory .emp-directory-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr)); align-content:start; gap:8px; padding:16px; }
+.emp-direct-directory .emp-directory-item { border:1px solid #e5eaf0; margin:0; background:#fff; }
+.emp-direct-directory .emp-directory-item:hover { border-color:#adc4d9; background:#eef4fb !important; }

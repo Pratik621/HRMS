@@ -392,7 +392,7 @@ const PayrollPreviewTab = ({ month, year, cycleLabel, records, refetch }) => {
                           : <span style={{ background: '#f1f5f9', color: '#94a3b8', borderRadius: 10, padding: '2px 8px', fontSize: 10 }}>No slip</span>}
                       </td>
                       <td style={{ padding: '8px 8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <button
                           onClick={() => handleSave(rec)}
                           disabled={rec.is_paid || rec.exclude_from_payroll || isSaving || isInvalid || (!isDirty && isSaved)}

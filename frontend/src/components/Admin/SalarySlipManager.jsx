@@ -198,7 +198,7 @@ const SalarySlipManager = ({ employee, refreshKey }) => {
       <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', marginBottom: 20 }}>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid #f1f5f9' }}>
+        <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid #f1f5f9' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ width: 30, height: 30, borderRadius: 8, background: "#eef4fb", display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <FaMoneyBillWave size={13} color="#1f4e79" />
@@ -291,7 +291,7 @@ const SalarySlipManager = ({ employee, refreshKey }) => {
                         Overtime (₹150/hr)
                       </div>
                       {/* Stepper row */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, width: '100%' }}>
+                      <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 4, width: '100%' }}>
                         <button
                           onClick={() => setOtInputs(prev => ({ ...prev, [genKey]: Math.max(0, (Number(prev[genKey]) || 0) - OT_STEP) }))}
                           disabled={otAmount <= 0}
@@ -470,7 +470,7 @@ const SalarySlipManager = ({ employee, refreshKey }) => {
                         </span>
                       </td>
                       <td style={{ padding: '10px 12px' }}>
-                        <div style={{ display: 'flex', gap: 4 }}>
+                        <div className="hrms-responsive-toolbar" style={{ display: 'flex', gap: 4 }}>
                           <button
                             onClick={() => { setViewSlip(s); setShowModal(true); }}
                             style={btnStyle('#0ea5e9', '#f0f9ff')}

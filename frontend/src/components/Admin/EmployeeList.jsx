@@ -318,7 +318,7 @@ const EmpQuickView = ({ emp, onClose, navigate, user, onToggleStatus, togglingSt
           </div>
         </div>
 
-        <div style={{ padding: 14, borderTop: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
+        <div className="" style={{ padding: 14, borderTop: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
           <button
             onClick={() => {
               setNewPassword(''); setConfirmPassword(''); setPasswordError(''); setPasswordSuccess('');
@@ -395,7 +395,7 @@ const EmpQuickView = ({ emp, onClose, navigate, user, onToggleStatus, togglingSt
       </div>
 
       {/* ── Tab bar ── */}
-      <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb', background: '#fff', flexShrink: 0, overflowX: 'auto' }}>
+      <div className="hrms-responsive-toolbar" style={{ display: 'flex', borderBottom: '1px solid #e5e7eb', background: '#fff', flexShrink: 0, overflowX: 'auto' }}>
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{
             border: 'none', background: 'none', cursor: 'pointer',
@@ -426,7 +426,7 @@ const EmpQuickView = ({ emp, onClose, navigate, user, onToggleStatus, togglingSt
             </div>
 
             {/* Profile % + Attendance */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+            <div className="hrms-responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
               <div style={{ background: '#fff', borderRadius: 12, padding: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
                 <CompletionRing pct={pct} size={52} />
               </div>
@@ -520,7 +520,7 @@ const EmpQuickView = ({ emp, onClose, navigate, user, onToggleStatus, togglingSt
               <div style={{ textAlign: 'center', padding: 40 }}><Spinner animation="border" size="sm" /></div>
             ) : attSummary ? (
               <>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+                <div className="hrms-responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
                   <StatMini label="Present" value={attSummary.present} color="#22c55e" />
                   <StatMini label="Absent" value={attSummary.absent} color="#ef4444" />
                   <StatMini label="Late Arrivals" value={attSummary.late} color="#f97316" />
@@ -549,7 +549,7 @@ const EmpQuickView = ({ emp, onClose, navigate, user, onToggleStatus, togglingSt
             {dataLoading ? (
               <div style={{ textAlign: 'center', padding: 40 }}><Spinner animation="border" size="sm" /></div>
             ) : leaveBalance ? (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+              <div className="hrms-responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
                 <StatMini label="Total Accrued" value={parseFloat(leaveBalance.total_accrued || 0).toFixed(1)} color="#1f4e79" />
                 <StatMini label="Used" value={parseFloat(leaveBalance.used || 0).toFixed(1)} color="#ef4444" />
                 <StatMini label="Available" value={parseFloat(leaveBalance.available || 0).toFixed(1)} color="#22c55e" />
@@ -585,7 +585,7 @@ const EmpQuickView = ({ emp, onClose, navigate, user, onToggleStatus, togglingSt
 
         {/* ═══ DOCUMENTS ═══ */}
         {tab === 'documents' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div className="" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <button onClick={() => onViewDocs(emp)} style={{ width: '100%', background: "#1f4e79", color: '#fff', border: 'none', borderRadius: 8, padding: '10px', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
               <FaFileAlt size={12} /> View Documents
             </button>
@@ -922,7 +922,7 @@ const EmployeeList = () => {
   }
 
   return (
-    <div className="emp-mgmt-page" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', background: '#f8fafc' }}>
+    <div className={user?.role === 'desktop_support' ? 'emp-mgmt-page' : 'emp-mgmt-page emp-direct-directory'} style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', background: '#f8fafc' }}>
       <style>{EMP_RESPONSIVE_CSS}</style>
 
       {/* ── Page Header ── */}
@@ -1020,7 +1020,7 @@ const EmployeeList = () => {
       </div>}
 
       {/* ── View Toggle ── */}
-      <div className="emp-view-tabs" style={{ display: 'flex', borderBottom: '1px solid #e5e7eb', background: '#fff', flexShrink: 0 }}>
+      <div className="emp-view-tabs hrms-responsive-toolbar" style={{ display: 'flex', borderBottom: '1px solid #e5e7eb', background: '#fff', flexShrink: 0 }}>
         {[
           { key: 'employees', label: 'Employees' },
           { key: 'offerLinks', label: 'Offer Links' },
@@ -1062,7 +1062,7 @@ const EmployeeList = () => {
           </div>
 
           {/* Active / Inactive tabs */}
-          <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb', flexShrink: 0 }}>
+          <div className="hrms-responsive-toolbar" style={{ display: 'flex', borderBottom: '1px solid #e5e7eb', flexShrink: 0 }}>
             {[
               { key: 'active', label: 'Active', count: activeCount, color: '#22c55e' },
               { key: 'inactive', label: 'Inactive', count: inactiveCount, color: '#ef4444' },
@@ -1099,7 +1099,7 @@ const EmployeeList = () => {
                 key={emp.id}
                 emp={emp}
                 selected={selectedEmpId === emp.id}
-                onClick={() => setSelectedEmpId(emp.id)}
+                onClick={() => user?.role === 'desktop_support' ? setSelectedEmpId(emp.id) : navigate(`/admin/employees/${encodeURIComponent(emp.employee_id)}`)}
               />
             ))}
           </div>

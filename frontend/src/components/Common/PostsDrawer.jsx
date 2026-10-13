@@ -190,9 +190,9 @@ function Composer({ onPosted, active }) {
       </div>
 
       {postType === 'poll' && (
-        <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div className="" style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
           {pollOptions.map((opt, i) => (
-            <div key={i} style={{ display: 'flex', gap: 6 }}>
+            <div className="hrms-responsive-toolbar" key={i} style={{ display: 'flex', gap: 6 }}>
               <input
                 value={opt}
                 onChange={e => setPollOptions(prev => prev.map((o, idx) => idx === i ? e.target.value : o))}
@@ -211,7 +211,7 @@ function Composer({ onPosted, active }) {
               + Add option
             </button>
           )}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4, padding: '8px 10px', background: '#f9fafb', borderRadius: 10 }}>
+          <div className="" style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4, padding: '8px 10px', background: '#f9fafb', borderRadius: 10 }}>
             {[
               ['allowVoteChange', 'Allow employees to change their vote'],
               ['showResultsBeforeVoting', 'Show results before voting'],
@@ -336,7 +336,7 @@ function CommentThread({ postId, initialFirstComment, onCountChange }) {
       {topLevel.map(c => (
         <div key={c.id} style={{ marginBottom: 8 }}>
           <div style={{ fontSize: 12, color: QA.textDark }}><strong>{c.commenter_name}</strong> {c.comment}</div>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 2 }}>
+          <div className="hrms-responsive-toolbar" style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 2 }}>
             <span style={{ fontSize: 10, color: QA.textMuted }}>{timeAgo(c.created_at)}</span>
             <button onClick={() => setReplyTo({ id: c.id, name: c.commenter_name })}
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: QA.textMuted, fontSize: 10, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -350,7 +350,7 @@ function CommentThread({ postId, initialFirstComment, onCountChange }) {
             </div>
           ))}
           {replyTo?.id === c.id && (
-            <div style={{ display: 'flex', gap: 6, marginTop: 6, marginLeft: 18 }}>
+            <div className="hrms-responsive-toolbar" style={{ display: 'flex', gap: 6, marginTop: 6, marginLeft: 18 }}>
               <input
                 autoFocus
                 value={replyInput}
@@ -367,7 +367,7 @@ function CommentThread({ postId, initialFirstComment, onCountChange }) {
           )}
         </div>
       ))}
-      <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+      <div className="hrms-responsive-toolbar" style={{ display: 'flex', gap: 6, marginTop: 8 }}>
         <input
           value={input}
           onChange={e => setInput(e.target.value)}
@@ -396,7 +396,7 @@ function FeedPost({ post, viewer, following, onToggleFollow, onReact, onDelete, 
 
   return (
     <div style={{ borderBottom: '8px solid #f8fafc', padding: '14px 16px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <Avatar photo={post.author_photo} id={post.employee_id} firstName={post.author_name?.split(' ')[0]} lastName={post.author_name?.split(' ')[1]} size={40} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
@@ -469,8 +469,8 @@ function FeedPost({ post, viewer, following, onToggleFollow, onReact, onDelete, 
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
+        <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           {REACTIONS.map(r => (
             <button key={r.key} className={`post-social-action${post.my_reaction === r.key ? ' is-active' : ''}`} onClick={() => onReact(post.id, r.key)} title={r.label}
               style={{ border: 'none', borderRadius: 20, padding: '5px 9px', cursor: 'pointer', color: post.my_reaction === r.key ? QA.textDark : QA.textMuted, display: 'flex', alignItems: 'center' }}>
@@ -635,12 +635,12 @@ export default function PostsDrawer({ show, onClose }) {
           @media (max-width: 640px) { .qa-posts-drawer { width: 100% !important; } }
         `}</style>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: '#fff', borderBottom: `1px solid ${QA.border}`, flexShrink: 0 }}>
+        <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: '#fff', borderBottom: `1px solid ${QA.border}`, flexShrink: 0 }}>
           <div>
             <div style={{ fontSize: 16, fontWeight: 800, color: QA.textDark }}>📣 All Posts</div>
             <div style={{ fontSize: 11, color: QA.textMuted }}>Connect • Share • Celebrate together</div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <select value={sortOrder} onChange={e => setSortOrder(e.target.value)}
               style={{ border: `1px solid ${QA.border}`, borderRadius: 20, padding: '6px 12px', fontSize: 11, color: QA.textDark, background: '#fff' }}>
               <option value="latest">Latest</option>

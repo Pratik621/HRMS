@@ -280,7 +280,7 @@ const PayrollAdjustment = () => {
 
       {/* ── Page Header ──────────────────────────────────────────────────────── */}
       <div style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+        <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 36, height: 36, borderRadius: 10, background: "#eef4fb", display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <FaMoneyBillWave size={16} color="#1f4e79" />
@@ -301,7 +301,7 @@ const PayrollAdjustment = () => {
 
       {/* ── Controls bar ─────────────────────────────────────────────────────── */}
       <div style={{ background: '#fff', borderRadius: 12, padding: '16px 20px', boxShadow: '0 1px 6px rgba(0,0,0,0.06)', marginBottom: 20, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <label style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>Year</label>
           <select
             value={year}
@@ -311,7 +311,7 @@ const PayrollAdjustment = () => {
             {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <label style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>Month</label>
           <select
             value={month}
@@ -330,7 +330,7 @@ const PayrollAdjustment = () => {
           {loading ? 'Loading…' : 'Load Payroll'}
         </button>
 
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+        <div className="hrms-responsive-toolbar" style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
           <button
             onClick={handleSaveAll}
             disabled={dirtyCount === 0}
@@ -353,7 +353,7 @@ const PayrollAdjustment = () => {
           <span style={{ fontSize: 12, fontWeight: 700, color: '#1e293b' }}>
             Bulk PF / PT{selectedIds.size > 0 ? ` — ${selectedIds.size} selected` : ''}
           </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <label style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>PF (₹)</label>
             <input
               type="number" min="0" step="1" placeholder="e.g. 1800"
@@ -362,7 +362,7 @@ const PayrollAdjustment = () => {
               style={{ width: 90, padding: '6px 8px', fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0', outline: 'none' }}
             />
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="hrms-responsive-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <label style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>PT (₹)</label>
             <input
               type="number" min="0" step="1" placeholder="e.g. 200"

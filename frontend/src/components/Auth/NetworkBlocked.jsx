@@ -5,7 +5,7 @@ import { FaWifi } from 'react-icons/fa';
 
 const NetworkBlocked = () => {
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8f9fa' }}>
+    <div className="hrms-responsive-toolbar" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8f9fa' }}>
       <div className="text-center p-4" style={{ maxWidth: 420 }}>
         <FaWifi size={48} className="text-danger mb-3" />
         <h4 className="fw-bold mb-2">Network not approved</h4>

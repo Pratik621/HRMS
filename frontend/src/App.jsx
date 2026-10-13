@@ -5,6 +5,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import './index.css';
 import './components/Layout/ManagementTheme.css';
+import './components/Layout/ResponsiveLayout.css';
 
 // Layout & Auth — always needed, load eagerly
 import Navbar from './components/Layout/Navbar';
@@ -172,7 +173,7 @@ function AppContent() {
 
   // For all other pages, render with sidebar and navbar
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', position: 'relative' }}>
+    <div className="hrms-app-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', position: 'relative' }}>
       {/* Sidebar */}
       {user && <Sidebar />}
 
@@ -192,7 +193,7 @@ function AppContent() {
         {user && <Navbar />}
 
         {/* Page Content */}
-        <div className={managementTheme ? 'hrms-management-theme' : undefined} style={{
+        <div className={managementTheme ? 'hrms-page-content hrms-management-theme' : 'hrms-page-content'} style={{
           flex: 1,
           overflowY: 'auto',
           padding: '28px',
