@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const supabase = require('../config/supabase');
 const { verifyToken } = require('../middleware/auth');
+const { omitSecretEmployeeFields } = require('../utils/employeeFields');
 
 // ============== STEP 1: Get pending requests for employee ==============
 router.get('/pending-requests', verifyToken, async (req, res) => {
@@ -89,7 +90,7 @@ router.get('/current-data', verifyToken, async (req, res) => {
 
         if (error) throw error;
 
-        res.json(employee);
+        res.json(omitSecretEmployeeFields(employee));
     } catch (error) {
         console.error('❌ Error:', error);
         res.status(500).json({ 

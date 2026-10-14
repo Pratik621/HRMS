@@ -1,6 +1,7 @@
 const { createClient } = require('@supabase/supabase-js');
 const WebSocket = require('ws');
 require('dotenv').config();
+const { createSupabaseFetch, parseTimeoutMs, DEFAULT_TIMEOUT_MS, DEFAULT_STORAGE_TIMEOUT_MS } = require('./supabaseFetch');
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
@@ -17,37 +18,21 @@ if (!supabaseUrl || !supabaseKey) {
 // transport avoids that crash entirely and works the same on every Node version, so behavior
 // doesn't depend on which Node version happens to be installed/provisioned.
 //
-// Resilient fetch: retries a request only when the underlying connection failed before any
-// HTTP response came back (e.g. Postgres/PostgREST killing a connection mid-request — seen in
-// Supabase logs as "57P01 terminating connection due to administrator command" during a brief
-// project health event). This never retries a request that DID get a response, even an error
-// one — at that point the server has already processed it, and retrying could duplicate a
-// side effect (e.g. re-running an insert/RPC). A dropped connection before any response means
-// the server may or may not have processed it, but every write path this app has (employee_id
-// rename, attendance writes, etc.) already guards its own idempotency with existence/uniqueness
-// checks, so a safe retry here can only ever land on "already done" or succeed cleanly — never
-// silently duplicate data.
-const MAX_FETCH_RETRIES = 2;
-const RETRY_BASE_DELAY_MS = 300;
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const resilientFetch = async (url, options) => {
-    for (let attempt = 0; ; attempt++) {
-        try {
-            return await fetch(url, options);
-        } catch (err) {
-            if (attempt >= MAX_FETCH_RETRIES) throw err;
-            const delay = RETRY_BASE_DELAY_MS * 2 ** attempt;
-            console.warn(`⚠️  [SUPABASE] fetch failed (attempt ${attempt + 1}/${MAX_FETCH_RETRIES + 1}), retrying in ${delay}ms:`, err.message);
-            await sleep(delay);
-        }
-    }
-};
+// Timeout + retry policy for every Supabase HTTP call — see config/supabaseFetch.js. Header
+// timeout defaults to 15s for database (PostgREST) requests and 60s for Storage uploads/downloads;
+// override with SUPABASE_FETCH_TIMEOUT_MS / SUPABASE_STORAGE_TIMEOUT_MS (0 disables). Only
+// GET/HEAD are retried (once, with jitter, connection failures only). Writes are never retried:
+// a connection dropped after Postgres committed would otherwise duplicate the write, and not
+// every table has a unique key to absorb that (e.g. attendance has none on employee_id+date).
+const supabaseFetch = createSupabaseFetch({
+    timeoutMs: parseTimeoutMs(process.env.SUPABASE_FETCH_TIMEOUT_MS, DEFAULT_TIMEOUT_MS),
+    storageTimeoutMs: parseTimeoutMs(process.env.SUPABASE_STORAGE_TIMEOUT_MS, DEFAULT_STORAGE_TIMEOUT_MS),
+});
 
 const supabase = createClient(supabaseUrl, supabaseKey, {
     auth: { autoRefreshToken: false, persistSession: false },
     realtime: { transport: WebSocket },
-    global: { fetch: resilientFetch }
+    global: { fetch: supabaseFetch }
 });
 
 console.log('✅ Supabase client initialized');
