@@ -27,7 +27,12 @@ router.get('/usage-by-type/:employee_id', leaveController.getLeaveUsageByType);
 router.get('/', leaveController.getLeaves);
 
 // Apply for leave
-router.post('/apply', leaveController.applyLeave);
+router.post('/apply', (req, res, next) => {
+    if (req.body.employee_id !== req.user.employeeId) {
+        return res.status(403).json({ success: false, message: 'Employees must submit their own leave requests. HR/admin can approve them.' });
+    }
+    next();
+}, leaveController.applyLeave);
 
 // Update leave status (admin only)
 router.put('/:id/status', leaveController.updateLeaveStatus);

@@ -42,6 +42,7 @@ const teamRoutes          = require('./routes/teamRoutes');
 const deductionRoutes     = require('./routes/deductionRoutes');
 const onboardingRoutes    = require('./routes/onboardingRoutes');
 const offerLetterRoutes   = require('./routes/offerLetterRoutes');
+const employmentLetterRoutes = require('./routes/employmentLetterRoutes');
 const ticketRoutes        = require('./routes/ticketRoutes');
 const wishesRoutes        = require('./routes/wishesRoutes');
 const postsRoutes         = require('./routes/postsRoutes');
@@ -209,6 +210,7 @@ app.use('/api/cron',        cronRoutes);
 // Onboarding — mixed auth (public token routes + protected admin routes both in same file)
 app.use('/api/onboarding',  onboardingRoutes);
 app.use('/api/offer-letters', offerLetterRoutes);
+app.use('/api/employment-letters', employmentLetterRoutes);
 // Self-contained auth (verifyToken + strict admin-only check) — see breakNotificationRoutes.js
 app.use('/api/break-notifications', breakNotificationRoutes);
 

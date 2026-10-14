@@ -936,11 +936,11 @@ exports.getOnLeaveToday = async (req, res) => {
             scope = 'department';
         }
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 
         const { data: leaves, error: leavesErr } = await supabase
             .from('leaves')
-            .select('employee_id, leave_type, start_date, end_date')
+            .select('employee_id, leave_type, start_date, end_date, reason, approved_by')
             .eq('status', 'approved')
             .lte('start_date', today)
             .gte('end_date', today);
@@ -950,7 +950,9 @@ exports.getOnLeaveToday = async (req, res) => {
             return res.json({ success: true, scope, date: today, count: 0, employees: [] });
         }
 
-        const empIds = [...new Set(leaves.map(l => l.employee_id))];
+        const actualLeaves = leaves.filter(l => !(l.approved_by === 'SYSTEM' && l.reason === 'Auto-generated: No attendance recorded'));
+        const empIds = [...new Set(actualLeaves.map(l => l.employee_id))];
+        if (!empIds.length) return res.json({ success: true, scope, date: today, count: 0, employees: [] });
         const { data: emps, error: empsErr } = await supabase
             .from('employees')
             .select('employee_id, first_name, last_name, department, designation, profile_image, reporting_manager')
@@ -980,8 +982,14 @@ exports.getOnLeaveToday = async (req, res) => {
             return (e.department || '').toLowerCase() === targetDept;
         });
 
-        const result = scoped.map(e => {
-            const leave = leaves.find(l => l.employee_id === e.employee_id);
+        // Approved leave remains in the leave ledger; actual clock-in wins in this live widget.
+        const { data: attendance, error: attendanceErr } = await supabase
+            .from('attendance').select('employee_id, clock_in, clock_in_ist')
+            .eq('attendance_date', today).in('employee_id', empIds);
+        if (attendanceErr) throw attendanceErr;
+        const clockedIn = new Set((attendance || []).filter(a => a.clock_in || a.clock_in_ist).map(a => a.employee_id));
+        const result = scoped.filter(e => !clockedIn.has(e.employee_id)).map(e => {
+            const leave = actualLeaves.find(l => l.employee_id === e.employee_id);
             return {
                 employee_id: e.employee_id,
                 first_name: e.first_name,

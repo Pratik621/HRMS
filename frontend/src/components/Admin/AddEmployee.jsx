@@ -891,7 +891,7 @@ const AddEmployee = () => {
                         {managers.length > 0 && (
                           <optgroup label="Team Leaders">
                             {managers.map(m => {
-                              const fullName = `${m.first_name} ${m.last_name}`.trim();
+                              const fullName = [m.first_name, m.last_name].filter(Boolean).map(n => n.trim()).join(' ');
                               return (
                                 <option key={m.employee_id} value={fullName}>
                                   {fullName} ({m.designation})
@@ -903,7 +903,7 @@ const AddEmployee = () => {
                         {subAdmins.length > 0 && (
                           <optgroup label="Managers">
                             {subAdmins.map(m => {
-                              const fullName = `${m.first_name} ${m.last_name}`.trim();
+                              const fullName = [m.first_name, m.last_name].filter(Boolean).map(n => n.trim()).join(' ');
                               return (
                                 <option key={m.employee_id} value={fullName}>
                                   {fullName} ({m.designation})
@@ -915,7 +915,7 @@ const AddEmployee = () => {
                         {hrEmployees.length > 0 && (
                           <optgroup label="HR">
                             {hrEmployees.map(m => {
-                              const fullName = `${m.first_name} ${m.last_name}`.trim();
+                              const fullName = [m.first_name, m.last_name].filter(Boolean).map(n => n.trim()).join(' ');
                               return (
                                 <option key={m.employee_id} value={fullName}>
                                   {fullName} ({m.designation})

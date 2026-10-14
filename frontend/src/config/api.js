@@ -20,6 +20,9 @@ if (import.meta.env.DEV) {
 const ep = (path) => path;
 
 export const API_ENDPOINTS = {
+  EMPLOYMENT_LETTER_DATA: id => ep('/api/employment-letters/employee/' + encodeURIComponent(id) + '/data'),
+  EMPLOYMENT_LETTER_PREVIEW: id => ep('/api/employment-letters/employee/' + encodeURIComponent(id) + '/preview'),
+  EMPLOYMENT_LETTER_SEND: id => ep('/api/employment-letters/employee/' + encodeURIComponent(id) + '/send'),
   // Manager
   MANAGER_TEAM:         ep('/api/employees/manager/team'),
   MANAGER_UPDATE_SHIFT: (employeeId) => ep(`/api/employees/manager/shift/${employeeId}`),

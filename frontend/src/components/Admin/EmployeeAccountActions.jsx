@@ -5,12 +5,14 @@ import API_ENDPOINTS from '../../config/api';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import SendOfferLetterModal from './SendOfferLetterModal';
+import EmploymentLetterModal from './EmploymentLetterModal';
 
 export default function EmployeeAccountActions({ employee, onEmployeeChange }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [offerOpen, setOfferOpen] = useState(false);
+  const [letterType, setLetterType] = useState(null);
   const [password, setPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
   const [busy, setBusy] = useState(false);
@@ -54,12 +56,17 @@ export default function EmployeeAccountActions({ employee, onEmployeeChange }) {
       </div>
       <div className="d-flex flex-wrap gap-2">
         <Button size="sm" variant="outline-primary" onClick={() => setOfferOpen(true)}>Send Offer Letter</Button>
+        {['admin', 'hr'].includes(user?.role) && <>
+          <Button size="sm" variant="outline-primary" onClick={() => setLetterType('relieving')}>Relieving Letter</Button>
+          <Button size="sm" variant="outline-primary" onClick={() => setLetterType('experience')}>Experience Letter</Button>
+        </>}
         <Button size="sm" variant="outline-primary" onClick={() => navigate('/admin/payroll')}>Salary / Payroll</Button>
         <Button size="sm" variant="outline-secondary" disabled={busy} onClick={() => { setPasswordMessage(null); setPasswordOpen(true); }}>Update Password</Button>
         <Button size="sm" variant={employee.is_active !== false ? 'outline-danger' : 'outline-success'} disabled={busy} onClick={toggleStatus}>{employee.is_active !== false ? 'Deactivate Account' : 'Activate Account'}</Button>
       </div>
     </div>
     {message && <Alert className="mt-3 mb-0" variant={message.variant} dismissible onClose={() => setMessage(null)}>{message.text}</Alert>}
+    {letterType && <EmploymentLetterModal show onHide={() => setLetterType(null)} employee={employee} type={letterType} />}
     <SendOfferLetterModal show={offerOpen} onHide={() => setOfferOpen(false)} employee={employee} />
     <Modal show={passwordOpen} onHide={closePassword} centered backdrop={busy ? 'static' : true} keyboard={!busy}>
       <Form onSubmit={updatePassword}>

@@ -3401,6 +3401,7 @@ exports.validateAttendanceImport = async (req, res) => {
                 if (date < periodStart || date > periodEnd) {
                     rowErrors.push(`Date ${date} is outside the salary period (${periodStart} to ${periodEnd})`); continue;
                 }
+                if (['L', 'PL', 'CO', 'BL'].includes(code)) { rowErrors.push(`Leave on ${date} must come from an employee request approved through the leave workflow.`); continue; }
                 if (!VALID_CODES.has(code)) { rowErrors.push(`"${raw}" on ${date} — not a recognised code`); continue; }
                 cleanDates[date] = code;
             }
@@ -3688,7 +3689,7 @@ exports.adminMarkAttendance = async (req, res) => {
             return res.status(400).json({ success: false, message: 'employee_id, attendance_date, and status_code are required' });
         }
 
-        const ADMIN_MARK_VALID_CODES = ['present', 'absent', 'half_day', 'week_off', 'holiday', 'leave', 'paid_leave', 'comp_off', 'birthday_leave'];
+        const ADMIN_MARK_VALID_CODES = ['present', 'absent', 'half_day', 'week_off', 'holiday'];
         if (!ADMIN_MARK_VALID_CODES.includes(status_code)) {
             return res.status(400).json({ success: false, message: `Invalid status_code. Must be one of: ${ADMIN_MARK_VALID_CODES.join(', ')}` });
         }

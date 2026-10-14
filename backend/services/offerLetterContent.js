@@ -13,8 +13,6 @@
 //   { type: 'hr' }                      - thin divider rule
 
 const buildOpeningBlocks = (d) => ([
-    { type: 'para', text: `Date: ${d.letterDate}` },
-    { type: 'space', size: 10 },
     { type: 'para', text: 'To,' },
     { type: 'para', text: `${d.title ? d.title + ' ' : ''}${d.employeeName.toUpperCase()}` },
     { type: 'para', text: d.employeeLocation },
