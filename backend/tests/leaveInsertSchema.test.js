@@ -239,19 +239,16 @@ for (const failure of [false, true]) {
         });
     }
 
-    test(`absence job: unpaid insert ${failure ? 'failure is logged, not counted as created' : 'uses valid schema'}`, async () => {
+    test('absence job records absence without creating any leave', async () => {
         const h = harness('cron/absentEmployeeCheck.js', [
             response('employees', [{ ...employee, dob: null }]), response('leaves', []),
-            response('attendance'), response('attendance'), response('leaves'),
-            response('leaves', null, failure ? { message: 'Database unavailable' } : null),
+            response('attendance'), response('attendance'),
         ]);
         const result = await h.api.markAbsentEmployeesAsLeave();
-        const leaves = h.inserts.filter(x => x.table === 'leaves');
-        assert.equal(leaves.length, 1);
-        assert.equal(leaves[0].rows[0].leave_type, 'Unpaid');
-        assert.equal(leaves[0].rows[0].status, 'approved');
-        assert.equal(result.leaveCreatedCount, failure ? 0 : 1);
-        assert.equal(h.errors.some(args => String(args[0]).includes('Error creating leave record')), failure);
+        assert.equal(h.inserts.filter(x => x.table === 'leaves').length, 0);
+        assert.equal(h.inserts.find(x => x.table === 'attendance').rows[0].status, 'absent');
+        assert.equal(result.absentCount, 1);
+        assert.equal(result.leaveCreatedCount, 0);
         assert.equal(h.responses.length, 0);
     });
 

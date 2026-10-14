@@ -18,11 +18,15 @@ export default function OnLeaveTodayCard({ scope = 'department', department, man
     const url = managerId && managerId !== 'ALL'
       ? `${API_ENDPOINTS.LEAVE_ON_LEAVE_TODAY(effectiveScope, department)}&manager_id=${managerId}`
       : API_ENDPOINTS.LEAVE_ON_LEAVE_TODAY(effectiveScope, department);
-    axios.get(url)
+    const load = () => axios.get(url)
       .then(res => { if (!cancelled && res.data?.success) setEmployees(res.data.employees || []); })
       .catch(() => {})
       .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+    load();
+    const timer = setInterval(load, 30000);
+    const onFocus = () => load();
+    window.addEventListener('focus', onFocus);
+    return () => { cancelled = true; clearInterval(timer); window.removeEventListener('focus', onFocus); };
   }, [scope, department, managerId]);
 
   return (
@@ -54,7 +58,7 @@ export default function OnLeaveTodayCard({ scope = 'department', department, man
       fontWeight: 700
     }}
   >
-    Everyone is working today!
+    No approved leave to display
   </div>
 
   <div

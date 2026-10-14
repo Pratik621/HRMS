@@ -476,7 +476,7 @@ const AttendanceCalendar = ({ employee, onAttendanceSaved, initialMonth, initial
 
           {/* Legend */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 14, paddingTop: 12, borderTop: '1px solid #f3f4f6' }}>
-            {STATUSES.map(s => (
+            {STATUSES.filter(s => !['leave', 'paid_leave', 'comp_off', 'birthday_leave'].includes(s.code)).map(s => (
               <div key={s.code} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 <div style={{ width: 16, height: 16, borderRadius: 4, background: s.bg, border: `1px solid ${s.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <span style={{ fontSize: 8, fontWeight: 800, color: s.color }}>{s.short}</span>
@@ -511,7 +511,7 @@ const AttendanceCalendar = ({ employee, onAttendanceSaved, initialMonth, initial
           <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', padding: '6px 8px 8px', borderBottom: '1px solid #f3f4f6', marginBottom: 4 }}>
             {popover.dateStr} — Select Status
           </div>
-          {STATUSES.map(s => {
+          {STATUSES.filter(s => !['leave', 'paid_leave', 'comp_off', 'birthday_leave'].includes(s.code)).map(s => {
             const availBal = s.requiresBalance ? balanceFor[s.requiresBalance] : null;
             const noBalance = availBal !== null && availBal < 1;
             const isSelected = effectiveMap[popover.dateStr] === s.code;

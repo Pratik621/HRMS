@@ -815,7 +815,7 @@ const AdminDashboard = () => {
       }
     });
 
-    const onLeave = attendanceData.filter(a => a.is_on_leave || a.status === 'on_leave').length;
+    const onLeave = attendanceData.filter(a => !a.clock_in && (a.is_on_leave || a.status === 'on_leave')).length;
     // A company holiday (static calendar or HOL-button, see getAttendanceReport) has no
     // clock_in and isn't a leave — without excluding it here, every employee on a holiday
     // would silently count as Absent in this deficit-based total.
@@ -993,7 +993,7 @@ const AdminDashboard = () => {
   };
 
   const getStatusBadge = (record) => {
-    if (record.is_on_leave || record.status === 'on_leave') {
+    if (!record.clock_in && (record.is_on_leave || record.status === 'on_leave')) {
       return <Badge bg="purple" style={{ backgroundColor: '#6f42c1' }}><FaUmbrellaBeach className="me-1" size={10} /> On Leave</Badge>;
     }
     if (!record.clock_in) return <Badge bg="secondary">Not Clocked</Badge>;
