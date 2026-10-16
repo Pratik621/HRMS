@@ -161,6 +161,18 @@ describe('login: no default password', () => {
         assert.equal(r.status, 200);
         assert.equal(r.body.success, true);
         assert.ok(r.body.token && r.body.refreshToken);
+        const access = jwt.verify(r.body.token, process.env.JWT_SECRET);
+        assert.equal(access.exp - access.iat, 9 * 60 * 60);
+        assert.doesNotThrow(() => jwt.verify(r.body.token, process.env.JWT_SECRET, {
+            clockTimestamp: access.iat + 9 * 60 * 60 - 1,
+        }));
+        assert.throws(() => jwt.verify(r.body.token, process.env.JWT_SECRET, {
+            clockTimestamp: access.iat + 9 * 60 * 60,
+        }), { name: 'TokenExpiredError' });
+        const renewed = await post(app.base, '/api/auth/refresh', { refreshToken: r.body.refreshToken });
+        assert.equal(renewed.status, 200);
+        const renewedAccess = jwt.verify(renewed.body.token, process.env.JWT_SECRET);
+        assert.equal(renewedAccess.exp - renewedAccess.iat, 9 * 60 * 60);
         assert.equal(r.body.user.employeeId, 'TEST002');
         assert.equal(r.body.user.password, undefined);
     });

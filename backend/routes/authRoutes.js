@@ -30,7 +30,7 @@ const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || (JWT_SECRET ? JWT_S
 if (!JWT_SECRET) {
     console.error('🚨 FATAL: JWT_SECRET environment variable is not set. Auth routes will not work.');
 }
-const ACCESS_TOKEN_EXPIRY = '15m';
+const ACCESS_TOKEN_EXPIRY = '9h';
 const REFRESH_TOKEN_EXPIRY = '7d';
 
 // bcrypt hash of a random, discarded value. Compared against when an account has no password

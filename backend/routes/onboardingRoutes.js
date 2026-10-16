@@ -16,6 +16,7 @@ const { getCompanyInfo } = require('../config/companyInfo');
 const { DEFAULT_CONTRACT_POLICY } = require('../utils/contractPolicy');
 const { generateNextEmployeeId } = require('../utils/employeeId');
 const { validateOnboardingEmployeeFields } = require('../utils/onboardingValidation');
+const { saveOnboardingApproval } = require('../utils/onboardingApproval');
 
 const BUCKET = 'hrms-documents';
 
@@ -514,21 +515,17 @@ router.patch('/links/:id/approve', verifyToken, isAdmin, async (req, res) => {
         }
         const { employee: emp, employeeId: newEmployeeId, tempPassword, offerLetterAttachment, panWarning } = accountResult;
 
+        const now = new Date();
+        await saveOnboardingApproval(supabase, offer.id, {
+            status: 'approved', approved_at: now.toISOString(),
+            approved_by: req.user.employeeId, temp_password: tempPassword,
+            created_employee_id: newEmployeeId, updated_at: now.toISOString(),
+        });
+
         await sendOnboardingEmails(supabase, {
             employee: emp, credentials: { employeeId: newEmployeeId, tempPassword }, offerLetterAttachment,
         });
-
         await createOnboardingTickets(supabase, { employee: emp, actor: req.user });
-
-        const now = new Date();
-        await supabase.from('employee_offer_links').update({
-            status:               'approved',
-            approved_at:          now.toISOString(),
-            approved_by:          req.user.employeeId,
-            temp_password:        tempPassword,
-            created_employee_id:  newEmployeeId,
-            updated_at:           now.toISOString(),
-        }).eq('id', req.params.id);
 
         // Persist the warning to Notes too — the modal only shows it once, but HR should
         // still be able to see why the PAN is missing when they come back to this offer later.
@@ -843,6 +840,7 @@ router.post('/:token/submit', async (req, res) => {
         // in right away instead of waiting to be contacted by HR.
         const now = new Date();
         let credentials = null;
+        let approvalWarning = null;
         try {
             // Step 1 — create the employee account. This is the part that actually matters
             // for "auto-approve" — everything after this is bookkeeping, so a failure here
@@ -850,6 +848,11 @@ router.post('/:token/submit', async (req, res) => {
             const { employee: emp, employeeId: newEmployeeId, tempPassword, offerLetterAttachment, panWarning } =
                 await createEmployeeAccountFromSubmission(offer, submissionRow);
             credentials = { employee_id: newEmployeeId, temp_password: tempPassword, email: emp.email };
+            await saveOnboardingApproval(supabase, offer.id, {
+                status: 'approved', submitted_at: now.toISOString(), approved_at: now.toISOString(),
+                approved_by: null, auto_approved: true, temp_password: tempPassword,
+                created_employee_id: newEmployeeId, updated_at: now.toISOString(),
+            });
 
             // The candidate-facing response below never mentions this — persist it to Notes
             // so HR/Admin sees it the next time they open this offer in Offer Links.
@@ -869,53 +872,27 @@ router.post('/:token/submit', async (req, res) => {
             // so a ticketing problem can't undo the account that was just created.
             await createOnboardingTickets(supabase, { employee: emp, actor: { employeeId: offer.generated_by } });
 
-            // Step 3 — mark the link approved + record the temp password for HR/Admin to
-            // view later. Try the full update first; if the migration in
-            // backend/scripts/add-onboarding-auto-approval-columns.sql hasn't been run yet
-            // (temp_password/created_employee_id/auto_approved don't exist as columns),
-            // retry with only the columns that have always existed — the employee account
-            // and tickets above are unaffected either way, and `credentials` was already
-            // captured above so the candidate still sees their login details.
-            const { error: linkUpdateErr } = await supabase.from('employee_offer_links').update({
-                status:               'approved',
-                submitted_at:         now.toISOString(),
-                approved_at:          now.toISOString(),
-                approved_by:          null, // auto-approved — no admin action
-                auto_approved:        true,
-                temp_password:        tempPassword,
-                created_employee_id:  newEmployeeId,
-                updated_at:           now.toISOString(),
-            }).eq('token', req.params.token);
-
-            if (linkUpdateErr) {
-                console.error('[onboarding] offer_links update with new columns failed, retrying without them:', linkUpdateErr);
-                const { error: fallbackErr } = await supabase.from('employee_offer_links').update({
-                    status:      'approved',
-                    submitted_at: now.toISOString(),
-                    approved_at: now.toISOString(),
-                    approved_by: null,
-                    updated_at:  now.toISOString(),
-                }).eq('token', req.params.token);
-                if (fallbackErr) console.error('[onboarding] offer_links fallback update also failed:', fallbackErr);
-            }
         } catch (autoApproveErr) {
-            // Account creation itself failed (e.g. duplicate email already in `employees`)
-            // — fall back to the old manual-review state rather than losing the
-            // candidate's submitted data. The form was still submitted, though, so the
-            // IT/Marketing tickets go out regardless — see raiseTicketDespiteAccountFailure.
             console.error('[onboarding] auto-approve on submit failed:', {
                 message: autoApproveErr?.message, details: autoApproveErr?.details,
                 hint: autoApproveErr?.hint, code: autoApproveErr?.code,
             });
-            credentials = null;
-            await supabase.from('employee_offer_links').update({
-                status: 'submitted',
-                submitted_at: now.toISOString(),
-                updated_at: now.toISOString(),
-            }).eq('token', req.params.token);
-            await raiseTicketDespiteAccountFailure(supabase, {
-                offer, sub: submissionRow, actor: { employeeId: offer.generated_by }, error: autoApproveErr,
-            });
+            if (credentials) {
+                // Account creation succeeded. Never discard working credentials or
+                // raise account-failure tickets for a later bookkeeping failure.
+                approvalWarning = 'Your account was created, but HR needs to finalize the offer status. Please do not submit again.';
+                console.error('[onboarding] account exists; approval bookkeeping failed:', autoApproveErr);
+            } else {
+                // Only failed account creation falls back to submitted/manual review.
+                await supabase.from('employee_offer_links').update({
+                    status: 'submitted',
+                    submitted_at: now.toISOString(),
+                    updated_at: now.toISOString(),
+                }).eq('token', req.params.token);
+                await raiseTicketDespiteAccountFailure(supabase, {
+                    offer, sub: submissionRow, actor: { employeeId: offer.generated_by }, error: autoApproveErr,
+                });
+            }
         }
 
         return res.status(201).json({
@@ -923,6 +900,7 @@ router.post('/:token/submit', async (req, res) => {
             message: credentials
                 ? 'Onboarding form submitted and your account has been created'
                 : 'Onboarding form submitted successfully',
+            ...(approvalWarning ? { warning: approvalWarning } : {}),
             ...credentials,
         });
     } catch (err) {
