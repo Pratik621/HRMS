@@ -789,7 +789,7 @@ export default function OnboardingFormPage() {
                                 <Col xs={12} md={4}>
                                     <Form.Group>
                                         <Form.Label className="fw-semibold small">UAN (PF Number)</Form.Label>
-                                        <Form.Control size="sm" value={form.uan} onChange={e => set('uan', e.target.value)} />
+                                        <Form.Control size="sm" value={form.uan} onChange={e => set('uan', e.target.value)} maxLength={20} />
                                     </Form.Group>
                                 </Col>
                             </Row>

@@ -15,6 +15,7 @@ const { generateAndStoreOfferLetter } = require('../services/offerLetterService'
 const { getCompanyInfo } = require('../config/companyInfo');
 const { DEFAULT_CONTRACT_POLICY } = require('../utils/contractPolicy');
 const { generateNextEmployeeId } = require('../utils/employeeId');
+const { validateOnboardingEmployeeFields } = require('../utils/onboardingValidation');
 
 const BUCKET = 'hrms-documents';
 
@@ -191,7 +192,7 @@ async function raiseTicketDespiteAccountFailure(supabase, { offer, sub, actor, e
         await createOnboardingTickets(supabase, { employee: fallbackEmployee, actor, accountCreationError: error.message });
 
         const noteAddition = `⚠ Employee account creation failed — ${error.message}. IT/Marketing tickets were still raised (marked pending); please resolve and approve manually.`;
-        const newNotes = offer.notes ? `${offer.notes}\n${noteAddition}` : noteAddition;
+        const newNotes = offer.notes?.includes(noteAddition) ? offer.notes : (offer.notes ? `${offer.notes}\n${noteAddition}` : noteAddition);
         await supabase.from('employee_offer_links').update({ notes: newNotes }).eq('id', offer.id);
     } catch (fallbackErr) {
         console.error('[onboarding] raiseTicketDespiteAccountFailure itself failed:', fallbackErr);
@@ -411,6 +412,9 @@ router.patch('/links/:id/submission', verifyToken, isAdmin, async (req, res) => 
             return res.status(400).json({ success: false, message: 'No editable fields provided' });
         }
 
+        const validation = validateOnboardingEmployeeFields(updates);
+        if (validation) return res.status(422).json(validation);
+
         const { data: updatedSub, error } = await supabase.from('employee_onboarding_submissions')
             .update(updates).eq('offer_id', req.params.id).select().maybeSingle();
         if (error) throw error;
@@ -487,6 +491,12 @@ router.patch('/links/:id/approve', verifyToken, isAdmin, async (req, res) => {
         const { data: sub } = await supabase
             .from('employee_onboarding_submissions').select('*').eq('offer_id', req.params.id).maybeSingle();
         if (!sub) return res.status(404).json({ success: false, message: 'No submission found for this offer' });
+
+        const validation = validateOnboardingEmployeeFields({ ...sub,
+            designation: offer.designation, department: offer.department,
+            employment_type: offer.employment_type, reporting_manager: offer.reporting_manager,
+        });
+        if (validation) return res.status(422).json(validation);
 
         let accountResult;
         try {
@@ -756,6 +766,12 @@ router.post('/:token/submit', async (req, res) => {
         if (!passport_photo)            return res.status(400).json({ success: false, message: 'Passport size photo is required' });
         if (!aadhar_card_doc)           return res.status(400).json({ success: false, message: 'Aadhar card document is required' });
         if (!pan_card_doc)              return res.status(400).json({ success: false, message: 'PAN card document is required' });
+
+        const validation = validateOnboardingEmployeeFields({ ...req.body,
+            designation: offer.designation, department: offer.department,
+            employment_type: offer.employment_type, reporting_manager: offer.reporting_manager,
+        });
+        if (validation) return res.status(422).json(validation);
 
         // An existing employee with this email is the #1 real-world reason auto-approval
         // silently falls back to manual review (employees.email is unique) — catch it here
