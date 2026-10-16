@@ -7,6 +7,7 @@ import {
     Pencil, Save, X,
 } from 'lucide-react';
 import API_ENDPOINTS from '../../config/api';
+import axiosInstance from '../../config/axios';
 
 // ── Status config ─────────────────────────────────────────────────────────────
 const STATUS_CFG = {
@@ -37,8 +38,18 @@ const StatusBadge = ({ status, size = 'sm' }) => {
 const fmtDate = (s) => s ? new Date(s).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 const fmtMoney = (n) => n ? `₹${Number(n).toLocaleString('en-IN')}` : '—';
 
-const authFetch = (url, opts = {}) =>
-    fetch(url, { ...opts, headers: { Authorization: `Bearer ${localStorage.getItem('token')}`, ...(opts.headers || {}) } });
+// Use the shared client so expired access tokens refresh and retry automatically.
+const authFetch = async (url, opts = {}) => {
+    try {
+        const response = await axiosInstance.request({
+            url, method: opts.method || 'GET', headers: opts.headers, data: opts.body,
+        });
+        return { json: async () => response.data };
+    } catch (error) {
+        if (error.response) return { json: async () => error.response.data };
+        throw error;
+    }
+};
 
 // ── Avatar ────────────────────────────────────────────────────────────────────
 const Avatar = ({ name, size = 42 }) => {
