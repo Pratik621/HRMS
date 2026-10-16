@@ -19,6 +19,38 @@ const TABS = [
     { key: 'documents', label: 'Documents' },
 ];
 
+// Candidate-facing limits; the backend validates the same employee column limits.
+const FIELD_RULES = {
+    first_name: [100, 'First Name', 'personal'], middle_name: [100, 'Middle Name', 'personal'],
+    last_name: [100, 'Last Name', 'personal'], email: [255, 'Email Address', 'personal'],
+    phone: [20, 'Phone Number', 'personal'], city: [100, 'City', 'personal'],
+    state: [100, 'State', 'personal'], pincode: [10, 'Pincode', 'personal'],
+    bank_account_name: [100, 'Account Holder Name', 'bank'], account_number: [50, 'Account Number', 'bank'],
+    ifsc_code: [11, 'IFSC Code', 'bank'], branch_name: [100, 'Branch Name', 'bank'],
+    pan_number: [10, 'PAN Number', 'ids'], aadhar_number: [12, 'Aadhar Number', 'ids'],
+    uan: [22, 'UAN (PF Number)', 'ids'], emergency_contact_name: [255, 'Contact Person Name', 'emergency'],
+    emergency_contact: [20, 'Emergency Contact Number', 'emergency'],
+};
+const fieldLengthError = (field, value) => {
+    const rule = FIELD_RULES[field];
+    return rule && Array.from(String(value || '')).length > rule[0]
+        ? `${rule[1]} must be ${rule[0]} characters or fewer.` : '';
+};
+function CandidateField({ field, serverError, ...props }) {
+    const rule = FIELD_RULES[field];
+    const count = Array.from(String(props.value || '')).length;
+    const error = fieldLengthError(field, props.value) || serverError;
+    return <>
+        <Form.Control {...props} id={`onboarding-${field}`} isInvalid={!!error}
+            aria-describedby={`onboarding-${field}-feedback`} />
+        <div id={`onboarding-${field}-feedback`} aria-live="polite">
+            {error ? <div className="text-danger small mt-1">{error}</div>
+                : count >= rule[0] ? <Form.Text>You reached the limit of {rule[0]} characters.</Form.Text> : null}
+            <Form.Text className="d-block">{count}/{rule[0]} characters</Form.Text>
+        </div>
+    </>;
+}
+
 // maxMB enforced client-side before any upload attempt; server also enforces 4 MB.
 const DOC_FIELDS = [
     {
@@ -198,6 +230,7 @@ export default function OnboardingFormPage() {
 
     const [submitting, setSubmitting]         = useState(false);
     const [submitErr, setSubmitErr]           = useState('');
+    const [serverFieldErrors, setServerFieldErrors] = useState({});
     const [done, setDone]                     = useState(false);
     const [credentials, setCredentials]       = useState(null);
     const [credsCopied, setCredsCopied]       = useState(false);
@@ -317,6 +350,7 @@ export default function OnboardingFormPage() {
             ? normalizeNameValue(v)
             : v;
         setForm(f => ({ ...f, [k]: normalizedValue }));
+        setServerFieldErrors(errors => ({ ...errors, [k]: undefined }));
         setIsDirty(true);
     };
 
@@ -359,6 +393,11 @@ export default function OnboardingFormPage() {
     // to gate the Next button (below) and as the final check before actually submitting,
     // so the two can never drift into checking different things.
     const validateTab = (key) => {
+        for (const [field, [, , fieldTab]] of Object.entries(FIELD_RULES)) {
+            if (fieldTab !== key) continue;
+            const msg = fieldLengthError(field, form[field]) || serverFieldErrors[field];
+            if (msg) return { msg, tab: key };
+        }
         if (key === 'personal') {
             if (!form.first_name?.trim()) return { msg: 'First Name is required.', tab: 'personal' };
             if (!form.last_name?.trim())  return { msg: 'Last Name is required.', tab: 'personal' };
@@ -463,7 +502,21 @@ export default function OnboardingFormPage() {
                 const preview = raw.replace(/<[^>]*>/g, '').trim().substring(0, 180);
                 throw new Error(`Server error (${res.status}): ${preview || 'Unexpected response'}`);
             }
-            if (!d.success) throw new Error(d.message);
+            if (!d.success) {
+                if (Array.isArray(d.fields)) {
+                    const errors = {};
+                    for (const { field, maxLength } of d.fields) {
+                        if (FIELD_RULES[field]) errors[field] = `${FIELD_RULES[field][1]} must be ${maxLength} characters or fewer.`;
+                    }
+                    setServerFieldErrors(errors);
+                    const first = Object.keys(errors)[0];
+                    if (first) {
+                        setTab(FIELD_RULES[first][2]);
+                        throw new Error(errors[first]);
+                    }
+                }
+                throw new Error(d.message);
+            }
             clearDraftFromStorage(token);
             setIsDirty(false);
             if (d.employee_id && d.temp_password) {
@@ -631,19 +684,19 @@ export default function OnboardingFormPage() {
                                     <Col xs={12} md={4}>
                                         <Form.Group>
                                             <Form.Label className="fw-semibold small">First Name <span className="text-danger">*</span></Form.Label>
-                                            <Form.Control size="sm" value={form.first_name} onChange={e => set('first_name', e.target.value)} required />
+                                            <CandidateField field="first_name" serverError={serverFieldErrors.first_name} size="sm" value={form.first_name} onChange={e => set('first_name', e.target.value)} required />
                                         </Form.Group>
                                     </Col>
                                     <Col xs={12} md={4}>
                                         <Form.Group>
                                             <Form.Label className="fw-semibold small">Middle Name</Form.Label>
-                                            <Form.Control size="sm" value={form.middle_name} onChange={e => set('middle_name', e.target.value)} />
+                                            <CandidateField field="middle_name" serverError={serverFieldErrors.middle_name} size="sm" value={form.middle_name} onChange={e => set('middle_name', e.target.value)} />
                                         </Form.Group>
                                     </Col>
                                     <Col xs={12} md={4}>
                                         <Form.Group>
                                             <Form.Label className="fw-semibold small">Last Name <span className="text-danger">*</span></Form.Label>
-                                            <Form.Control size="sm" value={form.last_name} onChange={e => set('last_name', e.target.value)} required />
+                                            <CandidateField field="last_name" serverError={serverFieldErrors.last_name} size="sm" value={form.last_name} onChange={e => set('last_name', e.target.value)} required />
                                         </Form.Group>
                                     </Col>
                                 </Row>
@@ -651,13 +704,13 @@ export default function OnboardingFormPage() {
                                     <Col xs={12} md={6}>
                                         <Form.Group>
                                             <Form.Label className="fw-semibold small">Email Address <span className="text-danger">*</span></Form.Label>
-                                            <Form.Control size="sm" type="email" value={form.email} onChange={e => set('email', e.target.value)} required />
+                                            <CandidateField field="email" serverError={serverFieldErrors.email} size="sm" type="email" value={form.email} onChange={e => set('email', e.target.value)} required />
                                         </Form.Group>
                                     </Col>
                                     <Col xs={12} md={6}>
                                         <Form.Group>
                                             <Form.Label className="fw-semibold small">Phone Number <span className="text-danger">*</span></Form.Label>
-                                            <Form.Control size="sm" value={form.phone} onChange={e => set('phone', e.target.value)} required />
+                                            <CandidateField field="phone" serverError={serverFieldErrors.phone} size="sm" value={form.phone} onChange={e => set('phone', e.target.value)} required />
                                         </Form.Group>
                                     </Col>
                                 </Row>
@@ -715,19 +768,19 @@ export default function OnboardingFormPage() {
                                     <Col xs={12} md={4}>
                                         <Form.Group>
                                             <Form.Label className="fw-semibold small">City</Form.Label>
-                                            <Form.Control size="sm" value={form.city} onChange={e => set('city', e.target.value)} />
+                                            <CandidateField field="city" serverError={serverFieldErrors.city} size="sm" value={form.city} onChange={e => set('city', e.target.value)} />
                                         </Form.Group>
                                     </Col>
                                     <Col xs={12} md={4}>
                                         <Form.Group>
                                             <Form.Label className="fw-semibold small">State</Form.Label>
-                                            <Form.Control size="sm" value={form.state} onChange={e => set('state', e.target.value)} />
+                                            <CandidateField field="state" serverError={serverFieldErrors.state} size="sm" value={form.state} onChange={e => set('state', e.target.value)} />
                                         </Form.Group>
                                     </Col>
                                     <Col xs={12} md={4}>
                                         <Form.Group>
                                             <Form.Label className="fw-semibold small">Pincode</Form.Label>
-                                            <Form.Control size="sm" value={form.pincode} onChange={e => set('pincode', e.target.value)} />
+                                            <CandidateField field="pincode" serverError={serverFieldErrors.pincode} size="sm" value={form.pincode} onChange={e => set('pincode', e.target.value)} />
                                         </Form.Group>
                                     </Col>
                                 </Row>
@@ -744,13 +797,13 @@ export default function OnboardingFormPage() {
                                     <Col xs={12} md={6}>
                                         <Form.Group>
                                             <Form.Label className="fw-semibold small">Account Holder Name <span className="text-danger">*</span></Form.Label>
-                                            <Form.Control size="sm" value={form.bank_account_name} onChange={e => set('bank_account_name', e.target.value)} required />
+                                            <CandidateField field="bank_account_name" serverError={serverFieldErrors.bank_account_name} size="sm" value={form.bank_account_name} onChange={e => set('bank_account_name', e.target.value)} required />
                                         </Form.Group>
                                     </Col>
                                     <Col xs={12} md={6}>
                                         <Form.Group>
                                             <Form.Label className="fw-semibold small">Account Number <span className="text-danger">*</span></Form.Label>
-                                            <Form.Control size="sm" value={form.account_number} onChange={e => set('account_number', e.target.value)} required />
+                                            <CandidateField field="account_number" serverError={serverFieldErrors.account_number} size="sm" value={form.account_number} onChange={e => set('account_number', e.target.value)} required />
                                         </Form.Group>
                                     </Col>
                                 </Row>
@@ -758,13 +811,13 @@ export default function OnboardingFormPage() {
                                     <Col xs={12} md={6}>
                                         <Form.Group>
                                             <Form.Label className="fw-semibold small">IFSC Code <span className="text-danger">*</span></Form.Label>
-                                            <Form.Control size="sm" value={form.ifsc_code} onChange={e => set('ifsc_code', e.target.value.toUpperCase())} required maxLength={11} />
+                                            <CandidateField field="ifsc_code" serverError={serverFieldErrors.ifsc_code} size="sm" value={form.ifsc_code} onChange={e => set('ifsc_code', e.target.value.toUpperCase())} required />
                                         </Form.Group>
                                     </Col>
                                     <Col xs={12} md={6}>
                                         <Form.Group>
                                             <Form.Label className="fw-semibold small">Branch Name</Form.Label>
-                                            <Form.Control size="sm" value={form.branch_name} onChange={e => set('branch_name', e.target.value)} />
+                                            <CandidateField field="branch_name" serverError={serverFieldErrors.branch_name} size="sm" value={form.branch_name} onChange={e => set('branch_name', e.target.value)} />
                                         </Form.Group>
                                     </Col>
                                 </Row>
@@ -777,19 +830,19 @@ export default function OnboardingFormPage() {
                                 <Col xs={12} md={4}>
                                     <Form.Group>
                                         <Form.Label className="fw-semibold small">PAN Number</Form.Label>
-                                        <Form.Control size="sm" value={form.pan_number} onChange={e => set('pan_number', e.target.value.toUpperCase())} maxLength={10} />
+                                        <CandidateField field="pan_number" serverError={serverFieldErrors.pan_number} size="sm" value={form.pan_number} onChange={e => set('pan_number', e.target.value.toUpperCase())} />
                                     </Form.Group>
                                 </Col>
                                 <Col xs={12} md={4}>
                                     <Form.Group>
                                         <Form.Label className="fw-semibold small">Aadhar Number</Form.Label>
-                                        <Form.Control size="sm" value={form.aadhar_number} onChange={e => set('aadhar_number', e.target.value)} maxLength={12} />
+                                        <CandidateField field="aadhar_number" serverError={serverFieldErrors.aadhar_number} size="sm" value={form.aadhar_number} onChange={e => set('aadhar_number', e.target.value)} />
                                     </Form.Group>
                                 </Col>
                                 <Col xs={12} md={4}>
                                     <Form.Group>
                                         <Form.Label className="fw-semibold small">UAN (PF Number)</Form.Label>
-                                        <Form.Control size="sm" value={form.uan} onChange={e => set('uan', e.target.value)} />
+                                        <CandidateField field="uan" serverError={serverFieldErrors.uan} size="sm" value={form.uan} onChange={e => set('uan', e.target.value)} />
                                     </Form.Group>
                                 </Col>
                             </Row>
@@ -801,7 +854,7 @@ export default function OnboardingFormPage() {
                                 <Col xs={12} md={4}>
                                     <Form.Group>
                                         <Form.Label className="fw-semibold small">Contact Person Name</Form.Label>
-                                        <Form.Control size="sm" value={form.emergency_contact_name} onChange={e => set('emergency_contact_name', e.target.value)} />
+                                        <CandidateField field="emergency_contact_name" serverError={serverFieldErrors.emergency_contact_name} size="sm" value={form.emergency_contact_name} onChange={e => set('emergency_contact_name', e.target.value)} />
                                     </Form.Group>
                                 </Col>
                                 <Col xs={12} md={4}>
@@ -816,7 +869,7 @@ export default function OnboardingFormPage() {
                                 <Col xs={12} md={4}>
                                     <Form.Group>
                                         <Form.Label className="fw-semibold small">Contact Number <span className="text-danger">*</span></Form.Label>
-                                        <Form.Control size="sm" value={form.emergency_contact} onChange={e => set('emergency_contact', e.target.value)} required />
+                                        <CandidateField field="emergency_contact" serverError={serverFieldErrors.emergency_contact} size="sm" value={form.emergency_contact} onChange={e => set('emergency_contact', e.target.value)} required />
                                     </Form.Group>
                                 </Col>
                             </Row>
