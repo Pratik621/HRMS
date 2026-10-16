@@ -110,7 +110,7 @@ axiosInstance.interceptors.response.use(
     // /api/auth/login has nothing to do with token validity) — NOT the whole /api/auth/
     // prefix, which used to also catch /api/auth/verify. That's the exact call AuthContext
     // makes on every page load/refresh to validate the stored session: excluding it from
-    // silent refresh meant that the moment the 15-minute access token had expired, a page
+    // silent refresh meant that the moment the access token had expired, a page
     // refresh saw verify's 401 with no refresh attempt at all and logged the user out —
     // even though their still-valid 7-day refresh token would have silently renewed it.
     const AUTH_ENDPOINTS_EXCLUDED_FROM_REFRESH = ['/api/auth/login', '/api/auth/register', '/api/auth/refresh'];
