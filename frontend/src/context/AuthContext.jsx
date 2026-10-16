@@ -3,6 +3,7 @@ import React, { createContext, useState, useContext, useEffect, useCallback } fr
 import axiosInstance from '../config/axios';
 import API_ENDPOINTS from '../config/api';
 import { clearAllDashboardCaches } from '../utils/dashboardCache';
+import { isTokenExpired, watchSessionExpiry } from '../utils/sessionExpiry';
 
 const AuthContext = createContext();
 
@@ -57,7 +58,26 @@ export const AuthProvider = ({ children }) => {
     clearAllDashboardCaches();
   }, []);
 
-  // On mount: validate / silently refresh the stored access token
+  // End even an idle session at the access token's expiry, including after tab sleep.
+  useEffect(() => {
+    if (!token) return;
+    const watcher = watchSessionExpiry(() => localStorage.getItem('token'), () => {
+      logout();
+      if (window.location.pathname !== '/login') window.location.replace('/login');
+    });
+    const onVisible = () => { if (document.visibilityState === 'visible') watcher.check(); };
+    window.addEventListener('focus', watcher.check);
+    window.addEventListener('storage', watcher.check);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      watcher.stop();
+      window.removeEventListener('focus', watcher.check);
+      window.removeEventListener('storage', watcher.check);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [token, logout]);
+
+  // On mount: validate the stored access token.
   useEffect(() => {
     // React 18 StrictMode double-invokes mount effects in dev — this AbortController stops
     // the first (throwaway) invocation's /verify call from completing as a wasted duplicate
@@ -68,6 +88,13 @@ export const AuthProvider = ({ children }) => {
       const { user: savedUser, token: savedToken, refreshToken: savedRefresh } = loadFromStorage();
 
       if (!savedToken && !savedRefresh) {
+        setLoading(false);
+        return;
+      }
+
+      if (!savedToken || isTokenExpired(savedToken)) {
+        logout();
+        if (window.location.pathname !== '/login') window.location.replace('/login');
         setLoading(false);
         return;
       }
@@ -134,7 +161,10 @@ export const AuthProvider = ({ children }) => {
 
   // Listen for the interceptor's forced-logout signal
   useEffect(() => {
-    const handler = () => logout();
+    const handler = () => {
+      logout();
+      if (window.location.pathname !== '/login') window.location.replace('/login');
+    };
     window.addEventListener('auth:logout', handler);
     return () => window.removeEventListener('auth:logout', handler);
   }, [logout]);
