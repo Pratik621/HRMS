@@ -6,7 +6,7 @@ const EMPLOYEE_TEXT_LIMITS = {
     pincode: 10, designation: 100, department: 100, employment_type: 50,
     reporting_manager: 100, bank_account_name: 100, account_number: 50,
     ifsc_code: 20, branch_name: 100, pan_number: 20, aadhar_number: 20,
-    uan: 20, emergency_contact: 20, emergency_contact_name: 255,
+    uan: 22, emergency_contact: 20, emergency_contact_name: 255,
     emergency_contact_relation: 100,
 };
 

@@ -2,17 +2,17 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { validateOnboardingEmployeeFields: validate } = require('../utils/onboardingValidation');
 
-test('identifies the reported 22-character UAN without returning personal data', () => {
-    const result = validate({ uan: 'X'.repeat(22) });
+test('identifies an oversized 23-character UAN without returning personal data', () => {
+    const result = validate({ uan: 'X'.repeat(23) });
     assert.equal(result.success, false);
-    assert.deepEqual(result.fields, [{ field: 'uan', maxLength: 20, actualLength: 22 }]);
-    assert.match(result.message, /UAN \(PF Number\) has 22 characters; maximum is 20/);
-    assert.ok(!JSON.stringify(result).includes('X'.repeat(22)));
+    assert.deepEqual(result.fields, [{ field: 'uan', maxLength: 22, actualLength: 23 }]);
+    assert.match(result.message, /UAN \(PF Number\) has 23 characters; maximum is 22/);
+    assert.ok(!JSON.stringify(result).includes('X'.repeat(23)));
 });
 
 test('accepts optional empty fields and values at the database boundary', () => {
     assert.equal(validate({ uan: null, phone: '', first_name: 'A'.repeat(100) }), null);
-    assert.equal(validate({ uan: '1'.repeat(20) }), null);
+    assert.equal(validate({ uan: '1'.repeat(22) }), null);
 });
 
 test('reports all oversized employee fields, including whitespace and Unicode correctly', () => {
@@ -37,7 +37,7 @@ test('manual approval rejects a legacy oversized UAN before any writes or ticket
     }
     const reads = [
         { table: 'employee_offer_links', data: { id: 'offer', status: 'submitted' } },
-        { table: 'employee_onboarding_submissions', data: { uan: 'X'.repeat(22) } },
+        { table: 'employee_onboarding_submissions', data: { uan: 'X'.repeat(23) } },
     ];
     const supabase = { from(table) {
         const expected = reads.shift();
