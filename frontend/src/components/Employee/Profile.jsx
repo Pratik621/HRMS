@@ -27,7 +27,9 @@ import {
     FaFileAlt,
     FaArrowLeft,
     FaCamera,
-    FaTrash
+    FaTrash,
+    FaEye,
+    FaEyeSlash
 } from 'react-icons/fa';
 import axios from '../../config/axios';
 import API_ENDPOINTS from '../../config/api';
@@ -46,6 +48,26 @@ const PF = {
     border: '#E5E7EB',
     borderSoft: '#EEF2F7',
 };
+
+function SensitiveValue({ value, label, fallback = 'N/A' }) {
+    const [revealed, setRevealed] = useState(false);
+    if (value == null || value === '') return <span>{fallback}</span>;
+    return (
+        <span className="d-inline-flex align-items-center gap-2">
+            <span>{revealed ? value : '****'}</span>
+            <button
+                type="button"
+                className="btn btn-link p-1 d-inline-flex align-items-center"
+                style={{ color: 'inherit' }}
+                aria-label={(revealed ? 'Hide ' : 'Show ') + label}
+                aria-pressed={revealed}
+                onClick={() => setRevealed(current => !current)}
+            >
+                {revealed ? <FaEyeSlash aria-hidden="true" /> : <FaEye aria-hidden="true" />}
+            </button>
+        </span>
+    );
+}
 
 const Profile = () => {
     const { user } = useAuth();
@@ -639,7 +661,7 @@ const Profile = () => {
 
                                     <div className="pf-detail-row">
                                         <span className="text-muted">Months Completed (this year)</span>
-                                        <span className="fw-semibold">{leaveBalance.completed_months_in_year || 0}</span>
+                                        <span className="fw-semibold">{leaveBalance.months_completed_in_year ?? 0}</span>
                                     </div>
 
                                     {leaveBalance.message && (
@@ -784,7 +806,7 @@ const Profile = () => {
                                                                 {item.holiday_name}
                                                             </span>
                                                         </td>
-                                                        <td className="small">{item.hours_worked} hrs</td>
+                                                        <td className="small">{item.hours_worked == null || item.hours_worked === '' ? '—' : `${item.hours_worked} hrs`}</td>
                                                         <td className="small">
                                                             {item.expiry_date ? formatDate(item.expiry_date) : '-'}
                                                         </td>
@@ -838,7 +860,7 @@ const Profile = () => {
                                 <div className="pf-detail-row">
                                     <span className="text-muted">Account Number</span>
                                     <span className="fw-semibold text-end">
-                                        {employee.account_number ? '••••' + String(employee.account_number).slice(-4) : 'N/A'}
+                                        <SensitiveValue value={employee.account_number} label="account number" />
                                     </span>
                                 </div>
                                 <div className="pf-detail-row">
@@ -858,7 +880,7 @@ const Profile = () => {
                                 <div className="pf-detail-row">
                                     <span className="text-muted">PAN Number</span>
                                     <span className="fw-semibold text-end">
-                                        {employee.pan_number ? '•••••' + String(employee.pan_number).slice(-4) : 'N/A'}
+                                        <SensitiveValue value={employee.pan_number} label="PAN number" />
                                     </span>
                                 </div>
                                 <div className="pf-detail-row">
@@ -867,13 +889,7 @@ const Profile = () => {
                                         Aadhaar number
                                     </span>
                                     <span className="fw-semibold text-end">
-                                        {employee.aadhar_number ? (
-                                            <>
-                                                {String(employee.aadhar_number).replace(/(\d{4})(\d{4})(\d{4})/, '$1-****-$3')}
-                                            </>
-                                        ) : (
-                                            'Not Provided'
-                                        )}
+                                        <SensitiveValue value={employee.aadhar_number} label="Aadhaar number" fallback="Not Provided" />
                                     </span>
                                 </div>
                                 </div>
@@ -897,20 +913,16 @@ const Profile = () => {
                             <Col sm={6}>
                                 <div className="pf-stat-box pf-salary-stat">
                                     <small className="text-muted d-block mb-1">Gross Salary</small>
-                                    <h5 className="mb-0 fw-bold" style={{ color: PF.primary }}>{formatCurrency(employee.gross_salary)}</h5>
+                                    <h5 className="mb-0 fw-bold" style={{ color: PF.primary }}><SensitiveValue value={formatCurrency(employee.gross_salary)} label="gross salary" /></h5>
                                 </div>
                             </Col>
                             <Col sm={6}>
                                 <div className="pf-stat-box pf-salary-stat">
                                     <small className="text-muted d-block mb-1">In-hand Salary</small>
-                                    <h5 className="mb-0 fw-bold" style={{ color: PF.success }}>{formatCurrency(employee.in_hand_salary)}</h5>
+                                    <h5 className="mb-0 fw-bold" style={{ color: PF.success }}><SensitiveValue value={formatCurrency(employee.in_hand_salary)} label="in-hand salary" /></h5>
                                 </div>
                             </Col>
                         </Row>
-                        <Alert variant="info" className="py-2 small mb-0 mt-3">
-                            <FaInfoCircle className="me-2 flex-shrink-0" size={10} />
-                            Monthly Deduction: ₹200 (Fixed)
-                        </Alert>
                     </div>
                 </div>
             )}

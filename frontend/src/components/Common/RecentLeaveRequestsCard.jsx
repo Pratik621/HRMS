@@ -40,7 +40,7 @@ export default function RecentLeaveRequestsCard({ leaveRequests = [], onViewAll,
       </Card.Header>
       <Card.Body className="p-0">
         <div className="table-responsive">
-          <PaginatedTable searchable as={Table} hover className="mb-0" size="sm">
+          <PaginatedTable searchable={leaveRequests.length > 0} as={Table} hover className="mb-0" size="sm">
             <thead className="bg-light">
               <tr>
                 <th className="small text-dark">Leave Type</th>

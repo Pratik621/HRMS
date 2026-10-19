@@ -27,7 +27,7 @@ function Ring({ value, max, color, label, size = 64 }) {
   );
 }
 
-export default function LeaveBalanceRingsCard({ employeeId, suppliedBalance, suppliedLoading = false }) {
+export default function LeaveBalanceRingsCard({ employeeId, suppliedBalance, suppliedLoading = false, suppliedError = null, onRetry }) {
   const hasSuppliedBalance = suppliedBalance !== undefined;
   const [fetchedBalance, setBalance] = useState(null);
   const balance = hasSuppliedBalance ? suppliedBalance : fetchedBalance;
@@ -56,6 +56,11 @@ export default function LeaveBalanceRingsCard({ employeeId, suppliedBalance, sup
       <div style={QA_CARD_TITLE_STYLE}>Leave Balances</div>
       {loading || suppliedLoading ? (
         <div style={{ fontSize: 12, color: QA.textMuted }}>Loading…</div>
+      ) : suppliedError ? (
+        <div role="alert" style={{ fontSize: 12, color: QA.textMuted }}>
+          <div>{suppliedError}</div>
+          {onRetry && <button type="button" className="btn btn-sm btn-outline-secondary mt-2" onClick={onRetry}>Retry</button>}
+        </div>
       ) : !balance ? (
         <div style={{ fontSize: 12, color: QA.textMuted }}>Leave balance unavailable</div>
       ) : (

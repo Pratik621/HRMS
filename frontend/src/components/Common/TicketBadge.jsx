@@ -48,7 +48,7 @@ export default function TicketBadge({ variant = 'dark' }) {
             }}
         >
             <Ticket size={15} />
-            Ticket's
+            Support Tickets
             {count > 0 && (
                 <span style={{
                     background: '#ef4444',

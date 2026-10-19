@@ -129,6 +129,8 @@ export default function DashboardQuickAccess({
   employeeId,
   leaveBalance,
   leaveBalanceLoading,
+  leaveBalanceError,
+  onRetryLeaveBalance,
   onLeaveScope = 'department',
   department,
   attendance,
@@ -194,6 +196,8 @@ export default function DashboardQuickAccess({
             <LeaveBalanceRingsCard
               suppliedBalance={leaveBalance}
               suppliedLoading={leaveBalanceLoading}
+              suppliedError={leaveBalanceError}
+              onRetry={onRetryLeaveBalance}
               employeeId={employeeId}
             />
           </div>
