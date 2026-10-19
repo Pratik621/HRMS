@@ -109,6 +109,7 @@ const Attendance = () => {
   const [showExitWarning, setShowExitWarning] = useState(false);
   const [hasClockedOutToday, setHasClockedOutToday] = useState(false);
   const [employeeDob, setEmployeeDob] = useState(null);
+  const [employeeJoiningDate, setEmployeeJoiningDate] = useState(null);
   const [attendanceHistory, setAttendanceHistory] = useState([]);
   const [isSessionValid, setIsSessionValid] = useState(false);
   const [hasIncompleteRecord, setHasIncompleteRecord] = useState(false);
@@ -409,8 +410,9 @@ const Attendance = () => {
     //   2. An approved regularization for a request type that never had a time to select in
     //      the first place — Client Visit / Official Duty / WFH / Other (see NO_PUNCH_TYPES
     //      in regularizationController.js) — these only get is_regularized + status set,
-    //      never attendance_type. Both must show Present, not "Not Clocked".
-    if (!record.clock_in && record.status === 'present' && (record.attendance_type || record.is_regularized)) {
+    //      never attendance_type. HR-marked/imported Present rows may also have no punches.
+    // Trust the stored Present status for all of these records.
+    if (!record.clock_in && record.status === 'present') {
       const presentReason = record.attendance_type === 'paid_leave' ? 'Paid Leave'
         : record.attendance_type === 'birthday_leave' ? 'Birthday Leave'
         : record.attendance_type === 'comp_off' ? 'Comp-Off'
@@ -1159,10 +1161,23 @@ const Attendance = () => {
     let workingDaysCount = 0;
 
     history.forEach(record => {
-      if (record.isWeeklyOff || record.status === 'weekly_off') {
+      const hrs = Math.max(0, parseFloat(record.total_hours) || 0);
+      if (record.isWeeklyOff || ['weekly_off', 'week_off'].includes(record.status)) {
         weeklyOff++;
+      } else if (record.status === 'present') {
+        present++;
+        workingDaysCount++;
+        totalHours += hrs;
+      } else if (record.status === 'half_day') {
+        halfDays++;
+        workingDaysCount++;
+        totalHours += hrs;
+      } else if (record.status === 'absent') {
+        absent++;
+      } else if (['holiday', 'leave', 'paid_leave', 'unpaid_leave', 'birthday_leave', 'comp_off'].includes(record.status)) {
+        // Approved time off and holidays are not absences.
       } else if (record.clock_in && record.clock_out) {
-        // Hours-based calculation
+        // Legacy records without a stored attendance status retain the hours fallback.
         const hrs = parseFloat(record.total_hours) || 0;
         if (hrs >= 9) {
           present++;
@@ -1961,8 +1976,11 @@ const Attendance = () => {
   useEffect(() => {
     if (!user?.employeeId) return;
     axios.get(API_ENDPOINTS.EMPLOYEE_PROFILE(user.employeeId))
-      .then(res => { setEmployeeDob(res.data?.dob || null); })
-      .catch(() => { setEmployeeDob(null); });
+      .then(res => {
+        setEmployeeDob(res.data?.dob || null);
+        setEmployeeJoiningDate(res.data?.joining_date?.substring(0, 10) || null);
+      })
+      .catch(() => { setEmployeeDob(null); setEmployeeJoiningDate(null); });
   }, [user?.employeeId]);
 
   const isBirthdayDate = (dateStr) => {
@@ -2130,6 +2148,13 @@ const Attendance = () => {
       avgHoursTrend.push(parseFloat((cumHours / (i + 1)).toFixed(1)));
     });
   }
+
+  const cycleMonthOffset = currentTime.getDate() >= 26 ? 0 : -1;
+  const summaryCycleStart = new Date(currentTime.getFullYear(), currentTime.getMonth() + cycleMonthOffset, 26);
+  const summaryCycleEnd = new Date(currentTime.getFullYear(), currentTime.getMonth() + cycleMonthOffset + 1, 25);
+  const cycleDateOptions = { day: 'numeric', month: 'short', year: 'numeric' };
+  const summaryCycleRange = summaryCycleStart.toLocaleDateString('en-GB', cycleDateOptions)
+    + ' – ' + summaryCycleEnd.toLocaleDateString('en-GB', cycleDateOptions);
 
   return (
     <div className="am-page p-3 p-md-4">
@@ -2369,7 +2394,8 @@ const Attendance = () => {
                 </div>
                 <h4 className="mb-0 fw-bold mt-2" style={{ color: stat.color }}>{stat.value}</h4>
                 <small className="text-muted d-block">{stat.label}</small>
-                <small className="text-muted" style={{ fontSize: 11 }}>This Month</small>
+                <small className="text-muted d-block" style={{ fontSize: 11 }}>Current Payroll Cycle</small>
+                <small className="text-muted d-block" style={{ fontSize: 11 }}>{summaryCycleRange}</small>
               </div>
             </div>
           </Col>
@@ -2462,7 +2488,7 @@ const Attendance = () => {
                           // that wouldn't change anything.
                           const workedHours = parseFloat(record.total_hours) || 0;
                           const isFullyPresent = record.status === 'present' && workedHours >= 9;
-                          const canRegularize = !record.isWeeklyOff && !isToday && !record.is_regularized && !isFullyPresent;
+                          const canRegularize = !!employeeJoiningDate && record.attendance_date >= employeeJoiningDate && !record.isWeeklyOff && !isToday && !record.is_regularized && !isFullyPresent;
                           const isBirthday = isBirthdayDate(record.date);
 
                           return (

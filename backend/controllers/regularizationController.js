@@ -76,6 +76,21 @@ exports.createRequest = async (req, res) => {
         else if (request_type === 'present_to_half_day') requestedStatus = 'half_day';
         else if (NO_PUNCH_TYPES.includes(request_type) || request_type === 'other') requestedStatus = 'present';
 
+        // Validate employment dates before creating attendance stubs or uploading files.
+        const { data: employment, error: employmentError } = await supabase.from('employees')
+            .select('joining_date').eq('employee_id', employee_id).maybeSingle();
+        if (employmentError) throw employmentError;
+        if (!employment) {
+            return res.status(404).json({ success: false, message: 'Employee not found' });
+        }
+        const joiningDate = employment.joining_date?.substring(0, 10);
+        if (!joiningDate) {
+            return res.status(400).json({ success: false, message: 'Joining date is unavailable. Please contact HR.' });
+        }
+        if (attendance_date < joiningDate) {
+            return res.status(400).json({ success: false, message: 'Cannot regularize attendance before your joining date.' });
+        }
+
         // Resolve the attendance row
         let attendanceRow = null;
         if (attendance_id) {

@@ -1382,8 +1382,30 @@ router.post('/:id/reset-password', verifyToken, isAdminOrDesktopSupport, async (
 
 // ============== DOCUMENT MANAGEMENT ==============
 
+const DOCUMENT_FIELDS = new Set([
+    'profile_image', 'appointment_letter', 'offer_letter', 'contract_document',
+    'aadhar_card', 'pan_card', 'bank_proof', 'education_certificates',
+    'experience_certificates', 'relieving_letter', 'salary_slip',
+]);
+
+// Document routes use camelCase employeeId; enforce ownership before file parsing or storage.
+const requireDocumentAccess = (req, res, next) => {
+    const privileged = ['admin', 'sub_admin', 'hr'].includes(req.user?.role);
+    if (!privileged && (!req.user?.employeeId || req.user.employeeId !== req.params.employeeId)) {
+        return res.status(403).json({ success: false, message: 'You can only access your own documents.' });
+    }
+    next();
+};
+
+const requireDocumentType = (req, res, next) => {
+    if (!DOCUMENT_FIELDS.has(req.params.documentType)) {
+        return res.status(400).json({ success: false, message: 'Invalid document type.' });
+    }
+    next();
+};
+
 // Upload documents — buffers go directly to Supabase Storage (no disk write)
-router.post('/:employeeId/documents', verifyToken, upload.any(), async (req, res) => {
+router.post('/:employeeId/documents', verifyToken, requireDocumentAccess, upload.any(), async (req, res) => {
     try {
         const { employeeId } = req.params;
         const files = req.files;
@@ -1392,6 +1414,10 @@ router.post('/:employeeId/documents', verifyToken, upload.any(), async (req, res
 
         if (!files || files.length === 0) {
             return res.status(400).json({ success: false, message: 'No files uploaded' });
+        }
+
+        if (files.some(file => !DOCUMENT_FIELDS.has(file.fieldname))) {
+            return res.status(400).json({ success: false, message: 'Invalid document type.' });
         }
 
         const documentUpdates = {};
@@ -1421,7 +1447,7 @@ router.post('/:employeeId/documents', verifyToken, upload.any(), async (req, res
             success: true,
             message: 'Documents uploaded successfully',
             documents: documentUpdates,
-            updated_employee: data[0],
+            updated_employee: omitSecretEmployeeFields(data[0]),
         });
 
     } catch (error) {
@@ -1431,7 +1457,7 @@ router.post('/:employeeId/documents', verifyToken, upload.any(), async (req, res
 });
 
 // Get employee documents
-router.get('/:employeeId/documents', async (req, res) => {
+router.get('/:employeeId/documents', verifyToken, requireDocumentAccess, async (req, res) => {
     try {
         const { employeeId } = req.params;
 
@@ -1503,7 +1529,7 @@ router.get('/:employeeId/documents', async (req, res) => {
 
 
 // Download / view a specific document — redirects to the Supabase Storage URL
-router.get('/:employeeId/documents/:documentType', verifyToken, async (req, res) => {
+router.get('/:employeeId/documents/:documentType', verifyToken, requireDocumentAccess, requireDocumentType, async (req, res) => {
     try {
         const { employeeId, documentType } = req.params;
 
@@ -1537,7 +1563,7 @@ router.get('/:employeeId/documents/:documentType', verifyToken, async (req, res)
 });
 
 // Delete a specific document — removes from Supabase Storage then clears DB field
-router.delete('/:employeeId/documents/:documentType', verifyToken, async (req, res) => {
+router.delete('/:employeeId/documents/:documentType', verifyToken, requireDocumentAccess, requireDocumentType, async (req, res) => {
     try {
         const { employeeId, documentType } = req.params;
 
