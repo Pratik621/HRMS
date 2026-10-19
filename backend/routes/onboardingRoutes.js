@@ -653,7 +653,7 @@ router.post('/:token/upload-file', (req, res) => {
     uploadSingle.single('file')(req, res, async (err) => {
         if (err) {
             const msg = err.code === 'LIMIT_FILE_SIZE'
-                ? 'File exceeds the 4 MB limit. Please compress it and try again.'
+                ? 'Your document is larger than 4 MB. Please compress it or choose a smaller file.'
                 : (err.message || 'File upload error');
             return res.status(400).json({ success: false, message: msg });
         }
