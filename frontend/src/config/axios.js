@@ -1,6 +1,7 @@
 // src/config/axios.js
 import axios from 'axios';
 import { syncServerTime } from '../utils/serverTime';
+import { isTokenExpired } from '../utils/sessionExpiry';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -28,6 +29,12 @@ const clearTokens = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('user');
+};
+
+const endExpiredSession = () => {
+  clearTokens();
+  window.dispatchEvent(new CustomEvent('auth:logout'));
+  if (window.location.pathname !== '/login') window.location.replace('/login');
 };
 
 // ─── refresh token logic ─────────────────────────────────────────────────────
@@ -67,6 +74,11 @@ const refreshAccessToken = async () => {
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = getToken();
+    const isLoginCall = ['/api/auth/login', '/api/auth/register'].some(path => (config.url || '').includes(path));
+    if (token && isTokenExpired(token) && !isLoginCall) {
+      endExpiredSession();
+      return Promise.reject(new Error('Your session expired. Please sign in again.'));
+    }
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
@@ -100,19 +112,7 @@ axiosInstance.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // Any 401 from a protected endpoint — not just a cleanly-expired token — is routed
-    // through the same silent refresh-and-retry pipeline. NO_TOKEN/INVALID_TOKEN (e.g. a
-    // corrupted access token, or one signed against a rotated secret) used to fall straight
-    // through to `return Promise.reject(error)` below with no recovery attempt at all, so
-    // every protected call independently 401'd instead of self-healing via the still-valid
-    // refresh token — exactly the "many different endpoints failing at once" symptom this
-    // fixes. Only login/register/refresh are excluded here (a bad-password 401 from
-    // /api/auth/login has nothing to do with token validity) — NOT the whole /api/auth/
-    // prefix, which used to also catch /api/auth/verify. That's the exact call AuthContext
-    // makes on every page load/refresh to validate the stored session: excluding it from
-    // silent refresh meant that the moment the access token had expired, a page
-    // refresh saw verify's 401 with no refresh attempt at all and logged the user out —
-    // even though their still-valid 7-day refresh token would have silently renewed it.
+    // Expired sessions must end; only other token failures may attempt recovery.
     const AUTH_ENDPOINTS_EXCLUDED_FROM_REFRESH = ['/api/auth/login', '/api/auth/register', '/api/auth/refresh'];
     const requestUrl = originalRequest?.url || '';
     const isAuthEndpoint = AUTH_ENDPOINTS_EXCLUDED_FROM_REFRESH.some((p) => requestUrl.includes(p));
@@ -124,6 +124,12 @@ axiosInstance.interceptors.response.use(
         code === 'INVALID_TOKEN' ||
         message === 'Token expired' ||
         message === 'Access token expired');
+
+    const expired = code === 'TOKEN_EXPIRED' || message === 'Token expired' || message === 'Access token expired';
+    if (!isAuthEndpoint && status === 401 && expired) {
+      endExpiredSession();
+      return Promise.reject(error);
+    }
 
     if (isAuthFailure && !originalRequest._retry) {
       originalRequest._retry = true;

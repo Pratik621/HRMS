@@ -2438,7 +2438,7 @@ const Attendance = () => {
                     style={{ maxHeight: 560, overflowY: 'auto' }}
                     ref={tableScrollRef}
                   >
-                    <PaginatedTable as={Table} paginate={false} className="mb-0">
+                    <PaginatedTable searchable as={Table} paginate={false} className="mb-0">
                       <thead className="sticky-top" style={{ top: 0, zIndex: 10 }}>
                         <tr>
                           <th style={{ ...DA_TH_STYLE, width: '13%' }}>Date</th>

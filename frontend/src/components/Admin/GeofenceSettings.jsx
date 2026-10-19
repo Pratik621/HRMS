@@ -216,7 +216,7 @@ const GeofenceSettings = () => {
             </div>
           ) : (
             <div className="table-responsive" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-              <PaginatedTable as={Table} hover striped className="mb-0 small">
+              <PaginatedTable searchable as={Table} hover striped className="mb-0 small">
                 <thead className="bg-light sticky-top" style={{ top: 0, zIndex: 10 }}>
                   <tr>
                     <th className="text-nowrap text-dark fw-normal text-center">#</th>

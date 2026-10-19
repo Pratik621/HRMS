@@ -434,7 +434,7 @@ const PayrollAdjustment = () => {
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <PaginatedTable style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+            <PaginatedTable searchable style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
                 <tr style={{ background: '#1e3a5f', color: '#fff' }}>
                   <th style={{ padding: '11px 12px', textAlign: 'center', borderRight: '1px solid rgba(255,255,255,0.08)', width: 36 }}>

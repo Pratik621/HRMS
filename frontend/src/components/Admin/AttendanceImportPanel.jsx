@@ -758,7 +758,7 @@ const AttendanceImportPanel = ({ employees = [], onMonthYearChange, onImportSucc
                   <p style={{ color: '#9ca3af', fontSize: 12, textAlign: 'center', padding: '12px 0' }}>No import history yet</p>
                 ) : (
                   <div style={{ overflowX: 'auto' }}>
-                    <PaginatedTable style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+                    <PaginatedTable searchable style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
                       <thead>
                         <tr style={{ background: '#f9fafb' }}>
                           {['Month','Year','File','Inserted','Updated','Failed','Imported By','Date'].map(h => (
@@ -846,7 +846,7 @@ const AttendanceImportPanel = ({ employees = [], onMonthYearChange, onImportSucc
 
                 return (
                   <div style={{ overflowX: 'auto', maxHeight: 440, border: '1px solid #e5e7eb', borderRadius: 8 }}>
-                    <PaginatedTable style={{ borderCollapse: 'collapse', fontSize: 11 }}>
+                    <PaginatedTable searchable style={{ borderCollapse: 'collapse', fontSize: 11 }}>
                       <thead>
                         <tr>
                           <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 700, color: '#374151', borderBottom: '2px solid #e5e7eb', borderRight: '2px solid #d1d5db', position: 'sticky', left: 0, top: 0, background: '#f9fafb', zIndex: 3, minWidth: 155, whiteSpace: 'nowrap' }}>

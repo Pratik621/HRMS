@@ -230,7 +230,7 @@ const PendingApprovals = () => {
         </Card>
       ) : (
         <div className="table-responsive">
-          <PaginatedTable as={Table} hover size="sm" className="mb-0">
+          <PaginatedTable searchable as={Table} hover size="sm" className="mb-0">
             <thead className="bg-light">
               <tr className="small">
                 <th>#</th>

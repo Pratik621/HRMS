@@ -683,7 +683,7 @@ const Profile = () => {
                             <div className="p-0">
                                 {leaveRequests.length > 0 ? (
                                     <div className="table-responsive" style={{ maxHeight: '340px', overflowY: 'auto' }}>
-                                        <PaginatedTable as={Table} hover size="sm" className="pf-history-table mb-0">
+                                        <PaginatedTable searchable as={Table} hover size="sm" className="pf-history-table mb-0">
                                             <thead className="pf-table-heading sticky-top" style={{ top: 0, zIndex: 10 }}>
                                                 <tr>
                                                     <th className="small text-dark">Leave Type</th>
@@ -763,7 +763,7 @@ const Profile = () => {
                             <div className="p-0">
                                 {compOffHistory.length > 0 ? (
                                     <div className="table-responsive" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                                        <PaginatedTable as={Table} hover size="sm" className="pf-history-table mb-0">
+                                        <PaginatedTable searchable as={Table} hover size="sm" className="pf-history-table mb-0">
                                             <thead className="bg-light sticky-top" style={{ top: 0, zIndex: 10 }}>
                                                 <tr>
                                                     <th className="small text-dark">Sr No</th>

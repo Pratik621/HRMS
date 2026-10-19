@@ -265,7 +265,7 @@ export default function FinanceExport() {
               </div>
             </Card.Header>
             <div style={{ overflowX: 'auto' }}>
-              <PaginatedTable as={Table} hover size="sm" className="mb-0" style={{ fontSize: 12 }}>
+              <PaginatedTable searchable as={Table} hover size="sm" className="mb-0" style={{ fontSize: 12 }}>
                 <thead style={{ background: '#f8fafc' }}>
                   <tr>
                     <th>#</th>

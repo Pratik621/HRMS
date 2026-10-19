@@ -431,7 +431,7 @@ const SalarySlipManager = ({ employee, refreshKey }) => {
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <PaginatedTable style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+            <PaginatedTable searchable style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
                   {['Month', 'Year', 'Pay Cycle', 'Monthly Salary', 'Earned', 'OT', 'Deductions', 'Net Salary', 'Status', 'Actions'].map(h => (
