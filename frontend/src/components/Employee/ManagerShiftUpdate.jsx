@@ -317,7 +317,7 @@ const ManagerShiftUpdate = ({ embedded = false }) => {
             </Card.Header>
             <Card.Body className="p-0">
               <div className="table-responsive">
-                <PaginatedTable as={Table} hover size="sm" className="mb-0 align-middle">
+                <PaginatedTable searchable as={Table} hover size="sm" className="mb-0 align-middle">
                   <thead className="bg-light">
                     <tr className="small">
                       <th className="text-center" style={{ width: 40 }}>

@@ -204,7 +204,7 @@ const AdminUpdateApprovals = () => {
             {/* Changes Comparison - Responsive */}
             <h6 className="fw-bold mb-3">Changes Requested</h6>
             <div className="table-responsive">
-              <PaginatedTable className="table table-bordered small">
+              <PaginatedTable searchable className="table table-bordered small">
                 <thead className="table-light">
                   <tr>
                     <th style={{ width: '25%' }} className="text-nowrap">Field</th>
@@ -293,7 +293,7 @@ const AdminUpdateApprovals = () => {
               </div>
             ) : (
               <div className="table-responsive">
-                <PaginatedTable className="table table-hover mb-0">
+                <PaginatedTable searchable className="table table-hover mb-0">
                   <thead className="table-light">
                     <tr>
                       <th className="text-nowrap">Employee</th>

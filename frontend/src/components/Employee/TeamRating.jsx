@@ -256,7 +256,7 @@ const TeamRating = () => {
         </Card.Header>
         <Card.Body className="p-0">
           <div className="table-responsive">
-            <PaginatedTable as={Table} hover className="mb-0">
+            <PaginatedTable searchable as={Table} hover className="mb-0">
               <thead className="bg-light">
                 <tr className="small">
                   <th className="fw-normal">#</th>

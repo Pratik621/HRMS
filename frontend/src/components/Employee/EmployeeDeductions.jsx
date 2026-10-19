@@ -153,7 +153,7 @@ export default function EmployeeDeductions({ embedded = false }) {
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <PaginatedTable as={Table} hover className="mb-0 align-middle" style={{ minWidth: 760 }}>
+              <PaginatedTable searchable as={Table} hover className="mb-0 align-middle" style={{ minWidth: 760 }}>
                 <thead className="bg-light">
                   <tr>
                     <th className="ps-4">Month</th>

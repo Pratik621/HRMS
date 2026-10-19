@@ -11,3 +11,11 @@
 .hrms-table-pagination button:disabled { opacity: .45; cursor: not-allowed; }
 @media (max-width: 576px) { .hrms-table-page-buttons { width: 100%; justify-content: space-between; gap: 4px; } .hrms-table-pagination { gap: 8px; } }
 @media print { .hrms-table-scroll { max-height: none; overflow: visible; } .hrms-table-scroll thead { position: static; } .hrms-table-pagination { display: none; } }
+
+.hrms-table-search { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 12px; background: #fff; color: #475569; font-size: 12px; }
+.hrms-table-search label { margin: 0; font-weight: 600; }
+.hrms-table-search input { flex: 1; min-width: 140px; max-width: 360px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 7px 10px; color: #334155; background: #fff; }
+.hrms-table-search input:focus-visible, .hrms-table-search button:focus-visible { outline: 2px solid #6366f1; outline-offset: 2px; }
+.hrms-table-search button { border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px; color: #334155; background: #fff; }
+.hrms-table-no-results { text-align: center; padding: 24px !important; color: #64748b; }
+@media print { .hrms-table-search { display: none; } }

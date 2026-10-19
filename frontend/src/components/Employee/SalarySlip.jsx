@@ -933,7 +933,7 @@ const SalarySlip = ({ embedded = false }) => {
             <Card.Body className="p-0">
               {/* Table with Vertical Scroll */}
               <div className="table-responsive" style={{ maxHeight: '480px', overflowY: 'auto' }}>
-                <PaginatedTable as={Table} hover className="salary-statements-table mb-0">
+                <PaginatedTable searchable as={Table} hover className="salary-statements-table mb-0">
                   <thead><tr><th>Pay period</th><th className="text-end">Basic salary</th><th className="text-end">Deductions</th><th className="text-end">Net pay</th><th className="text-end">Statement</th></tr></thead>
                   <tbody>
                     {displaySlips.length ? displaySlips.map(slip => {

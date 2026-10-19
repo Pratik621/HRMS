@@ -1052,7 +1052,7 @@ const AttendanceReports = () => {
           <Card.Body className="p-0">
             {activeView === 'daily' ? (
               <div className="table-responsive" style={{ maxHeight: '400px', overflow: 'auto' }}>
-                <PaginatedTable as={Table} size="sm" striped className="mb-0">
+                <PaginatedTable searchable as={Table} size="sm" striped className="mb-0">
                   <thead className="bg-light sticky-top" style={{ top: 0, zIndex: 10 }}>
                     <tr>
                       <th className="text-dark fw-normal small text-center" style={{ width: '50px' }}>Sr No</th>
@@ -1220,7 +1220,7 @@ const AttendanceReports = () => {
                     }
                   `}
                 </style>
-                <PaginatedTable className="monthly-table table-sm mb-0">
+                <PaginatedTable searchable className="monthly-table table-sm mb-0">
                   <thead>
                     <tr>
                       <th className="fixed-col-header col-1 text-center fw-normal small bg-light"

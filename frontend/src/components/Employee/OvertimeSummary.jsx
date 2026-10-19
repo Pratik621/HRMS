@@ -193,7 +193,7 @@ const OvertimeSummary = () => {
         </Card.Header>
         <Card.Body className="p-0">
           <div className="table-responsive" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-            <PaginatedTable as={Table} hover className="mb-0" size="sm">
+            <PaginatedTable searchable as={Table} hover className="mb-0" size="sm">
               <thead className="bg-light sticky-top" style={{ top: 0 }}>
                 <tr>
                   <th className="small">Date</th>

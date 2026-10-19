@@ -1368,7 +1368,7 @@ const EditEmployee = () => {
                         </div>
                     ) : employeeDocuments.length > 0 ? (
                         <div className="table-responsive">
-                            <PaginatedTable as={Table} striped hover size="sm" className="mb-0">
+                            <PaginatedTable searchable as={Table} striped hover size="sm" className="mb-0">
                                 <thead className="bg-light">
                                     <tr>
                                         <th className="small text-dark">Document Type</th>
