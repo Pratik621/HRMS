@@ -384,6 +384,11 @@ exports.applyLeave = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
 
+        const trimmedReason = typeof reason === 'string' ? reason.trim() : '';
+        if (trimmedReason.length < 10 || trimmedReason.length > 500) {
+            return res.status(400).json({ success: false, message: 'Reason must be between 10 and 500 characters, excluding leading and trailing spaces.' });
+        }
+
         // Guards against malformed dates (e.g. a stray extra "20" prefix on the year — seen
         // once in production as "202026-09-02") slipping through to be stored, which silently
         // breaks the leave-approval → attendance sync for that request since it iterates the
@@ -409,6 +414,14 @@ exports.applyLeave = async (req, res) => {
             .from('employees').select('joining_date, comp_off_balance, first_name, last_name, dob')
             .eq('employee_id', employee_id).single();
         if (empError) throw empError;
+
+        const employmentStart = employee?.joining_date?.slice(0, 10);
+        if (!employmentStart) {
+            return res.status(400).json({ success: false, message: 'Joining date is unavailable. Please contact HR.' });
+        }
+        if (start_date < employmentStart) {
+            return res.status(400).json({ success: false, message: 'Leave cannot start before your joining date.' });
+        }
 
         // ── Birthday Leave — special handling ────────────────────────────────
         if (leave_type === 'Birthday') {
@@ -503,7 +516,7 @@ exports.applyLeave = async (req, res) => {
                 half_day_type: half_day_type || null,
                 start_date,
                 end_date: end_date || start_date,
-                reason,
+                reason: trimmedReason,
                 days_count: days_count || 1,
                 reporting_manager: reporting_manager.trim(),
                 ...statusFields,
@@ -558,7 +571,7 @@ exports.applyLeave = async (req, res) => {
                                 startDate: start_date,
                                 endDate: end_date || start_date,
                                 daysCount: days_count || 1,
-                                reason,
+                                reason: trimmedReason,
                             },
                             Array.from(recipientMap.values())
                         );

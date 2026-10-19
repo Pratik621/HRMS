@@ -4,9 +4,9 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 
-async function generate({ joining = '2026-09-18', attendance = [], holidays = [], leaves = [], editBody = null, role = 'admin', expectedStatus = 200 } = {}) {
+async function generate({ joining = '2026-09-18', attendance = [], holidays = [], leaves = [], editBody = null, role = 'admin', expectedStatus = 200, employeeFields = {} } = {}) {
     let saved;
-    const employee = { employee_id: 'TEST', joining_date: joining, in_hand_salary: 23000, pf_amount: 0, pt_amount: 0 };
+    const employee = { employee_id: 'TEST', joining_date: joining, gross_salary: 23000, in_hand_salary: 21000, pf_amount: 0, pt_amount: 0, ...employeeFields };
     const supabase = { from(table) {
         let inserted = false;
         const builder = {};
@@ -102,4 +102,22 @@ test('employee cannot save payroll edits', async () => {
 test('invalid and excessive day counts cannot be saved', async () => {
     await generate({ editBody: { ...editBody, present_days: 30 }, expectedStatus: 400 });
     await generate({ editBody: { ...editBody, deduction: -1 }, expectedStatus: 400 });
+});
+
+// Salary starts from gross; in-hand is already net of fixed deductions.
+test('full paid cycle uses 23000 gross and deducts 2000 once, yielding 21000', async () => {
+ const attendance = [];
+ for (let day = new Date('2026-08-26T12:00:00Z'); day <= new Date('2026-09-25T12:00:00Z'); day.setUTCDate(day.getUTCDate()+1)) {
+  if (![0,6].includes(day.getUTCDay())) attendance.push({attendance_date:day.toISOString().slice(0,10),status:'present'});
+ }
+ const slip = await generate({joining:'2026-08-01',attendance,employeeFields:{pf_amount:1800,professional_tax_amount:200}});
+ assert.equal(slip.monthly_salary,23000);
+ assert.equal(slip.basic_salary,23000);
+ assert.equal(slip.dt,2000);
+ assert.equal(slip.net_salary,21000);
+});
+test('payroll adjustment also uses gross rather than already-net in-hand salary', async () => {
+ const slip = await generate({editBody,employeeFields:{gross_salary:23000,in_hand_salary:21000}});
+ assert.equal(slip.monthly_salary,23000);
+ assert.equal(slip.per_day_salary,1000);
 });
