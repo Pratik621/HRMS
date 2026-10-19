@@ -21,7 +21,7 @@ test('idle session logs out once when its timer fires', () => {
     now = 3000; callback(); watcher.check();
     assert.equal(logouts, 1);
 });
-test('resuming a sleeping tab detects expiry without an API call', () => {
+test('resuming a sleeping tab dete`cts expiry without an API call', () => {
     let now = 1000, logouts = 0;
     const watcher = watchSessionExpiry(() => tokenFor(3), () => logouts++, {
         now: () => now, setTimer() {}, clearTimer() {},

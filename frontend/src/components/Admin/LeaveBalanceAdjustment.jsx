@@ -55,6 +55,9 @@ export default function LeaveBalanceAdjustment() {
       const res = await axios.get(API_ENDPOINTS.EMPLOYEES);
       const list = (res.data?.employees || res.data || []).filter(e => e.is_active !== false);
       setEmployees(list);
+      setSelectedEmp(current => current
+        ? (list.find(employee => employee.employee_id === current.employee_id) || current)
+        : current);
     } catch {
       setError('Failed to load employees');
     } finally {

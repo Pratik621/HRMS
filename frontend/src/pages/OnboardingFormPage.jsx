@@ -133,7 +133,7 @@ function FileField({ label, required, accept, hint, maxMB, file, onChange, sizeE
     const handleChange = (f) => {
         if (!f) { onChange(null); return; }
         if (maxMB && f.size > maxMB * 1024 * 1024) {
-            onChange(null, `"${f.name}" is ${fmtSize(f.size)} — max allowed is ${maxMB} MB. Please compress the file and try again.`);
+            onChange(null, `Your document is larger than ${maxMB} MB. Please compress it or choose a smaller file.`);
             return;
         }
         onChange(f, null);
@@ -371,6 +371,10 @@ export default function OnboardingFormPage() {
             body: fd,
             // No Content-Type — browser sets multipart/form-data + boundary automatically
         });
+
+        if (res.status === 413) {
+            throw new Error('Your document is larger than 4 MB. Please compress it or choose a smaller file.');
+        }
 
         const raw = await res.text();
         let data;

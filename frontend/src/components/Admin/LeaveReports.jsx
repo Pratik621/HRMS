@@ -63,11 +63,10 @@ const LeaveReports = () => {
           const used = parseFloat(rawBalance.used) || 0;
           const pendingApproval = parseFloat(rawBalance.pending) || 0;
           
-          // PENDING = TOTAL ACCRUED - USED (leaves that are either available or pending approval)
-          const calculatedPending = totalAccrued - used;
-          
-          // AVAILABLE = TOTAL ACCRUED - USED - PENDING_APPROVAL
-          const available = totalAccrued - used - pendingApproval;
+          // Use the authoritative API balance, which includes manual adjustments
+          // and eligibility rules. Recomputing from accrual alone loses HR credits.
+          const available = parseFloat(rawBalance.available) || 0;
+          const calculatedPending = available + pendingApproval;
           
           console.log(`📊 Employee ${emp.employee_id}:`, {
             totalAccrued,
@@ -75,7 +74,7 @@ const LeaveReports = () => {
             pendingApproval,
             calculatedPending,
             available,
-            formula: `${totalAccrued} - ${used} = ${calculatedPending}`
+            formula: `${available} available + ${pendingApproval} awaiting approval = ${calculatedPending}`
           });
           
           return {
