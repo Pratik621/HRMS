@@ -256,6 +256,8 @@ const EmployeeDashboard = () => {
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [leaveBalanceError, setLeaveBalanceError] = useState(null);
+  const [leaveBalanceLoading, setLeaveBalanceLoading] = useState(true);
   const [employee, setEmployee] = useState(null);
   const [leaveBalance, setLeaveBalance] = useState({
     available: 0,
@@ -670,6 +672,8 @@ const EmployeeDashboard = () => {
   };
 
   const fetchLeaveBalance = async () => {
+    setLeaveBalanceLoading(true);
+    setLeaveBalanceError(null);
     try {
       const response = await axios.get(API_ENDPOINTS.LEAVE_BALANCE(user.employeeId));
       setLeaveBalance({
@@ -686,19 +690,9 @@ const EmployeeDashboard = () => {
       });
     } catch (error) {
       console.error('Error fetching leave balance:', error);
-      setLeaveBalance({
-        available: 0,
-        total_accrued: 0,
-        used: 0,
-        pending: 0,
-        comp_off_balance: 0,
-        total_comp_off_earned: 0,
-        total_comp_off_used: 0,
-        is_eligible: false,
-        months_completed: 0,
-        is_probation_complete: false
-      });
-      showNotification('Failed to load leave balance', 'info');
+      setLeaveBalanceError('Unable to load leave balance.');
+    } finally {
+      setLeaveBalanceLoading(false);
     }
   };
 
@@ -1048,7 +1042,9 @@ const EmployeeDashboard = () => {
       <DashboardQuickAccess
         employeeId={employee?.employee_id}
         leaveBalance={leaveBalance}
-        leaveBalanceLoading={loading}
+        leaveBalanceLoading={leaveBalanceLoading}
+        leaveBalanceError={leaveBalanceError}
+        onRetryLeaveBalance={fetchLeaveBalance}
         onLeaveScope="department"
         department={employee?.department}
         attendance={attendance}
@@ -1070,8 +1066,15 @@ const EmployeeDashboard = () => {
           />
         }
         footerExtra={
-          <div style={{ display: 'flex', gap: 2 }}>
-            {renderStars(allRatings.length > 0 ? allRatings.reduce((s, r) => s + r.rating, 0) / allRatings.length : 0)}
+          <div>
+            <div className="small text-muted mb-1">Performance Rating</div>
+            {allRatings.length > 0 ? (
+              <div style={{ display: 'flex', gap: 2 }}>
+                {renderStars(allRatings.reduce((s, r) => s + r.rating, 0) / allRatings.length)}
+              </div>
+            ) : (
+              <div className="small text-muted">Not rated yet</div>
+            )}
           </div>
         }
       />

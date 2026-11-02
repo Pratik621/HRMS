@@ -399,7 +399,7 @@ exports.generateSalarySlip = async (req, res) => {
         await supabase.from('salary_slips').delete()
             .eq('employee_id', employee_id).eq('month', month).eq('year', year);
 
-        const monthlySalary = parseFloat(employee.in_hand_salary || employee.gross_salary || employee.salary || 0);
+        const monthlySalary = parseFloat(employee.gross_salary ?? employee.salary ?? employee.in_hand_salary ?? 0);
         const joiningDate   = employee.joining_date ? new Date(employee.joining_date) : null;
 
         // Full-cycle weekdays determine the rate; joining only limits eligible days.
@@ -1002,7 +1002,7 @@ async function savePayrollOverrides(req, res) {
         if (readError) throw readError;
         const old = slips?.[0];
         if (old?.is_paid) return res.status(409).json({ success: false, message: 'A paid salary slip cannot be edited' });
-        const monthly = Number(employee.in_hand_salary || employee.gross_salary || employee.salary || 0);
+        const monthly = Number(employee.gross_salary ?? employee.salary ?? employee.in_hand_salary ?? 0);
         const pf = Number(b.pf_amount), tax = Number(b.professional_tax_amount);
         const fixed = Number(b.year) > 2026 || (Number(b.year) === 2026 && Number(b.month) >= 5) ? pf + tax : 200;
         const deduction = Number(b.deduction);
@@ -1057,7 +1057,7 @@ exports.saveSalaryAdjustment = async (req, res) => {
 
             const employee = await getEmployeeDetails(employee_id);
             if (!employee) return res.status(404).json({ success: false, message: 'Employee not found' });
-            const monthlySalary = parseFloat(employee.in_hand_salary || employee.gross_salary || employee.salary || 0);
+            const monthlySalary = parseFloat(employee.gross_salary ?? employee.salary ?? employee.in_hand_salary ?? 0);
             const isPFApplicableOT = parseInt(year) > 2026 || (parseInt(year) === 2026 && parseInt(month) >= 5);
             const pfAmountOT = isPFApplicableOT ? (employee.pf_amount != null ? parseInt(employee.pf_amount) : 1800) : 0;
             const ptAmountOT = 0;
@@ -1153,7 +1153,7 @@ exports.saveSalaryAdjustment = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Employee not found' });
         }
 
-        const monthlySalary = parseFloat(employee.in_hand_salary || employee.gross_salary || employee.salary || 0);
+        const monthlySalary = parseFloat(employee.gross_salary ?? employee.salary ?? employee.in_hand_salary ?? 0);
         const resolvedShiftHours = parseFloat(shift_hours) > 0
             ? parseFloat(shift_hours)
             : parseShiftHours(employee.shift_timing);
@@ -1387,7 +1387,7 @@ exports.getBulkPayroll = async (req, res) => {
         }));
 
         const records = employees.map(emp => {
-            const monthlySalary   = parseFloat(emp.in_hand_salary || emp.gross_salary || emp.salary || 0);
+            const monthlySalary   = parseFloat(emp.gross_salary ?? emp.salary ?? emp.in_hand_salary ?? 0);
             const slip            = slipMap[emp.employee_id] || null;
             // defaultWD (whole cycle, no joining-date adjustment) is only a fallback for
             // employees who joined before this cycle started — a mid-cycle joiner with no

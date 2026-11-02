@@ -1,3 +1,5 @@
+import { getNextBirthday } from '../../utils/nextBirthday';
+import { getHalfDayOptions } from '../../utils/halfDayOptions';
 import { calculateLeaveDays } from '../../utils/leaveDays';
 // src/components/Employee/ApplyLeave.jsx
 import React, { useState, useEffect } from 'react';
@@ -83,15 +85,7 @@ const ApplyLeave = () => {
   const [calculatedDays, setCalculatedDays] = useState(1);
   const [errors, setErrors] = useState({});
 
-  // Returns this year's birthday as YYYY-MM-DD, or '' if dob not set
-  const getBirthdayThisYear = () => {
-    if (!employeeDetails.dob) return '';
-    const d = new Date(employeeDetails.dob);
-    const year = new Date().getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${year}-${mm}-${dd}`;
-  };
+  const getUpcomingBirthday = () => getNextBirthday(employeeDetails.dob, employeeDetails.joining_date);
 
   const getAvailableLeaveTypes = () => {
     const types = [];
@@ -111,7 +105,7 @@ const ApplyLeave = () => {
 
     // Birthday Leave — always available (no probation restriction)
     if (employeeDetails.dob) {
-      const birthdayDate = getBirthdayThisYear();
+      const birthdayDate = getUpcomingBirthday();
       const formatted = birthdayDate
         ? new Date(birthdayDate + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'long' })
         : '';
@@ -140,10 +134,7 @@ const ApplyLeave = () => {
     return types;
   };
 
-  const [halfDayOptions] = useState([
-    { value: 'first_half', label: 'First Half (9:00 AM - 1:00 PM)' },
-    { value: 'second_half', label: 'Second Half (2:00 PM - 6:00 PM)' }
-  ]);
+  const halfDayOptions = getHalfDayOptions(employeeDetails.shift_timing);
 
   useEffect(() => {
     if (user?.employeeId) {
@@ -198,7 +189,7 @@ const ApplyLeave = () => {
   // Auto-fill & lock dates when Birthday leave is selected
   useEffect(() => {
     if (formData.leave_type === 'Birthday' && employeeDetails.dob) {
-      const bd = getBirthdayThisYear();
+      const bd = getUpcomingBirthday();
       setFormData(prev => ({
         ...prev,
         leave_duration: 'Full Day',
@@ -207,7 +198,7 @@ const ApplyLeave = () => {
       }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.leave_type, employeeDetails.dob]);
+  }, [formData.leave_type, employeeDetails.dob, employeeDetails.joining_date]);
 
   const fetchEmployeeDetails = async () => {
     try {
@@ -219,7 +210,8 @@ const ApplyLeave = () => {
       setEmployeeDetails({
         joining_date: response.data.joining_date,
         reporting_manager: response.data.reporting_manager || '',
-        dob: response.data.dob || ''
+        dob: response.data.dob || '',
+        shift_timing: response.data.shift_timing || ''
       });
 
       // Auto-select the employee's assigned reporting manager
@@ -359,6 +351,10 @@ const ApplyLeave = () => {
       newErrors.start_date = 'Start date is required';
     }
 
+    if (formData.start_date && employeeDetails.joining_date && formData.start_date < employeeDetails.joining_date.slice(0, 10)) {
+      newErrors.start_date = 'Leave cannot start before your joining date.';
+    }
+
     if (formData.leave_duration === 'Half Day' && !formData.half_day_type) {
       newErrors.half_day_type = 'Please select which half';
     }
@@ -375,10 +371,13 @@ const ApplyLeave = () => {
       newErrors.start_date = 'Select at least one working day. Saturdays and Sundays are excluded.';
     }
 
-    if (!formData.reason) {
+    const trimmedReason = formData.reason.trim();
+    if (!trimmedReason) {
       newErrors.reason = 'Reason is required';
-    } else if (formData.reason.length < 10) {
+    } else if (trimmedReason.length < 10) {
       newErrors.reason = 'Reason must be at least 10 characters';
+    } else if (trimmedReason.length > 500) {
+      newErrors.reason = 'Reason must be 500 characters or fewer';
     }
 
     if (!formData.reporting_manager || !formData.reporting_manager.trim()) {
@@ -387,7 +386,7 @@ const ApplyLeave = () => {
 
     if (formData.leave_type === 'Birthday') {
       if (employeeDetails.dob) {
-        const bd = getBirthdayThisYear();
+        const bd = getUpcomingBirthday();
         if (formData.start_date !== bd) {
           newErrors.start_date = `Birthday leave must be on your birthday (${new Date(bd + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'long' })})`;
         }
@@ -419,6 +418,7 @@ const ApplyLeave = () => {
     try {
       const leaveData = {
         ...formData,
+        reason: formData.reason.trim(),
         employee_id: user.employeeId,
         days_count: calculatedDays,
         applied_date: new Date().toISOString().split('T')[0]
@@ -702,8 +702,8 @@ const ApplyLeave = () => {
                       <div className="fw-semibold small" style={{ color: '#854d0e' }}>Birthday Leave</div>
                       <div className="small" style={{ color: '#713f12' }}>
                         This is a paid day off on your birthday — no balance will be deducted.
-                        {getBirthdayThisYear() && (
-                          <span> Your birthday this year: <strong>{new Date(getBirthdayThisYear() + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>.</span>
+                        {getUpcomingBirthday() && (
+                          <span> Your eligible birthday: <strong>{new Date(getUpcomingBirthday() + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>.</span>
                         )}
                       </div>
                     </div>
@@ -720,6 +720,7 @@ const ApplyLeave = () => {
                       <Form.Control
                         type="date"
                         name="start_date"
+                        min={employeeDetails.joining_date?.slice(0, 10) || undefined}
                         value={formData.start_date}
                         onChange={handleChange}
                         size="sm"
@@ -771,6 +772,7 @@ const ApplyLeave = () => {
                     as="textarea"
                     rows={4}
                     name="reason"
+                    maxLength={500}
                     value={formData.reason}
                     onChange={handleChange}
                     size="sm"

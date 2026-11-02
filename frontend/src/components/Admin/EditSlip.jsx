@@ -201,7 +201,7 @@ const EditSlip = () => {
       setLastUpdated(existing.lastUpdated || null);
       showNotification(`Draft found for ${existing.employeeName} — ${MONTHS[keyMonth - 1]} ${keyYear}`, 'info');
     } else {
-      setMonthlySalary(String(emp.in_hand_salary || emp.gross_salary || ''));
+      setMonthlySalary(String(emp.gross_salary ?? emp.salary ?? emp.in_hand_salary ?? ''));
       setPresentDays(String(wd));
       setHalfDays('0');
       setPf(String(emp.pf_amount ?? 0));
